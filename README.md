@@ -1,46 +1,186 @@
-# Getting Started with Create React App
+# Customer Portal - React Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Customer Self-Service Portal untuk sistem WiFi Billing Management.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **Customer Authentication** - Login dengan nomor HP atau PPPoE
+- **Payment Management** - Lihat tagihan dan upload bukti pembayaran
+- **Ticket System** - Buat dan kelola support tickets
+- **Profile Management** - Update informasi customer
+- **Responsive Design** - Mobile-friendly interface
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **React 18** - Frontend framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Axios** - HTTP client
+- **React Router** - Navigation
+- **Heroicons** - Icons
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 📦 Installation
 
-### `npm test`
+1. Install dependencies:
+```bash
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Create environment file:
+```bash
+# Create .env file
+REACT_APP_API_URL=http://localhost:8000/api/v1
+```
 
-### `npm run build`
+3. Start development server:
+```bash
+npm start
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🔧 Configuration
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### API Configuration
+Update `src/config/api.ts` untuk mengubah API endpoint:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```typescript
+export const API_CONFIG = {
+  BASE_URL: 'http://your-backend-url.com/api/v1',
+  TIMEOUT: 10000,
+};
+```
 
-### `npm run eject`
+### Environment Variables
+- `REACT_APP_API_URL` - Backend API URL
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 📱 Usage
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Customer Login
+Customer dapat login menggunakan:
+- **Nomor HP** (contoh: 081234567890)
+- **PPPoE Username** (contoh: customer123)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+**Password Default:** 6 digit terakhir nomor HP
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Features
 
-## Learn More
+#### Dashboard
+- Overview customer information
+- Statistics (payments, tickets)
+- Unpaid bills notification
+- Quick actions
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### Payment Management
+- View unpaid bills
+- Upload payment proof
+- Payment history
+- Send proof via WhatsApp
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### Ticket System
+- Create support tickets
+- View ticket status
+- Add comments
+- Upload attachments
+- Rate resolution
+
+#### Profile Management
+- Update customer information
+- Change password
+- View statistics
+
+## 🏗️ Project Structure
+
+```
+src/
+├── components/          # Reusable components
+│   ├── Layout.tsx      # Main layout component
+│   └── LoginForm.tsx   # Login form component
+├── contexts/           # React contexts
+│   └── AuthContext.tsx # Authentication context
+├── pages/              # Page components
+│   └── Dashboard.tsx   # Dashboard page
+├── services/           # API services
+│   └── api.ts         # API client
+├── types/              # TypeScript types
+│   └── index.ts       # Type definitions
+├── config/             # Configuration
+│   └── api.ts         # API configuration
+└── App.tsx            # Main app component
+```
+
+## 🔐 Authentication
+
+Sistem menggunakan Laravel Sanctum untuk authentication:
+
+1. Customer login dengan username (HP/PPPoE) dan password
+2. Backend mengembalikan token
+3. Token disimpan di localStorage
+4. Token digunakan untuk semua API requests
+5. Auto logout jika token expired
+
+## 📱 Mobile Support
+
+- Responsive design untuk semua screen sizes
+- Touch-friendly interface
+- Mobile-optimized forms
+- PWA ready
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Deploy to Static Hosting
+Build files akan tersedia di `build/` directory.
+
+### Environment Configuration
+Pastikan set environment variables untuk production:
+- `REACT_APP_API_URL` - Production API URL
+
+## 🔧 Development
+
+### Available Scripts
+- `npm start` - Start development server
+- `npm run build` - Build for production
+- `npm test` - Run tests
+- `npm run eject` - Eject from Create React App
+
+### Code Style
+- TypeScript untuk type safety
+- ESLint untuk code quality
+- Prettier untuk code formatting
+
+## 📚 API Integration
+
+Frontend terintegrasi dengan backend API:
+
+- **Authentication API** - Login, logout, profile
+- **Payment API** - Bills, proofs, history
+- **Ticket API** - Create, view, manage tickets
+- **Profile API** - Update information, statistics
+
+Lihat [API Documentation](../backend/docs/API_DOCUMENTATION.md) untuk detail lengkap.
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **API Connection Error**
+   - Check API URL configuration
+   - Verify backend server is running
+   - Check CORS settings
+
+2. **Login Issues**
+   - Verify username format (HP/PPPoE)
+   - Check password (default: 6 digit terakhir HP)
+   - Ensure customer account is active
+
+3. **File Upload Issues**
+   - Check file size limits
+   - Verify file types (jpg, png, pdf)
+   - Check network connection
+
+## 📞 Support
+
+Untuk bantuan teknis, hubungi tim development atau buat ticket melalui sistem.

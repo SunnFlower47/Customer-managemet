@@ -1,7 +1,6 @@
-# 🚀 WiFi Billing Management System - Complete Documentation
+# 🚀 WiFi Customer Management System - System Overview
 
-## 📋 Overview
-
+## 📋 Quick Summary
 Sistem manajemen penagihan WiFi yang komprehensif dengan Laravel 10 backend. Sistem ini dirancang dengan prinsip **data integrity** yang ketat, terutama untuk data pembayaran yang **immutable** (tidak dapat diubah).
 
 **Status**: ✅ **PRODUCTION READY** - 100% Security Audit Passed
@@ -40,7 +39,6 @@ backend/
 ## 🔒 Core Security Principles
 
 ### ⚠️ CRITICAL: Immutable Payment Records
-
 **Data pembayaran TIDAK BOLEH diubah setelah dibuat!** Ini adalah prinsip fundamental sistem ini.
 
 #### ❌ JANGAN PERNAH:
@@ -62,7 +60,6 @@ $pembayaran->update([
 ```
 
 ### Historical Snapshot System
-
 Setiap pembayaran menyimpan **snapshot kondisi saat tagihan dibuat**:
 
 ```php
@@ -80,12 +77,6 @@ Pembayaran::create([
     'status' => 'belum_bayar'
 ]);
 ```
-
-### Audit Trail & Soft Deletes
-
-- ✅ **Audit Trail**: Setiap perubahan tercatat dengan timestamp
-- ✅ **Soft Deletes**: Data tidak benar-benar dihapus, hanya di-mark deleted
-- ✅ **Non-Tight Relationships**: Foreign key NULLABLE untuk fleksibilitas
 
 ---
 
@@ -106,10 +97,10 @@ Pembayaran::create([
 ```sql
 - id (Primary Key)
 - nama, pppoe (UNIQUE), alamat, no_hp
-- paket_id (Foreign Key ke pakets)
+- paket_id (Foreign Key ke pakets, NULLABLE)
 - tanggal_mulai, tanggal_pembayaran (1-31)
 - penagih_id (Foreign Key ke penagihs, NULLABLE)
-- status (aktif/nonaktif/suspend)
+- status (aktif/isolir/bayar double)
 - created_at, updated_at
 ```
 
@@ -146,27 +137,6 @@ Pembayaran::create([
 - nama_penagih (Historical snapshot)
 - keterangan
 - created_at, updated_at, deleted_at (Soft Delete)
-```
-
-#### 6. Pengeluarans (Expenses)
-```sql
-- id (Primary Key)
-- kategori, nama_pengeluaran, deskripsi
-- jumlah, tanggal_pengeluaran
-- metode_pembayaran, status
-- user_id (Foreign Key ke users)
-- created_at, updated_at, deleted_at (Soft Delete)
-```
-
-#### 7. Company Profiles
-```sql
-- id (Primary Key)
-- nama_perusahaan, nama_lengkap_perusahaan
-- nama_singkat_perusahaan, inisial_perusahaan
-- alamat, no_telepon, email
-- layanan_1-4, support_1-4
-- payment_code_prefix
-- created_at, updated_at
 ```
 
 ---
@@ -299,128 +269,75 @@ php artisan restore:database
 'view-laporan-pendapatan', 'view-laporan-pengeluaran', 'view-laporan-laba-rugi'
 ```
 
-### Middleware Usage
-```php
-// routes/web.php
-Route::middleware(['permission:view-pelanggan'])->group(function () {
-    Route::get('/pelanggans', [WebPelangganController::class, 'index']);
-});
+---
+
+## 🛠️ Database Foreign Key Constraints
+
+### ✅ **Current Status (After Migration):**
+
+```sql
+-- Tabel pelanggans (SUDAH DIPERBAIKI)
+pelanggans.paket_id -> pakets.id (ON DELETE SET NULL) ✅
+pelanggans.penagih_id -> penagihs.id (ON DELETE SET NULL) ✅
+
+-- Tabel pembayarans (SUDAH BENAR)
+pembayarans.paket_id -> pakets.id (ON DELETE SET NULL) ✅
+pembayarans.penagih_id -> penagihs.id (ON DELETE SET NULL) ✅
+pembayarans.pelanggan_id -> pelanggans.id (ON DELETE CASCADE) ✅
 ```
+
+### 🛡️ **Keamanan Data Terjamin:**
+- ✅ **Hapus penagih** → Pelanggan tetap ada, `penagih_id` jadi NULL
+- ✅ **Hapus paket** → Pelanggan tetap ada, `paket_id` jadi NULL
+- ✅ **Data historical** di pembayaran tetap utuh
+- ✅ **Perilaku konsisten** antara website utama dan subdomain
 
 ---
 
-## 🛠️ Adding New Features
+## 📱 Customer Self-Service Features
 
-### 1. Adding New Model
+### 🎯 Key Features - Customer Portal:
+- ✅ **Login dengan No HP + Password**
+- ✅ **Cek tagihan** - Lihat tagihan yang belum dibayar
+- ✅ **Informasi pelanggan** - Lihat data pribadi (nama, alamat, paket)
+- ✅ **Pembayaran manual** - Upload bukti pembayaran
+- ✅ **Riwayat pembayaran** - Lihat history pembayaran
+- ✅ **Update profil** - Edit nama, alamat
+- ✅ **Ganti password** - Ubah password default
 
-#### Step 1: Create Migration
-```bash
-php artisan make:migration create_new_table
-```
-
-#### Step 2: Create Model
-```bash
-php artisan make:model NewModel
-```
-
-#### Step 3: Add to Controller
-```bash
-php artisan make:controller Web/NewModelController --resource
-```
-
-#### Step 4: Add Routes
-```php
-// routes/web.php
-Route::resource('new-models', WebNewModelController::class);
-```
-
-#### Step 5: Add Permissions
-```php
-// database/seeders/RolePermissionSeeder.php
-Permission::create(['name' => 'view-new-model']);
-Permission::create(['name' => 'create-new-model']);
-Permission::create(['name' => 'edit-new-model']);
-Permission::create(['name' => 'delete-new-model']);
-```
-
-### 2. Adding New Payment Fields
-
-⚠️ **IMPORTANT**: Jika menambah field ke tabel `pembayarans`, pastikan:
-
-1. **Field bersifat historical** (snapshot saat pembayaran dibuat)
-2. **Tidak mengubah data existing**
-3. **Update Smart Bills Generation** untuk field baru
-
-```php
-// Migration example
-Schema::table('pembayarans', function (Blueprint $table) {
-    $table->string('new_field')->nullable(); // NULLABLE untuk data existing
-});
-
-// Update GenerateSmartBills command
-Pembayaran::create([
-    // ... existing fields
-    'new_field' => $currentValue, // Snapshot saat pembayaran dibuat
-]);
-```
-
-### 3. Adding New Report
-
-#### Step 1: Create Controller Method
-```php
-// app/Http/Controllers/Web/LaporanController.php
-public function newReport(Request $request)
-{
-    $data = Model::query()
-        ->when($request->date_from, function($query, $date) {
-            return $query->where('created_at', '>=', $date);
-        })
-        ->get();
-    
-    return view('laporan.new-report', compact('data'));
-}
-```
-
-#### Step 2: Create View
-```php
-// resources/views/laporan/new-report.blade.php
-@extends('layouts.app')
-
-@section('content')
-    <div class="container mx-auto px-4">
-        <h1 class="text-2xl font-bold mb-4">New Report</h1>
-        <!-- Report content -->
-    </div>
-@endsection
-```
-
-#### Step 3: Add Route
-```php
-Route::get('/laporan/new-report', [LaporanController::class, 'newReport'])
-    ->name('laporan.new-report')
-    ->middleware('permission:view-laporan-new');
-```
+### 💳 Payment Method - Manual (Bukan Payment Gateway):
+- ✅ **Metode pembayaran manual** - DANA, OVO, Transfer Bank, dll
+- ✅ **Nomor rekening/wallet** - Tampilkan nomor tujuan pembayaran
+- ✅ **Dual Payment Proof System** - 2 cara kirim bukti pembayaran
+- ❌ **Tidak pakai Payment Gateway** - Terlalu rumit, pakai manual saja
 
 ---
 
-## 🧪 Testing
+## 🔌 API Endpoints
 
-### Manual Testing Checklist
-- [ ] Login dengan role admin
-- [ ] CRUD operations untuk semua entitas
-- [ ] Generate Smart Bills
-- [ ] Update payment status
-- [ ] Export functionality
-- [ ] Backup/Restore
-- [ ] Permission-based access
+### Public API (Tanpa Authentication) - Minimal:
+```
+GET  /api/v1/health                     # Health check
+```
 
-### Data Integrity Tests
-```bash
-# Test payment immutability
-php artisan test:immutable-data
+### Protected API - Customer (Dengan Authentication):
+```
+POST /api/v1/customer/login             # Login pelanggan
+GET  /api/v1/customer/bills             # Cek tagihan (setelah login)
+GET  /api/v1/customer/payment-history   # Riwayat pembayaran
+PUT  /api/v1/customer/profile           # Update profil
+POST /api/v1/customer/change-password   # Ganti password
+GET  /api/v1/customer/logout            # Logout
+```
 
-# Test database integrity
-php artisan test:data-integrity
+### Protected API - Admin (Dengan Authentication):
+```
+GET  /api/v1/admin/customers            # Manajemen pelanggan
+GET  /api/v1/admin/payments             # Manajemen pembayaran
+GET  /api/v1/admin/packages             # Manajemen paket
+GET  /api/v1/admin/dashboard/statistics # Statistik dashboard
+GET  /api/v1/admin/reports/revenue      # Laporan pendapatan
+GET  /api/v1/admin/users                # Manajemen user
 ```
 
 ---
@@ -458,61 +375,57 @@ $pelanggan->update(['paket_id' => $newPaketId]);
 
 ---
 
-## 📈 Performance Considerations
+## 🔍 Security Audit Results
 
-### Database Indexes
-```sql
--- Indexes sudah ditambahkan untuk performa optimal
-CREATE INDEX idx_pembayarans_pelanggan_bulan_tahun ON pembayarans(pelanggan_id, bulan_tagihan, tahun_tagihan);
-CREATE INDEX idx_pelanggans_penagih_status ON pelanggans(penagih_id, status);
-```
+### ✅ All Tests Passed (10/10)
 
-### Query Optimization
-```php
-// ✅ BENAR - Eager loading
-$pembayarans = Pembayaran::with(['pelanggan', 'paket', 'penagih'])->get();
+1. **Immutable Payment Records** ✅
+   - Payment data remains unchanged after package/collector changes
+   - Historical snapshots preserved correctly
 
-// ❌ SALAH - N+1 query problem
-$pembayarans = Pembayaran::all();
-foreach($pembayarans as $pembayaran) {
-    echo $pembayaran->pelanggan->nama; // N+1 queries
-}
-```
+2. **Historical Snapshot** ✅
+   - Old and new payment data properly separated
+   - Historical data completely preserved
+
+3. **Audit Trail** ✅
+   - Status updates tracked correctly
+   - Timestamps and audit information recorded
+
+4. **Soft Deletes** ✅
+   - Soft delete functionality working
+   - Data restoration successful
+
+5. **NULL Value Handling** ✅
+   - System handles NULL foreign keys correctly
+   - Data integrity maintained
+
+6. **Payment Calculations** ✅
+   - Total revenue: Rp 38,850,000
+   - Outstanding: Rp 19,500,000
+   - All calculations accurate
+
+7. **Overdue Payment Detection** ✅
+   - 50 overdue payments detected correctly
+   - Date logic working properly
+
+8. **Comprehensive Integrity** ✅
+   - 194 valid payments, 0 invalid
+   - 100% data integrity maintained
 
 ---
 
-## 🔧 Development Commands
+## 🚀 System Status
 
-### Setup New Environment
-```bash
-# Clone and install
-git clone <repository-url>
-cd backend
-composer install
-cp .env.example .env
+### ✅ PRODUCTION READY
 
-# Configure database in .env
-# Run migrations and seeders
-php artisan migrate:fresh --seed
+**Data Integrity**: ✅ IMMUTABLE  
+**Historical Data**: ✅ COMPLETE  
+**Non-Rapuh Relations**: ✅ ROBUST  
+**Security**: ✅ VALIDATED  
+**Performance**: ✅ OPTIMIZED  
+**Documentation**: ✅ COMPLETE  
 
-# Link to Herd
-herd link backend-wifi
-```
-
-### Daily Development
-```bash
-# Clear caches
-php artisan optimize:clear
-
-# Run migrations
-php artisan migrate
-
-# Generate bills (testing)
-php artisan bills:generate-smart
-
-# Backup database
-php artisan backup:database
-```
+**Sistem siap untuk production dengan prinsip data integrity yang ketat!** 🚀
 
 ---
 
@@ -584,42 +497,38 @@ php artisan optimize:clear
 
 ---
 
-## 🔍 Security Audit Results
+## 🔧 Development Commands
 
-### ✅ All Tests Passed (10/10)
+### Setup New Environment
+```bash
+# Clone and install
+git clone <repository-url>
+cd backend
+composer install
+cp .env.example .env
 
-1. **Immutable Payment Records** ✅
-   - Payment data remains unchanged after package/collector changes
-   - Historical snapshots preserved correctly
+# Configure database in .env
+# Run migrations and seeders
+php artisan migrate:fresh --seed
 
-2. **Historical Snapshot** ✅
-   - Old and new payment data properly separated
-   - Historical data completely preserved
+# Link to Herd
+herd link backend-wifi
+```
 
-3. **Audit Trail** ✅
-   - Status updates tracked correctly
-   - Timestamps and audit information recorded
+### Daily Development
+```bash
+# Clear caches
+php artisan optimize:clear
 
-4. **Soft Deletes** ✅
-   - Soft delete functionality working
-   - Data restoration successful
+# Run migrations
+php artisan migrate
 
-5. **NULL Value Handling** ✅
-   - System handles NULL foreign keys correctly
-   - Data integrity maintained
+# Generate bills (testing)
+php artisan bills:generate-smart
 
-6. **Payment Calculations** ✅
-   - Total revenue: Rp 38,850,000
-   - Outstanding: Rp 19,500,000
-   - All calculations accurate
-
-7. **Overdue Payment Detection** ✅
-   - 50 overdue payments detected correctly
-   - Date logic working properly
-
-8. **Comprehensive Integrity** ✅
-   - 194 valid payments, 0 invalid
-   - 100% data integrity maintained
+# Backup database
+php artisan backup:database
+```
 
 ---
 
@@ -656,30 +565,43 @@ backend/
 ├── database/
 │   ├── migrations/              # Database Migrations
 │   └── seeders/                 # Database Seeders
-├── COMPLETE_DOCUMENTATION.md    # This file
-├── DATA_SECURITY_PRINCIPLES.md  # Security principles
-├── DATABASE_STRUCTURE.md        # Database schema
-├── SETUP_GUIDE.md              # Setup instructions
-└── SECURITY_AUDIT_REPORT.md    # Security audit results
+├── docs/                        # Documentation
+│   ├── COMPLETE_DOCUMENTATION.md
+│   ├── DATA_SECURITY_PRINCIPLES.md
+│   ├── DATABASE_SCHEMA.md
+│   ├── API_DOCUMENTATION.md
+│   ├── API_SECURITY_GUIDE.md
+│   ├── COMPREHENSIVE_AUDIT_REPORT.md
+│   ├── TESTING_REPORT.md
+│   └── PROJECT_DISCUSSION_NOTES.md
+└── storage/app/backups/         # Database Backups
 ```
 
 ---
 
-## 🚀 System Status
+## 🎯 Recent Issues Fixed
 
-### ✅ PRODUCTION READY
+### ❌ **Masalah yang Ditemukan:**
+- Website utama: Hapus penagih → Pelanggan ikut terhapus
+- Subdomain: Hapus penagih → Pelanggan tidak terhapus
+- Perilaku berbeda karena foreign key constraint tidak konsisten
 
-**Data Integrity**: ✅ IMMUTABLE  
-**Historical Data**: ✅ COMPLETE  
-**Non-Rapuh Relations**: ✅ ROBUST  
-**Security**: ✅ VALIDATED  
-**Performance**: ✅ OPTIMIZED  
-**Documentation**: ✅ COMPLETE  
+### ✅ **Solusi yang Diterapkan:**
+1. **Migrasi untuk `penagih_id`:** Mengubah dari `CASCADE` ke `SET NULL`
+2. **Migrasi untuk `paket_id`:** Mengubah dari `CASCADE` ke `SET NULL`
+3. **Perubahan Controller:** Validasi `penagih_id` dan `paket_id` diubah dari `required` ke `nullable`
+4. **Perubahan Views:** Form tidak lagi `required` untuk paket dan penagih
 
-**Sistem siap untuk production dengan prinsip data integrity yang ketat!** 🚀
+### 🎯 **Hasil Setelah Perbaikan:**
+- ✅ **Hapus penagih** → Pelanggan tetap ada, `penagih_id` jadi NULL
+- ✅ **Hapus paket** → Pelanggan tetap ada, `paket_id` jadi NULL
+- ✅ **Perilaku konsisten** di semua environment
+- ✅ **Data historical** tetap terjaga di pembayaran
 
 ---
 
 *Last Updated: September 2025*  
-*Version: 2.2.0*  
+*Version: 2.3.0*  
 *Status: Production Ready*
+
+**Sistem WiFi Customer Management siap untuk production dengan prinsip data integrity yang ketat!** 🚀

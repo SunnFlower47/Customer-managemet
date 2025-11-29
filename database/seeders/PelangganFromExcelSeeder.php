@@ -105,7 +105,7 @@ class PelangganFromExcelSeeder extends Seeder
                     'penagih_id' => $penagih->id,
                     'tanggal_mulai' => now()->format('Y-m-d'),
                     'tanggal_pembayaran' => 10, // Default tanggal 10
-                    'status' => $status_excel === 'aktif' ? 'aktif' : 'nonaktif',
+                    'status' => $status_excel === 'aktif' ? 'aktif' : 'isolir',
                 ]);
 
                 // Create initial package history

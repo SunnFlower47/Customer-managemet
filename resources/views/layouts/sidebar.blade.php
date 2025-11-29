@@ -1,154 +1,166 @@
 <!-- Sidebar -->
-<div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:z-auto h-full flex flex-col"
+<div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:z-auto h-full flex flex-col border-r border-gray-100"
      :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }"
-     x-show="sidebarOpen"
      x-cloak
-     x-transition:enter="transition ease-out duration-300"
-     x-transition:enter-start="-translate-x-full"
-     x-transition:enter-end="translate-x-0"
-     x-transition:leave="transition ease-in duration-300"
-     x-transition:leave-start="translate-x-0"
-     x-transition:leave-end="-translate-x-full"
-     x-init="
-        // Initialize sidebar state based on screen size
-        if (window.innerWidth >= 1024) {
-            sidebarOpen = true;
-        } else {
-            sidebarOpen = false;
-        }
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 1024) {
-                sidebarOpen = true;
-            } else {
-                sidebarOpen = false;
-            }
-        });
-     "
      style="display: flex;">
     <!-- Sidebar Header -->
-    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+    <div class="flex items-center justify-between h-16 px-4 border-b border-gray-100 bg-sky-50">
         @php
             $companyProfile = \App\Models\CompanyProfile::first();
-            $companyName = $companyProfile->display_name ?? 'BCM';
+            $companyName = $companyProfile->display_name ?? 'BCM.net';
             $companyShortName = $companyProfile->short_name ?? 'BCM';
         @endphp
-        <div class="flex items-center">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
             @if($companyProfile && $companyProfile->logo_path)
-                <img src="{{ $companyProfile->logo_url }}?v={{ time() }}" alt="{{ $companyProfile->nama_perusahaan }}" class="w-16 h-16 rounded-lg mr-4 object-contain">
+                <img src="{{ $companyProfile->logo_url }}?v={{ time() }}" alt="{{ $companyProfile->nama_perusahaan }}" class="w-10 h-10 rounded-xl object-contain flex-shrink-0">
             @else
-                <div class="w-16 h-16 bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg flex items-center justify-center mr-4">
-                    <span class="text-white font-bold text-xl">{{ $companyProfile->initials ?? 'BCM' }}</span>
+                <div class="w-10 h-10 bg-sky-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                    <span class="text-white font-bold text-sm">{{ $companyProfile->initials ?? 'BCM' }}</span>
                 </div>
             @endif
             <div class="flex-1 min-w-0">
-                <h1 class="text-xs font-bold text-gray-900 leading-tight break-words">
+                <h1 class="text-sm font-bold text-gray-900 leading-tight truncate">
                     {{ $companyName }}
                 </h1>
-
-                <p class="text-xs text-gray-500">WiFi Customer Management</p>
+                <p class="text-[10px] text-gray-500 truncate">WiFi Management</p>
             </div>
         </div>
         <!-- Close button for mobile -->
-        <button @click="sidebarOpen = false" class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-            <i class="fas fa-times"></i>
+        <button @click="sidebarOpen = false" class="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-white transition flex-shrink-0">
+            <i class="fas fa-times text-sm"></i>
         </button>
     </div>
 
     <!-- Sidebar Navigation -->
-    <nav class="flex-1 mt-6 px-3 overflow-y-auto">
+    <nav class="flex-1 px-3 py-4 overflow-y-auto">
         <div class="space-y-1">
             <!-- Dashboard -->
-            <a href="{{ route('dashboard') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('dashboard') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-                </svg>
-                Dashboard
+            <a href="{{ route('dashboard') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-home w-5 h-5 flex-shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Dashboard</span>
+                @if(request()->routeIs('dashboard'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
 
             <!-- Pelanggan -->
             @can('view-pelanggan')
-            <a href="{{ route('pelanggans.index') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('pelanggans.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('pelanggans.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                Pelanggan
+            <a href="{{ route('pelanggans.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('pelanggans.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-users w-5 h-5 flex-shrink-0 {{ request()->routeIs('pelanggans.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Pelanggan</span>
+                @if(request()->routeIs('pelanggans.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
             @endcan
 
             <!-- Pembayaran -->
             @can('view-pembayaran')
-            <a href="{{ route('pembayarans.index') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('pembayarans.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('pembayarans.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                </svg>
-                Pembayaran
+            <a href="{{ route('pembayarans.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('pembayarans.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-money-bill-wave w-5 h-5 flex-shrink-0 {{ request()->routeIs('pembayarans.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Pembayaran</span>
+                @if(request()->routeIs('pembayarans.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
             @endcan
 
             <!-- Paket -->
             @can('view-paket')
-            <a href="{{ route('pakets.index') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('pakets.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('pakets.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                </svg>
-                Paket
+            <a href="{{ route('pakets.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('pakets.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-box w-5 h-5 flex-shrink-0 {{ request()->routeIs('pakets.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Paket</span>
+                @if(request()->routeIs('pakets.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
             @endcan
 
             <!-- Penagih -->
             @can('view-penagih')
-            <a href="{{ route('penagihs.index') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('penagihs.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('penagihs.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                Penagih
+            <a href="{{ route('penagihs.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('penagihs.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-user-tie w-5 h-5 flex-shrink-0 {{ request()->routeIs('penagihs.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Penagih</span>
+                @if(request()->routeIs('penagihs.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
+            </a>
+            @endcan
+
+            @can('view-mapping')
+            <!-- Mapping -->
+            <a href="{{ route('mapping.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('mapping.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-map w-5 h-5 flex-shrink-0 {{ request()->routeIs('mapping.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Mapping</span>
+                @if(request()->routeIs('mapping.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
+            </a>
+            @endcan
+
+            @can('view-odp')
+            <!-- ODP -->
+            <a href="{{ route('odps.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('odps.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-map-marker-alt w-5 h-5 flex-shrink-0 {{ request()->routeIs('odps.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">ODP</span>
+                @if(request()->routeIs('odps.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
+            </a>
+            @endcan
+
+            <!-- MikroTik -->
+            @can('view-mikrotik')
+            <a href="{{ route('mikrotiks.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('mikrotiks.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-server w-5 h-5 flex-shrink-0 {{ request()->routeIs('mikrotiks.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">MikroTik</span>
+                @if(request()->routeIs('mikrotiks.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
             @endcan
 
             <!-- Pengeluaran -->
             @can('view-pengeluaran')
-            <a href="{{ route('pengeluarans.index') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('pengeluarans.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('pengeluarans.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                </svg>
-                Pengeluaran
+            <a href="{{ route('pengeluarans.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('pengeluarans.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-arrow-down w-5 h-5 flex-shrink-0 {{ request()->routeIs('pengeluarans.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Pengeluaran</span>
+                @if(request()->routeIs('pengeluarans.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
             @endcan
 
             <!-- Laporan Dropdown -->
             @canany(['view-laporan-pendapatan', 'view-laporan-pengeluaran', 'view-laporan-laba-rugi'])
-            <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" class="sidebar-link group flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('laporan.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <div class="flex items-center">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('laporan.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        Laporan
+            <div x-data="{ open: {{ request()->routeIs('laporan.*') ? 'true' : 'false' }} }" class="relative">
+                <button @click="open = !open" class="sidebar-link group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('laporan.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-chart-bar w-5 h-5 flex-shrink-0 {{ request()->routeIs('laporan.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                        <span>Laporan</span>
                     </div>
-                    <svg class="h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
+                    <i class="fas fa-chevron-down text-xs transition-transform duration-200 {{ request()->routeIs('laporan.*') ? 'text-blue-600' : 'text-gray-400' }}" :class="{ 'rotate-180': open }"></i>
+                    @if(request()->routeIs('laporan.*'))
+                    <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                    @endif
                 </button>
-                <div x-show="open" x-cloak x-transition class="ml-6 mt-1 space-y-1">
+                <div x-show="open" x-cloak x-transition class="ml-8 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
                     @can('view-laporan-pendapatan')
-                    <a href="{{ route('laporan.pendapatan') }}" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors {{ request()->routeIs('laporan.pendapatan') ? 'bg-primary-50 text-primary-600' : '' }}">
-                        <i class="fas fa-arrow-up text-green-600 mr-3"></i>
-                        Pendapatan
+                    <a href="{{ route('laporan.pendapatan') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('laporan.pendapatan') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-arrow-up text-green-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Pendapatan</span>
                     </a>
                     @endcan
                     @can('view-laporan-pengeluaran')
-                    <a href="{{ route('laporan.pengeluaran') }}" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors {{ request()->routeIs('laporan.pengeluaran') ? 'bg-primary-50 text-primary-600' : '' }}">
-                        <i class="fas fa-arrow-down text-red-600 mr-3"></i>
-                        Pengeluaran
+                    <a href="{{ route('laporan.pengeluaran') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('laporan.pengeluaran') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-arrow-down text-red-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Pengeluaran</span>
                     </a>
                     @endcan
                     @can('view-laporan-laba-rugi')
-                    <a href="{{ route('laporan.laba-rugi') }}" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors {{ request()->routeIs('laporan.laba-rugi') ? 'bg-primary-50 text-primary-600' : '' }}">
-                        <i class="fas fa-calculator text-blue-600 mr-3"></i>
-                        Laba Rugi
+                    <a href="{{ route('laporan.laba-rugi') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('laporan.laba-rugi') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-calculator text-blue-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Laba Rugi</span>
                     </a>
                     @endcan
                 </div>
@@ -157,27 +169,125 @@
 
             <!-- Users (Admin Only) -->
             @can('view-user')
-            <a href="{{ route('users.index') }}" class="sidebar-link group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('users.*') ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                <svg class="mr-3 h-5 w-5 {{ request()->routeIs('users.*') ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                </svg>
-                Users
+            <a href="{{ route('users.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('users.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-user-shield w-5 h-5 flex-shrink-0 {{ request()->routeIs('users.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                <span class="flex-1">Users</span>
+                @if(request()->routeIs('users.*'))
+                <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                @endif
             </a>
             @endcan
 
+            <!-- Customer Portal Dropdown -->
+            @canany(['view-customer-portal', 'view-ticket', 'view-payment-proof'])
+            <div x-data="{ open: {{ request()->routeIs('customer-portal.*') || request()->routeIs('admin.tickets.*') || request()->routeIs('admin.payment-proofs.*') ? 'true' : 'false' }} }" class="relative">
+                <button @click="open = !open" class="sidebar-link group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('customer-portal.*') || request()->routeIs('admin.tickets.*') || request()->routeIs('admin.payment-proofs.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-globe w-5 h-5 flex-shrink-0 {{ request()->routeIs('customer-portal.*') || request()->routeIs('admin.tickets.*') || request()->routeIs('admin.payment-proofs.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                        <span>Customer Portal</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-xs transition-transform duration-200 {{ request()->routeIs('customer-portal.*') || request()->routeIs('admin.tickets.*') || request()->routeIs('admin.payment-proofs.*') ? 'text-blue-600' : 'text-gray-400' }}" :class="{ 'rotate-180': open }"></i>
+                    @if(request()->routeIs('customer-portal.*') || request()->routeIs('admin.tickets.*') || request()->routeIs('admin.payment-proofs.*'))
+                    <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                    @endif
+                </button>
+                <div x-show="open" x-cloak x-transition class="ml-8 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+                    @can('view-customer-portal')
+                    <a href="{{ route('customer-portal.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('customer-portal.index') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-tachometer-alt text-blue-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    @endcan
+                    @can('view-ticket')
+                    <a href="{{ route('admin.tickets.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.tickets.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-ticket-alt text-orange-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Laporan Tiket</span>
+                    </a>
+                    @endcan
+                    @can('view-payment-proof')
+                    <a href="{{ route('admin.payment-proofs.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.payment-proofs.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-receipt text-green-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Bukti Pembayaran</span>
+                    </a>
+                    @endcan
+                </div>
+            </div>
+            @endcanany
+
+            <!-- OLT Monitoring -->
+            @canany(['view-olt', 'view-onu', 'view-vlan', 'view-speed-profile'])
+            <div x-data="{ open: {{ request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*') ? 'true' : 'false' }} }" class="relative">
+                <button @click="open = !open" class="sidebar-link group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-network-wired w-5 h-5 flex-shrink-0 {{ request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+                        <span>OLT Monitoring</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-xs transition-transform duration-200 {{ request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*') ? 'text-blue-600' : 'text-gray-400' }}" :class="{ 'rotate-180': open }"></i>
+                    @if(request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*'))
+                    <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+                    @endif
+                </button>
+                <div x-show="open" x-cloak x-transition class="ml-8 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+                    @can('view-olt')
+                    <a href="{{ route('olt-monitoring.dashboard') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('olt-monitoring.dashboard') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-tachometer-alt text-blue-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    @endcan
+                    @can('view-olt')
+                    <a href="{{ route('olts.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('olts.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-server text-purple-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Daftar OLT</span>
+                    </a>
+                    @endcan
+                    @can('manage-onu')
+                    <a href="{{ route('onus.register') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('onus.register') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-plus-circle text-green-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Register ONU</span>
+                    </a>
+                    @endcan
+                    @can('view-onu')
+                    <a href="{{ route('onus.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('onus.index') || request()->routeIs('onus.show') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-list text-orange-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>All ONUs</span>
+                    </a>
+                    @endcan
+                    @can('view-vlan')
+                    <a href="{{ route('vlans.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('vlans.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-tags text-indigo-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>VLAN Database</span>
+                    </a>
+                    @endcan
+                    @can('view-speed-profile')
+                    <a href="{{ route('speed-profiles.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('speed-profiles.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-tachometer-alt text-teal-600 w-4 h-4 flex-shrink-0"></i>
+                        <span>Speed Profiles</span>
+                    </a>
+                    @endcan
+                </div>
+            </div>
+            @endcanany
+
         </div>
     </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="border-t border-gray-100 px-3 py-3 bg-gray-50">
+        @can('manage-company-profile')
+        <a href="{{ route('settings.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('settings.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-white hover:text-gray-900' }}">
+            <i class="fas fa-cog w-5 h-5 flex-shrink-0 {{ request()->routeIs('settings.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>
+            <span class="flex-1">Settings</span>
+            @if(request()->routeIs('settings.*'))
+            <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
+            @endif
+        </a>
+        @endcan
+    </div>
 
 </div>
 
 <!-- Mobile sidebar overlay -->
 <div x-show="sidebarOpen"
      x-cloak
-     x-transition:enter="transition-opacity ease-linear duration-300"
-     x-transition:enter-start="opacity-0"
-     x-transition:enter-end="opacity-100"
-     x-transition:leave="transition-opacity ease-linear duration-300"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
-     class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+     class="fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300"
      @click="sidebarOpen = false"></div>

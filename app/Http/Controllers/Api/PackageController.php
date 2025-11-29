@@ -230,7 +230,7 @@ class PackageController extends Controller
 
             $totalCustomers = $package->pelanggans()->count();
             $activeCustomers = $package->pelanggans()->where('status', 'aktif')->count();
-            $inactiveCustomers = $package->pelanggans()->where('status', 'nonaktif')->count();
+            $inactiveCustomers = $package->pelanggans()->where('status', 'isolir')->count();
 
             $totalRevenue = $package->pelanggans()
                 ->whereHas('pembayarans', function ($q) {

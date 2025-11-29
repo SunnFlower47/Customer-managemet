@@ -5,8 +5,9 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://mysql.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/Version-4.0.0-blue.svg)]()
 
-> **Professional WiFi billing management system with immutable data integrity, audit trails, and mobile-responsive design.**
+> **Professional WiFi billing management system with immutable data integrity, audit trails, mobile-responsive design, MikroTik router integration, and location mapping.**
 
 ## 📋 Table of Contents
 
@@ -25,6 +26,8 @@
 - [🎨 UI/UX Features](#-uiux-features)
 - [🚨 Troubleshooting](#-troubleshooting)
 - [📚 Documentation](#-documentation)
+- [🖥️ MikroTik Integration](#️-mikrotik-router-management)
+- [🗺️ ODP & Mapping](#-odp--mapping-system)
 
 ## ✨ Features
 
@@ -40,13 +43,31 @@
 - **✅ Advanced Search & Filtering** - By name, address, status, collector
 - **✅ Export Functionality** - CSV, PDF, Excel exports
 
+### 🚀 New Features (Latest Update)
+- **✅ Customer Self-Service API** - Complete RESTful API for mobile/web apps
+- **✅ Customer Authentication** - Secure login system for customers
+- **✅ Ticket System** - Customer support management with comments & attachments
+- **✅ Payment Proof Validation** - Upload and verify payment proofs
+- **✅ WhatsApp Integration** - Automated payment notifications
+- **✅ Admin Ticket Management** - Complete ticket handling interface
+- **✅ Admin Payment Proof Management** - Verification workflow interface
+- **✅ File Upload System** - Secure file handling for proofs and attachments
+- **✅ Customer Profile Management** - Self-service profile updates
+- **✅ Customer Statistics** - Payment and ticket statistics
+- **✅ MikroTik Integration** - Router management and PPPoE monitoring
+- **✅ ODP Management** - Optical Distribution Point tracking with mapping
+- **✅ Location Mapping** - Interactive map with Leaflet.js for customers and ODPs
+
 ### 🔐 Security Features
-- **✅ Spatie Permission Package** - 40+ granular permissions
+- **✅ Spatie Permission Package** - 50+ granular permissions (including new API permissions)
 - **✅ CSRF Protection** - All forms protected
 - **✅ Input Validation** - Comprehensive validation rules
 - **✅ Rate Limiting** - Prevent abuse and brute force
 - **✅ Session Management** - Secure authentication
 - **✅ Audit Logging** - All changes tracked
+- **✅ Laravel Sanctum** - API token authentication
+- **✅ File Upload Security** - Secure file handling with validation
+- **✅ API Rate Limiting** - Separate limits for public and authenticated endpoints
 
 ### 📱 Mobile & PWA
 - **✅ Progressive Web App** - Install as native app
@@ -168,7 +189,7 @@ pelanggans (customers)
 ├── nama, pppoe, alamat, no_hp
 ├── paket_id (Foreign Key → pakets)
 ├── penagih_id (Foreign Key → penagihs, NULLABLE)
-├── status (aktif/nonaktif/suspend)
+├── status (aktif/isolir/bayar double)
 └── timestamps
 
 pakets (packages)
@@ -217,6 +238,105 @@ audit_trails
 ├── ip_address, user_agent
 ├── tags (Custom tags)
 └── timestamps
+```
+
+#### 🎫 Customer Support System
+```sql
+tickets
+├── id (Primary Key)
+├── kode_ticket (Unique)
+├── pelanggan_id (Foreign Key → pelanggans)
+├── judul, deskripsi
+├── kategori (technical/billing/general/complaint)
+├── prioritas (low/medium/high/urgent)
+├── status (open/in_progress/resolved/closed)
+├── assigned_to (Foreign Key → users, NULLABLE)
+├── resolved_at (NULLABLE)
+├── rating (1-5, NULLABLE)
+├── customer_feedback (TEXT, NULLABLE)
+└── timestamps
+
+ticket_comments
+├── id (Primary Key)
+├── ticket_id (Foreign Key → tickets)
+├── user_id (Foreign Key → users, NULLABLE)
+├── pelanggan_id (Foreign Key → pelanggans, NULLABLE)
+├── comment (TEXT)
+├── is_internal (BOOLEAN)
+└── timestamps
+
+ticket_attachments
+├── id (Primary Key)
+├── ticket_id (Foreign Key → tickets)
+├── filename, file_path, file_type, file_size
+├── uploaded_by (Foreign Key → users)
+└── timestamps
+```
+
+#### 💳 Payment Proof System
+```sql
+payment_proofs
+├── id (Primary Key)
+├── pembayaran_id (Foreign Key → pembayarans)
+├── pelanggan_id (Foreign Key → pelanggans)
+├── file_path, file_name, file_type, file_size
+├── status (pending/verified/rejected)
+├── admin_notes (TEXT, NULLABLE)
+├── verified_by (Foreign Key → users, NULLABLE)
+├── verified_at (NULLABLE)
+├── submission_method (website_upload/whatsapp)
+├── whatsapp_message_id (NULLABLE)
+└── timestamps
+```
+
+#### 🔐 Customer Authentication
+```sql
+pelanggans (Updated)
+├── password (NULLABLE) - For customer login
+├── remember_token (NULLABLE)
+├── last_login_at (NULLABLE)
+├── is_default_password (BOOLEAN, default: true)
+└── [existing fields...]
+```
+
+#### 🗺️ Location & Mapping System
+```sql
+odps (Optical Distribution Points)
+├── id (Primary Key)
+├── kode_odp (Unique)
+├── nama, alamat
+├── latitude, longitude
+├── kapasitas, port_terpakai
+├── status, foto
+└── timestamps
+
+pelanggans (Updated with Location)
+├── latitude, longitude (NULLABLE)
+├── odp_id (Foreign Key → odps, NULLABLE)
+└── [existing fields...]
+```
+
+#### 🖥️ MikroTik Router Management
+```sql
+mikrotiks
+├── id (Primary Key)
+├── nama, ip_address, port
+├── username, password (Encrypted)
+├── routeros_version (v6/v7/v7.1+)
+├── location, description
+├── is_active, connection_status
+├── last_connected_at, last_error
+└── timestamps (with soft deletes)
+
+pelanggans (Updated with MikroTik Integration)
+├── mikrotik_id (Foreign Key → mikrotiks, NULLABLE)
+├── exists_in_mikrotik (BOOLEAN, NULLABLE)
+├── mikrotik_last_checked (TIMESTAMP, NULLABLE)
+├── mikrotik_router_name (VARCHAR, NULLABLE)
+├── mikrotik_status (VARCHAR, NULLABLE)
+├── mikrotik_ip (VARCHAR, NULLABLE)
+├── mikrotik_profile (VARCHAR, NULLABLE)
+└── [existing fields...]
 ```
 
 ## 🔒 Security & Data Integrity
@@ -312,79 +432,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 ## 🛠️ API Documentation
 
-### 🔌 Available Endpoints
+Sistem ini menyediakan **Customer Self-Service API** yang lengkap untuk mobile/web app integration.
 
-#### Authentication
-```http
-POST /api/auth/login
-POST /api/auth/logout
-GET  /api/auth/user
-```
+### 📚 API Documentation
 
-#### Payments
-```http
-GET    /api/payments              # List payments
-GET    /api/payments/{id}         # Get payment details
-POST   /api/payments              # Create payment
-PUT    /api/payments/{id}         # Update payment
-PATCH  /api/payments/{id}/status  # Update payment status
-```
-
-#### Customers
-```http
-GET    /api/customers             # List customers
-GET    /api/customers/{id}        # Get customer details
-POST   /api/customers             # Create customer
-PUT    /api/customers/{id}        # Update customer
-DELETE /api/customers/{id}        # Delete customer
-```
-
-#### Payment Gateway Integration
-```http
-POST /api/payment-gateway/check   # Check payment status
-POST /api/payment-gateway/verify  # Verify payment
-```
-
-### 📝 API Usage Examples
-
-#### Check Payment Status
-```javascript
-// Check if customer has pending bills
-const response = await fetch('/api/payment-gateway/check', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify({
-        customer_id: 123,
-        // or
-        pppoe: 'customer_pppoe',
-        // or
-        phone: '08123456789'
-    })
-});
-
-const data = await response.json();
-// Returns: { has_pending: true, bills: [...], total_amount: 150000 }
-```
-
-#### WhatsApp Integration
-```javascript
-// Send payment reminder via WhatsApp
-const response = await fetch('/api/whatsapp/send-reminder', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify({
-        customer_id: 123,
-        payment_id: 456,
-        message: 'custom_message' // optional
-    })
-});
-```
+**Note**: API documentation and endpoints are available for authorized developers only. Contact system administrator for API access and documentation.
 
 ## 📈 Performance
 
@@ -664,6 +716,178 @@ $command = "mysqldump --single-transaction --routines --triggers " .
 - **Loading states** - Smooth user experience
 - **Error handling** - User-friendly error messages
 
+## 🚀 New System Features
+
+### 🎫 Customer Support System
+
+#### Ticket Management
+- **Customer Ticket Creation** - Customers can create support tickets
+- **Admin Ticket Handling** - Complete admin interface for ticket management
+- **Comment System** - Internal and external comments
+- **File Attachments** - Support for file uploads
+- **Status Tracking** - Open, In Progress, Resolved, Closed
+- **Priority Levels** - Low, Medium, High, Urgent
+- **Rating System** - Customer feedback on resolution
+
+#### Admin Interface
+```bash
+# Access admin ticket management
+/admin/tickets              # List all tickets
+/admin/tickets/{id}         # Ticket detail with actions
+/admin/tickets/statistics   # Ticket statistics
+```
+
+### 💳 Payment Proof System
+
+#### Customer Features
+- **Upload Payment Proof** - Secure file upload system
+- **WhatsApp Integration** - Send proofs via WhatsApp
+- **Status Tracking** - Pending, Verified, Rejected
+- **File Preview** - Image and PDF preview support
+
+#### Admin Features
+- **Proof Verification** - Admin verification workflow
+- **File Download** - Secure file download system
+- **Admin Notes** - Verification notes and feedback
+- **Bulk Processing** - Handle multiple proofs efficiently
+
+#### Admin Interface
+```bash
+# Access admin payment proof management
+/admin/payment-proofs              # List all payment proofs
+/admin/payment-proofs/{id}         # Proof detail with verification
+/admin/payment-proofs/statistics   # Proof statistics
+```
+
+### 🔐 Customer Authentication System
+
+#### Features
+- **Customer Login** - Secure authentication for customers
+- **Password Management** - Change password functionality
+- **Default Password** - Admin-generated default passwords
+- **Session Management** - Secure session handling
+- **Last Login Tracking** - Monitor customer activity
+
+#### API Endpoints
+```bash
+# Customer authentication
+POST /api/v1/customer/auth/login           # Customer login
+POST /api/v1/customer/auth/logout          # Customer logout
+GET  /api/v1/customer/auth/me              # Get customer profile
+POST /api/v1/customer/auth/change-password # Change password
+```
+
+### 📱 Customer Self-Service Portal
+
+#### Mobile/Web App Support
+- **Complete RESTful API** - Full customer self-service
+- **Payment Management** - View bills, upload proofs, check status
+- **Profile Management** - Update customer information
+- **Support System** - Create and manage tickets
+- **Statistics Dashboard** - Customer statistics and history
+
+#### API Structure
+```bash
+# Customer API endpoints
+/api/v1/customer/auth/*      # Authentication
+/api/v1/customer/payment/*   # Payment management
+/api/v1/customer/support/*   # Ticket system
+/api/v1/customer/profile/*   # Profile management
+```
+
+### 🛡️ Enhanced Security
+
+#### New Permissions
+- **Ticket Permissions** - view-ticket, edit-ticket, assign-ticket, resolve-ticket
+- **Payment Proof Permissions** - view-payment-proof, verify-payment-proof, download-payment-proof
+- **API Permissions** - Customer API access control
+- **File Upload Security** - Secure file handling with validation
+
+#### Security Features
+- **Laravel Sanctum** - API token authentication
+- **File Upload Validation** - Secure file type and size validation
+- **Rate Limiting** - API rate limiting for security
+- **Permission-based Access** - Granular access control
+
+### 📊 System Integration
+
+#### Unified Workflow
+1. **Customer** creates ticket via mobile app
+2. **Admin** handles ticket via web interface
+3. **Customer** uploads payment proof via mobile app
+4. **Admin** verifies payment proof via web interface
+5. **System** automatically updates payment status
+
+#### Benefits
+- **Seamless Integration** - Admin and customer systems work together
+- **Efficient Workflow** - Streamlined processes
+- **Real-time Updates** - Instant status updates
+- **Complete Audit Trail** - All actions tracked
+
+### 🖥️ MikroTik Router Management
+
+#### Features
+- **Router Management** - Add, edit, delete MikroTik routers
+- **Connection Testing** - Test API connection to routers
+- **PPPoE Search** - Search PPPoE users in routers
+- **Status Monitoring** - Real-time router status tracking
+- **Dashboard** - Router resource usage and statistics
+- **Auto-Sync** - Automatic PPPoE status checking for customers
+
+#### Router Configuration
+```bash
+# Access MikroTik management
+/mikrotiks              # List all routers
+/mikrotiks/create        # Add new router
+/mikrotiks/{id}          # Router dashboard
+/mikrotiks/{id}/edit     # Edit router
+```
+
+#### PPPoE Integration
+- **Auto-Check** - Automatically check PPPoE status when viewing customer details
+- **Status Display** - Show "Ada di MikroTik" or "Tidak ada di MikroTik" badge
+- **Router Info** - Display router name, IP, profile, and status
+- **Multi-Router Support** - Check across multiple routers
+
+#### RouterOS API Setup
+1. Enable API service on RouterOS:
+   ```bash
+   /ip service
+   set api disabled=no port=8728
+   ```
+2. Create API user (or use admin):
+   ```bash
+   /user add name=api-user password=your-password group=full
+   ```
+3. Add router in system with IP, port, username, and password
+
+### 🗺️ ODP & Mapping System
+
+#### Features
+- **ODP Management** - Create and manage Optical Distribution Points
+- **Interactive Mapping** - Leaflet.js map with satellite view
+- **Customer Mapping** - Visualize customer locations on map
+- **ODP-Customer Connection** - Link customers to ODPs
+- **Port Tracking** - Automatic port usage calculation
+- **Location Picker** - Click-to-select coordinates on map
+
+#### Mapping Features
+- **Map View** - Interactive map showing all ODPs and customers
+- **Layer Toggle** - Switch between standard and satellite view
+- **Filter System** - Filter by status, ODP, or search
+- **Customer Details** - Click customer marker for details
+- **ODP Details** - View ODP capacity and connected customers
+
+#### ODP Management
+```bash
+# Access ODP management
+/odps              # List all ODPs
+/odps/create       # Add new ODP
+/odps/{id}         # ODP details with map
+/odps/{id}/edit    # Edit ODP
+/mapping           # Main mapping page
+```
+
 ## 🚨 Troubleshooting
 
 ### 🔧 Common Issues & Solutions
@@ -720,6 +944,87 @@ class Pembayaran extends Model
 }
 ```
 
+#### 6. Customer API Authentication Issues
+**Problem**: Customer login not working
+**Solution**: Check customer authentication setup
+```php
+// Ensure Pelanggan model extends Authenticatable
+class Pelanggan extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
+    
+    // Ensure password field is fillable
+    protected $fillable = ['password', 'remember_token', ...];
+}
+```
+
+#### 7. File Upload Not Working
+**Problem**: Payment proof upload fails
+**Solution**: Check file storage configuration
+```php
+// Ensure storage link is created
+php artisan storage:link
+
+// Check file permissions
+chmod -R 755 storage/app/public
+```
+
+#### 8. Ticket System Not Loading
+**Problem**: Admin ticket pages show errors
+**Solution**: Check permissions and migrations
+```bash
+# Run ticket migrations
+php artisan migrate
+
+# Check permissions
+php artisan db:seed --class=TicketPaymentProofPermissionSeeder
+
+# Verify routes
+php artisan route:list --name=admin.tickets
+```
+
+#### 9. API Rate Limiting Issues
+**Problem**: API requests being blocked
+**Solution**: Check rate limiting configuration
+```php
+// In routes/api.php, ensure proper rate limiting
+Route::middleware(['throttle:60,1'])->group(function () {
+    // API routes
+});
+```
+
+#### 10. MikroTik Connection Failed
+**Problem**: Cannot connect to MikroTik router
+**Solution**: Check router configuration
+```bash
+# 1. Verify API service is enabled
+/ip service print where name=api
+
+# 2. Check firewall rules
+/ip firewall filter print
+
+# 3. Verify user permissions
+/user print where name=api-user
+
+# 4. Test connection from server
+telnet router-ip 8728
+```
+
+#### 11. PPPoE Not Found in Router
+**Problem**: PPPoE exists in database but not found in router
+**Solution**: 
+- Check username spelling (case-sensitive)
+- Verify router is online and accessible
+- Check if PPPoE is disabled in router
+- Try manual search in router dashboard
+
+#### 12. ODP Port Count Incorrect
+**Problem**: Port terpakai tidak sesuai dengan jumlah pelanggan aktif
+**Solution**: 
+- System automatically updates on customer create/update/delete
+- Manually sync: Visit ODP list page (auto-sync on load)
+- Check customer status (only 'aktif' customers count)
+
 ### 🔍 Debug Commands
 ```bash
 # Check route permissions
@@ -735,6 +1040,15 @@ php artisan tinker
 
 # Test backup functionality
 php artisan backup:database
+
+# Check MikroTik routes
+php artisan route:list --name=mikrotiks
+
+# Test MikroTik connection (via controller)
+# Visit /mikrotiks/{id} and click "Test Connection"
+
+# Sync ODP port usage
+# Visit /odps - auto-syncs on page load
 ```
 
 ## 📚 Documentation
@@ -742,10 +1056,12 @@ php artisan backup:database
 ### 📖 Additional Resources
 
 #### Complete Documentation
-- **Database Schema**: `docs/DATABASE_SCHEMA.md`
-- **API Documentation**: `docs/API_DOCUMENTATION.md`
-- **Security Guidelines**: `docs/SECURITY_GUIDELINES.md`
-- **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md`
+- **Database Schema**: `docs/DATABASE_SCHEMA.md` - Complete database structure with all tables
+- **API Documentation**: `docs/API_DOCUMENTATION.md` - Full API reference for customer portal
+- **MikroTik Guide**: `docs/MIKROTIK_GUIDE.md` - Complete MikroTik integration guide
+- **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md` - Production deployment instructions
+- **System Overview**: `docs/SYSTEM_OVERVIEW.md` - System architecture and design
+- **Complete Documentation**: `docs/COMPLETE_DOCUMENTATION.md` - Comprehensive system documentation
 
 #### Quick Reference
 ```bash
@@ -770,6 +1086,8 @@ php artisan make:seeder SeederName       # Create seeder
 3. **Use eager loading** to prevent N+1 queries
 4. **Handle null values** gracefully in views
 5. **Test on mobile devices** regularly
+6. **Use non-breaking changes** for new features (like MikroTik integration)
+7. **Implement graceful error handling** for external services
 
 #### Deployment
 1. **Set proper file permissions** (755 for directories, 644 for files)
@@ -777,6 +1095,8 @@ php artisan make:seeder SeederName       # Create seeder
 3. **Enable SSL/HTTPS** for production
 4. **Set up regular backups** (daily recommended)
 5. **Monitor error logs** regularly
+6. **Test MikroTik connections** before going live
+7. **Verify ODP and mapping data** accuracy
 
 #### Security
 1. **Never store sensitive data** in plain text
@@ -784,6 +1104,16 @@ php artisan make:seeder SeederName       # Create seeder
 3. **Implement rate limiting** for sensitive operations
 4. **Regular security updates** for dependencies
 5. **Audit user permissions** regularly
+6. **Encrypt MikroTik passwords** (already implemented)
+7. **Limit API access** to trusted IPs if possible
+
+#### MikroTik Integration
+1. **Use dedicated API user** instead of admin account
+2. **Test connections regularly** to ensure routers are accessible
+3. **Monitor router status** in dashboard
+4. **Handle connection errors gracefully** (non-breaking)
+5. **Cache connection results** to reduce API calls
+6. **Document router configurations** for troubleshooting
 
 ---
 
@@ -798,19 +1128,44 @@ php artisan make:seeder SeederName       # Create seeder
 - **✅ Backup**: Reliable backup/restore
 - **✅ API**: Payment gateway ready
 - **✅ PWA**: Offline functionality
+- **✅ MikroTik Integration**: Router management and monitoring
+- **✅ Mapping System**: ODP and customer location tracking
+- **✅ Customer Portal**: Complete self-service API
 
 ### 🚀 Ready for Production
-**This system is production-ready with enterprise-level features including immutable data integrity, comprehensive audit trails, mobile-responsive design, and robust security measures.**
+**This system is production-ready with enterprise-level features including immutable data integrity, comprehensive audit trails, mobile-responsive design, MikroTik router integration, location mapping, and robust security measures.**
 
 ---
 
 ## 📞 Support & Contact
 
 - **Developer**: AI Assistant
-- **Version**: 3.0.0
-- **Last Updated**: January 2025
+- **Version**: 4.0.0
+- **Last Updated**: November 2024
 - **License**: MIT
 - **Repository**: [GitHub Repository](https://github.com/yourusername/wifi-billing-system)
+
+---
+
+## 📚 Complete Documentation
+
+### 📖 Main Documentation Files
+
+- **[README.md](README.md)** - This file, overview and quick start
+- **[Database Schema](docs/DATABASE_SCHEMA.md)** - Complete database structure
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference
+- **[MikroTik Guide](docs/MIKROTIK_GUIDE.md)** - MikroTik integration guide
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment instructions
+- **[System Overview](docs/SYSTEM_OVERVIEW.md)** - System architecture overview
+- **[Complete Documentation](docs/COMPLETE_DOCUMENTATION.md)** - Comprehensive system documentation
+
+### 🎯 Quick Links
+
+- **Installation**: [Quick Start](#-quick-start)
+- **Database**: [Database Schema](#-database-schema)
+- **API**: [API Documentation](#️-api-documentation)
+- **MikroTik**: [MikroTik Guide](docs/MIKROTIK_GUIDE.md)
+- **Troubleshooting**: [Troubleshooting](#-troubleshooting)
 
 ---
 

@@ -3,103 +3,101 @@
 @section('title', 'Paket - WiFi Billing Management')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="sm:flex sm:items-center">
-        <div class="sm:flex-auto">
-            <h1 class="text-2xl font-semibold text-gray-900 flex items-center">
-                <i class="fas fa-box mr-3 text-blue-600"></i>Paket Internet
-            </h1>
-            <p class="mt-2 text-sm text-gray-700">Kelola paket internet yang tersedia untuk pelanggan.</p>
+<div class="space-y-6 lg:space-y-8">
+    <div class="page-header">
+        <div class="flex items-center gap-3 sm:gap-4">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg text-white text-xl sm:text-2xl">
+                <i class="fas fa-box"></i>
+            </div>
+            <div>
+                <h1 class="page-header__title text-slate-900">Paket Internet</h1>
+                <p class="mt-1 text-xs sm:text-sm text-gray-600">Atur paket dan harga yang ditawarkan kepada pelanggan</p>
+            </div>
         </div>
-        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div class="page-header__actions flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold border border-gray-200 rounded-xl text-gray-700 bg-white">
+                <i class="fas fa-info-circle mr-2 text-blue-500"></i>{{ $pakets->total() }} paket aktif
+            </div>
             <a href="{{ route('pakets.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
-                <i class="fas fa-plus mr-2"></i>Tambah Paket
+               class="inline-flex items-center justify-center px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition">
+                <i class="fas fa-plus mr-2 text-xs sm:text-sm"></i>Tambah Paket
             </a>
         </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <!-- Desktop Table -->
+    <div class="app-card app-card--soft overflow-hidden">
         <div class="hidden lg:block overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="data-table min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-blue-500 to-blue-600">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-tag mr-2 text-gray-400"></i>Nama Paket
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-tag mr-2"></i>Nama Paket
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-dollar-sign mr-2 text-gray-400"></i>Harga
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-dollar-sign mr-2"></i>Harga
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-align-left mr-2 text-gray-400"></i>Deskripsi
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-align-left mr-2"></i>Deskripsi
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-info-circle mr-2 text-gray-400"></i>Status
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-info-circle mr-2"></i>Status
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-users mr-2 text-gray-400"></i>Pelanggan
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-users mr-2"></i>Pelanggan
                         </th>
-                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <i class="fas fa-cog mr-2 text-gray-400"></i>Aksi
+                        <th scope="col" class="px-5 py-3 text-center text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-cog mr-2"></i>Aksi
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-100">
                     @forelse($pakets as $paket)
-                    <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10">
-                                    <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                        <span class="text-gray-600 font-semibold text-sm">{{ substr($paket->nama_paket, 0, 1) }}</span>
-                                    </div>
+                    <tr class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition">
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center shadow">
+                                    {{ substr($paket->nama_paket, 0, 1) }}
                                 </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ $paket->nama_paket }}</div>
-                                </div>
+                                <p class="text-sm font-semibold text-gray-900 truncate">{{ $paket->nama_paket }}</p>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">Rp {{ number_format($paket->harga, 0, ',', '.') }}</div>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-2.5 rounded-2xl border border-green-100">
+                                <p class="text-base font-bold text-green-900">Rp {{ number_format($paket->harga, 0, ',', '.') }}</p>
+                            </div>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">{{ Str::limit($paket->deskripsi, 50) }}</div>
+                        <td class="px-5 py-4">
+                            <p class="text-xs text-gray-600 bg-gray-50 px-3 py-2 rounded-xl line-clamp-2">{{ Str::limit($paket->deskripsi, 70) }}</p>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $paket->aktif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ $paket->aktif ? 'Aktif' : 'Nonaktif' }}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] font-semibold {{ $paket->aktif ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
+                                <i class="fas fa-circle mr-1 text-[9px]"></i>{{ $paket->aktif ? 'Aktif' : 'Nonaktif' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $paket->pelanggans->count() }} pelanggan
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                <i class="fas fa-users mr-1"></i>{{ $paket->pelanggans->count() }} pelanggan
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <div class="flex justify-center space-x-2">
-                                <!-- Tombol Detail -->
+                        <td class="px-5 py-4 whitespace-nowrap text-center text-xs font-medium">
+                            <div class="inline-flex flex-wrap justify-center gap-2">
                                 <a href="{{ route('pakets.show', $paket) }}"
-                                   class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150"
+                                   class="inline-flex items-center px-3.5 py-2 text-[12px] bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-lg transition"
                                    title="Lihat Detail">
-                                    <i class="fas fa-eye mr-1"></i>Detail
+                                    <i class="fas fa-eye mr-2"></i>Detail
                                 </a>
-
-                                <!-- Tombol Edit -->
                                 <a href="{{ route('pakets.edit', $paket) }}"
-                                   class="inline-flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition duration-150"
+                                   class="inline-flex items-center px-3.5 py-2 text-[12px] bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition"
                                    title="Edit Data">
-                                    <i class="fas fa-edit mr-1"></i>Edit
+                                    <i class="fas fa-edit mr-2"></i>Edit
                                 </a>
-
-                                <!-- Tombol Hapus -->
                                 <form method="POST" action="{{ route('pakets.destroy', $paket) }}" class="inline delete-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
-                                            class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition duration-150"
+                                            class="inline-flex items-center px-3.5 py-2 text-[12px] bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition"
                                             title="Hapus Data">
-                                        <i class="fas fa-trash mr-1"></i>Hapus
+                                        <i class="fas fa-trash mr-2"></i>Hapus
                                     </button>
                                 </form>
                             </div>
@@ -107,11 +105,16 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center">
+                        <td colspan="6" class="px-5 py-16 text-center">
                             <div class="flex flex-col items-center">
-                                <i class="fas fa-box text-gray-300 text-4xl mb-4"></i>
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada paket</h3>
-                                <p class="text-gray-500">Belum ada data paket yang ditemukan.</p>
+                                <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
+                                    <i class="fas fa-box text-gray-400 text-3xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Tidak ada paket</h3>
+                                <p class="text-gray-500 text-lg mb-6">Mulai dengan menambahkan paket pertama Anda.</p>
+                                <a href="{{ route('pakets.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-bold">
+                                    <i class="fas fa-plus mr-2"></i>Tambah Paket Pertama
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -120,74 +123,73 @@
             </table>
         </div>
 
-        <!-- Mobile Cards -->
-        <div class="lg:hidden">
+        <div class="lg:hidden space-y-3">
             @forelse($pakets as $paket)
-            <div class="border-b border-gray-200 p-4 hover:bg-gray-50 transition duration-150">
-                <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center mb-3">
-                            <div class="flex-shrink-0 h-12 w-12">
-                                <div class="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                                    <i class="fas fa-box text-blue-600 text-lg"></i>
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <div class="text-lg font-medium text-gray-900">{{ $paket->nama_paket }}</div>
-                                <div class="text-2xl font-bold text-green-600">Rp {{ number_format($paket->harga, 0, ',', '.') }}</div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <p class="text-sm text-gray-600">{{ $paket->deskripsi }}</p>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                @if($paket->status === 'aktif') bg-green-100 text-green-800
-                                @else bg-red-100 text-red-800 @endif">
-                                {{ ucfirst($paket->status) }}
-                            </span>
-                            <span class="text-sm text-gray-500">
-                                {{ $paket->pelanggans_count }} pelanggan
-                            </span>
-                        </div>
+            <div class="mobile-card bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-lg transition">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center">
+                        {{ substr($paket->nama_paket, 0, 1) }}
                     </div>
-
-                    <div class="flex flex-col space-y-2 ml-4">
-                        <a href="{{ route('pakets.show', $paket) }}"
-                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-eye mr-1"></i>Detail
-                        </a>
-                        <a href="{{ route('pakets.edit', $paket) }}"
-                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-edit mr-1"></i>Edit
-                        </a>
-                        <form method="POST" action="{{ route('pakets.destroy', $paket) }}" class="delete-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                <i class="fas fa-trash mr-1"></i>Hapus
-                            </button>
-                        </form>
+                    <div class="min-w-0">
+                        <p class="text-base font-semibold text-gray-900 truncate">{{ $paket->nama_paket }}</p>
+                        <p class="text-sm font-bold text-green-700">Rp {{ number_format($paket->harga, 0, ',', '.') }}</p>
                     </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold {{ $paket->aktif ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
+                        {{ $paket->aktif ? 'Aktif' : 'Nonaktif' }}
+                    </span>
+                </div>
+                <p class="text-xs text-gray-500 mt-3">
+                    {{ Str::limit($paket->deskripsi, 110) ?: 'Tidak ada deskripsi' }}
+                </p>
+                <div class="grid grid-cols-2 gap-2 my-3 text-[11px] text-gray-600">
+                    <div class="bg-gray-50 px-3 py-2 rounded-xl">
+                        <span class="font-semibold text-gray-800 block mb-1">Pelanggan</span>
+                        <span class="text-gray-900 font-semibold">{{ $paket->pelanggans->count() }} pelanggan</span>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded-xl">
+                        <span class="font-semibold text-gray-800 block mb-1">Terakhir dibuat</span>
+                        <span class="text-gray-900 font-semibold">{{ $paket->created_at->format('d M Y') }}</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-[11px] font-semibold">
+                    <a href="{{ route('pakets.show', $paket) }}" class="inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-md transition">
+                        <i class="fas fa-eye mr-1.5"></i>Detail
+                    </a>
+                    <a href="{{ route('pakets.edit', $paket) }}" class="inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-md transition">
+                        <i class="fas fa-edit mr-1.5"></i>Edit
+                    </a>
+                    <form method="POST" action="{{ route('pakets.destroy', $paket) }}" class="delete-form">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-md transition w-full">
+                            <i class="fas fa-trash mr-1.5"></i>Hapus
+                        </button>
+                    </form>
                 </div>
             </div>
             @empty
-            <div class="text-center py-12">
-                <i class="fas fa-box text-gray-400 text-4xl mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada paket</h3>
-                <p class="text-gray-500">Mulai dengan menambahkan paket pertama Anda.</p>
+            <div class="text-center py-16">
+                <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <i class="fas fa-box text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Tidak ada paket</h3>
+                <p class="text-gray-500 text-lg mb-6">Mulai dengan menambahkan paket pertama Anda.</p>
+                <a href="{{ route('pakets.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-bold">
+                    <i class="fas fa-plus mr-2"></i>Tambah Paket Pertama
+                </a>
             </div>
             @endforelse
         </div>
     </div>
 
-    <!-- Pagination -->
     @if($pakets->hasPages())
-    <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4">
-        {{ $pakets->appends(request()->query())->links('vendor.pagination.tailwind') }}
+    <div class="app-card">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm text-gray-600">
+            <span>Menampilkan <strong>{{ $pakets->firstItem() }}</strong> - <strong>{{ $pakets->lastItem() }}</strong> dari <strong>{{ $pakets->total() }}</strong> paket</span>
+            <div class="flex justify-center sm:justify-end">
+                {{ $pakets->appends(request()->query())->links('vendor.pagination.tailwind') }}
+            </div>
+        </div>
     </div>
     @endif
 </div>
@@ -212,18 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Try to get paket name from desktop table (tr)
             const tableRow = form.closest('tr');
-            if (tableRow) {
-                paketName = tableRow.querySelector('td:first-child').textContent.trim();
-            } else {
-                // Try to get paket name from mobile card
-                const cardContainer = form.closest('.border-b');
-                if (cardContainer) {
-                    const nameElement = cardContainer.querySelector('h3, .font-medium, .text-lg');
-                    if (nameElement) {
-                        paketName = nameElement.textContent.trim();
+                if (tableRow) {
+                    const nameCell = tableRow.querySelector('td:first-child .text-sm');
+                    paketName = nameCell ? nameCell.textContent.trim() : '';
+                } else {
+                    const cardContainer = form.closest('.mobile-card');
+                    if (cardContainer) {
+                        const nameElement = cardContainer.querySelector('.text-base.font-semibold') || cardContainer.querySelector('.text-lg');
+                        paketName = nameElement ? nameElement.textContent.trim() : '';
                     }
                 }
-            }
 
             console.log('Paket to delete:', paketName);
 
@@ -247,25 +247,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Show SweetAlert for session messages
-    @if(session('success'))
-        Swal.fire({
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            icon: 'success',
-            confirmButtonColor: '#10B981'
-        });
-    @endif
-
-    @if(session('error'))
-        Swal.fire({
-            title: 'Error!',
-            text: '{{ session('error') }}',
-            icon: 'error',
-            confirmButtonColor: '#EF4444'
-        });
-    @endif
 });
 </script>
+
+@if(session('success'))
+<script>
+Swal.fire({
+    title: 'Berhasil!',
+    text: '{{ session('success') }}',
+    icon: 'success',
+    confirmButtonColor: '#10B981'
+});
+</script>
+@endif
+
+@if(session('error'))
+<script>
+Swal.fire({
+    title: 'Error!',
+    text: '{{ session('error') }}',
+    icon: 'error',
+    confirmButtonColor: '#EF4444'
+});
+</script>
+@endif
 @endpush
 @endsection

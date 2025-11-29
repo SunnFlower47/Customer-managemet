@@ -43,20 +43,20 @@ class LaporanController extends Controller
             $pembayaranQuery->where('tahun_tagihan', $tahun);
         }
 
-        // Get income data
-        $totalPendapatan = $pembayaranQuery->clone()->where('status', 'lunas')->sum('jumlah');
-        $totalTagihan = $pembayaranQuery->clone()->sum('jumlah');
-        $belumBayar = $pembayaranQuery->clone()->where('status', 'belum_bayar')->sum('jumlah');
+        // Get income data - use the same query builder as pagination
+        $totalPendapatan = (clone $pembayaranQuery)->where('status', 'lunas')->sum('jumlah');
+        $totalTagihan = (clone $pembayaranQuery)->sum('jumlah');
+        $belumBayar = (clone $pembayaranQuery)->where('status', 'belum_bayar')->sum('jumlah');
 
         // Get detailed income by status
-        $pendapatanByStatus = $pembayaranQuery->clone()
+        $pendapatanByStatus = (clone $pembayaranQuery)
             ->select('status', DB::raw('SUM(jumlah) as total'))
             ->groupBy('status')
             ->get()
             ->pluck('total', 'status');
 
         // Get income by penagih
-        $pendapatanByPenagih = $pembayaranQuery->clone()
+        $pendapatanByPenagih = (clone $pembayaranQuery)
             ->where('status', 'lunas')
             ->with('pelanggan.penagih:id,nama')
             ->select('pelanggan_id', DB::raw('SUM(jumlah) as total'))
@@ -64,7 +64,7 @@ class LaporanController extends Controller
             ->get();
 
         // Get daily income for the month
-        $pendapatanHarian = $pembayaranQuery->clone()
+        $pendapatanHarian = (clone $pembayaranQuery)
             ->where('status', 'lunas')
             ->whereNotNull('tanggal_bayar')
             ->select(DB::raw('DATE(tanggal_bayar) as tanggal'), DB::raw('SUM(jumlah) as total'))
@@ -73,7 +73,7 @@ class LaporanController extends Controller
             ->get();
 
         // Get recent payments
-        $pembayaranTerbaru = $pembayaranQuery->clone()
+        $pembayaranTerbaru = (clone $pembayaranQuery)
             ->where('status', 'lunas')
             ->with(['pelanggan:id,nama,pppoe', 'pelanggan.penagih:id,nama'])
             ->orderBy('tanggal_bayar', 'desc')
@@ -95,30 +95,58 @@ class LaporanController extends Controller
             : 0;
 
         // Get pembayarans for table
-        $pembayarans = $pembayaranQuery->with(['pelanggan', 'pelanggan.penagih'])->paginate(20);
+        $pembayarans = $pembayaranQuery->with(['pelanggan', 'pelanggan.penagih'])
+            ->orderBy('tahun_tagihan', 'desc')
+            ->orderBy('bulan_tagihan', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->appends($request->query());
 
-        // Prepare summary data
+        // Prepare summary data - use the same query builder as pagination
         $summary = [
-            'total_pendapatan' => $totalPendapatan,
-            'pembayaran_lunas' => $pembayaranQuery->clone()->where('status', 'lunas')->count(),
-            'pembayaran_belum_lunas' => $pembayaranQuery->clone()->where('status', 'belum_bayar')->count(),
-            'total_pelanggan' => $pembayaranQuery->clone()->distinct('pelanggan_id')->count()
+            'total_pendapatan' => $totalPendapatan ?? 0,
+            'pembayaran_lunas' => (clone $pembayaranQuery)->where('status', 'lunas')->count(),
+            'pembayaran_belum_lunas' => (clone $pembayaranQuery)->where('status', 'belum_bayar')->count(),
+            'total_pelanggan' => (clone $pembayaranQuery)->select('pelanggan_id')->distinct()->count('pelanggan_id')
         ];
 
-        // Prepare chart data
+        // Prepare chart data - use base query with filters
         $chartData = [];
+        $maxChartValue = 0;
+
         for ($i = 1; $i <= 12; $i++) {
-            $monthTotal = Pembayaran::where('bulan_tagihan', $i)
-                ->where('tahun_tagihan', $tahun)
-                ->where('status', 'lunas')
-                ->sum('jumlah');
+            $monthQuery = Pembayaran::query();
+
+            // Apply user filter if penagih
+            if ($user->role === 'penagih') {
+                $penagih = \App\Models\Penagih::where('user_id', $user->id)->first();
+                if ($penagih) {
+                    $monthQuery->where('penagih_id', $penagih->id);
+                }
+            }
+
+            $monthQuery->where('bulan_tagihan', $i);
+
+            // Apply year filter if specified
+            if ($tahun) {
+                $monthQuery->where('tahun_tagihan', $tahun);
+            }
+
+            $monthTotal = $monthQuery->where('status', 'lunas')->sum('jumlah');
+            $maxChartValue = max($maxChartValue, $monthTotal);
 
             $chartData[] = [
                 'month' => \Carbon\Carbon::create(null, $i, 1)->format('M'),
                 'amount' => $monthTotal,
-                'height' => $monthTotal > 0 ? max(20, ($monthTotal / max($totalPendapatan, 1)) * 200) : 0
+                'height' => 0 // Will be calculated after we know max value
             ];
         }
+
+        // Calculate heights based on max value
+        foreach ($chartData as &$data) {
+            $data['height'] = $data['amount'] > 0 ? max(20, ($data['amount'] / max($maxChartValue, 1)) * 200) : 0;
+        }
+        unset($data);
 
         return view('laporan.pendapatan', compact(
             'summary',
@@ -149,68 +177,89 @@ class LaporanController extends Controller
             $pengeluaranQuery->whereYear('tanggal_pengeluaran', $tahun);
         }
 
-        // Get expense data
-        $totalPengeluaran = $pengeluaranQuery->clone()->sum('jumlah');
+        // Get expense data - use the same query builder as pagination
+        $totalPengeluaran = (clone $pengeluaranQuery)->sum('jumlah');
 
-        // Get expenses by category
-        $pengeluaranByKategori = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulan)
-            ->whereYear('tanggal_pengeluaran', $tahun)
+        // Get expenses by category - use base query with filters
+        $pengeluaranByKategori = (clone $pengeluaranQuery)
             ->where('status', 'terkonfirmasi')
             ->select('kategori', DB::raw('SUM(jumlah) as total'))
             ->groupBy('kategori')
             ->get()
             ->pluck('total', 'kategori');
 
-        // Get expenses by status
-        $pengeluaranByStatus = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulan)
-            ->whereYear('tanggal_pengeluaran', $tahun)
+        // Get expenses by status - use base query with filters
+        $pengeluaranByStatus = (clone $pengeluaranQuery)
             ->select('status', DB::raw('SUM(jumlah) as total'))
             ->groupBy('status')
             ->get()
             ->pluck('total', 'status');
 
-        // Get recent expenses
-        $pengeluaranTerbaru = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulan)
-            ->whereYear('tanggal_pengeluaran', $tahun)
+        // Get recent expenses - use base query with filters
+        $pengeluaranTerbaru = (clone $pengeluaranQuery)
             ->with('user:id,name')
             ->orderBy('tanggal_pengeluaran', 'desc')
             ->limit(10)
             ->get();
 
-        // Get monthly comparison
-        $bulanSebelumnya = Carbon::create($tahun, $bulan, 1)->subMonth();
-        $pengeluaranBulanSebelumnya = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulanSebelumnya->month)
-            ->whereYear('tanggal_pengeluaran', $bulanSebelumnya->year)
-            ->where('status', 'terkonfirmasi')
-            ->sum('jumlah');
+        // Get monthly comparison - only if month and year are specified
+        $pengeluaranBulanSebelumnya = 0;
+        $persentasePerubahan = 0;
+        if ($bulan && $tahun) {
+            $bulanSebelumnya = Carbon::create($tahun, $bulan, 1)->subMonth();
+            $pengeluaranBulanSebelumnya = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulanSebelumnya->month)
+                ->whereYear('tanggal_pengeluaran', $bulanSebelumnya->year)
+                ->where('status', 'terkonfirmasi')
+                ->sum('jumlah');
 
-        $persentasePerubahan = $pengeluaranBulanSebelumnya > 0
-            ? (($totalPengeluaran - $pengeluaranBulanSebelumnya) / $pengeluaranBulanSebelumnya) * 100
-            : 0;
+            $persentasePerubahan = $pengeluaranBulanSebelumnya > 0
+                ? (($totalPengeluaran - $pengeluaranBulanSebelumnya) / $pengeluaranBulanSebelumnya) * 100
+                : 0;
+        }
 
         // Get pengeluarans for table
-        $pengeluarans = $pengeluaranQuery->clone()->with('user')->paginate(20);
+        $pengeluarans = $pengeluaranQuery->with('user')
+            ->orderBy('tanggal_pengeluaran', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->appends($request->query());
 
-        // Prepare summary data
+        // Prepare summary data - use the same query builder as pagination
         $summary = [
-            'total_pengeluaran' => $totalPengeluaran,
-            'total_transaksi' => $pengeluaranQuery->clone()->count(),
-            'rata_rata' => $pengeluaranQuery->clone()->avg('jumlah') ?? 0
+            'total_pengeluaran' => $totalPengeluaran ?? 0,
+            'total_transaksi' => (clone $pengeluaranQuery)->count(),
+            'rata_rata' => (clone $pengeluaranQuery)->avg('jumlah') ?? 0
         ];
 
-        // Prepare chart data
+        // Prepare chart data - use base query with filters
         $chartData = [];
+        $maxChartValue = 0;
+
         for ($i = 1; $i <= 12; $i++) {
-            $monthTotal = Pengeluaran::whereMonth('tanggal_pengeluaran', $i)
-                ->whereYear('tanggal_pengeluaran', $tahun)
-                ->sum('jumlah');
+            $monthQuery = Pengeluaran::query();
+
+            $monthQuery->whereMonth('tanggal_pengeluaran', $i);
+
+            // Apply year filter if specified
+            if ($tahun) {
+                $monthQuery->whereYear('tanggal_pengeluaran', $tahun);
+            }
+
+            $monthTotal = $monthQuery->sum('jumlah');
+            $maxChartValue = max($maxChartValue, $monthTotal);
 
             $chartData[] = [
                 'month' => \Carbon\Carbon::create(null, $i, 1)->format('M'),
                 'amount' => $monthTotal,
-                'height' => $monthTotal > 0 ? max(20, ($monthTotal / max($totalPengeluaran, 1)) * 200) : 0
+                'height' => 0 // Will be calculated after we know max value
             ];
         }
+
+        // Calculate heights based on max value
+        foreach ($chartData as &$data) {
+            $data['height'] = $data['amount'] > 0 ? max(20, ($data['amount'] / max($maxChartValue, 1)) * 200) : 0;
+        }
+        unset($data);
 
         return view('laporan.pengeluaran', compact(
             'summary',
@@ -249,37 +298,44 @@ class LaporanController extends Controller
             $pengeluaranQuery->whereYear('tanggal_pengeluaran', $tahun);
         }
 
-        // Get income
-        $totalPendapatan = $pembayaranQuery->clone()->where('status', 'lunas')->sum('jumlah');
+        // Get income - use the same query builder
+        $totalPendapatan = (clone $pembayaranQuery)->where('status', 'lunas')->sum('jumlah');
 
-        // Get expenses
-        $totalPengeluaran = $pengeluaranQuery->clone()->sum('jumlah');
+        // Get expenses - use the same query builder
+        $totalPengeluaran = (clone $pengeluaranQuery)->sum('jumlah');
 
         // Calculate profit/loss
         $labaRugi = $totalPendapatan - $totalPengeluaran;
         $marginKeuntungan = $totalPendapatan > 0 ? ($labaRugi / $totalPendapatan) * 100 : 0;
 
-        // Get monthly comparison
-        $bulanSebelumnya = Carbon::create($tahun, $bulan, 1)->subMonth();
-        $pendapatanBulanSebelumnya = Pembayaran::where('bulan_tagihan', $bulanSebelumnya->month)
-            ->where('tahun_tagihan', $bulanSebelumnya->year)
-            ->where('status', 'lunas')
-            ->sum('jumlah');
-        $pengeluaranBulanSebelumnya = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulanSebelumnya->month)
-            ->whereYear('tanggal_pengeluaran', $bulanSebelumnya->year)
-            ->sum('jumlah');
-        $labaRugiBulanSebelumnya = $pendapatanBulanSebelumnya - $pengeluaranBulanSebelumnya;
+        // Get monthly comparison - only if month and year are specified
+        $pendapatanBulanSebelumnya = 0;
+        $pengeluaranBulanSebelumnya = 0;
+        $labaRugiBulanSebelumnya = 0;
+        $persentasePerubahan = 0;
 
-        $persentasePerubahan = $labaRugiBulanSebelumnya != 0
-            ? (($labaRugi - $labaRugiBulanSebelumnya) / abs($labaRugiBulanSebelumnya)) * 100
-            : 0;
+        if ($bulan && $tahun) {
+            $bulanSebelumnya = Carbon::create($tahun, $bulan, 1)->subMonth();
+            $pendapatanBulanSebelumnya = Pembayaran::where('bulan_tagihan', $bulanSebelumnya->month)
+                ->where('tahun_tagihan', $bulanSebelumnya->year)
+                ->where('status', 'lunas')
+                ->sum('jumlah');
+            $pengeluaranBulanSebelumnya = Pengeluaran::whereMonth('tanggal_pengeluaran', $bulanSebelumnya->month)
+                ->whereYear('tanggal_pengeluaran', $bulanSebelumnya->year)
+                ->sum('jumlah');
+            $labaRugiBulanSebelumnya = $pendapatanBulanSebelumnya - $pengeluaranBulanSebelumnya;
 
-        // Prepare summary data
+            $persentasePerubahan = $labaRugiBulanSebelumnya != 0
+                ? (($labaRugi - $labaRugiBulanSebelumnya) / abs($labaRugiBulanSebelumnya)) * 100
+                : 0;
+        }
+
+        // Prepare summary data - use the same query builder as calculations
         $summary = [
-            'total_pendapatan' => $totalPendapatan,
-            'total_pengeluaran' => $totalPengeluaran,
-            'laba_rugi' => $labaRugi,
-            'margin_percentage' => $marginKeuntungan
+            'total_pendapatan' => $totalPendapatan ?? 0,
+            'total_pengeluaran' => $totalPengeluaran ?? 0,
+            'laba_rugi' => $labaRugi ?? 0,
+            'margin_percentage' => $marginKeuntungan ?? 0
         ];
 
         // Prepare chart data
@@ -309,10 +365,10 @@ class LaporanController extends Controller
         }
 
         // Find global maximum for proper scaling
-        $maxPendapatan = max($allPendapatan);
-        $maxPengeluaran = max($allPengeluaran);
-        $maxLabaRugi = max($allLabaRugi);
-        $globalMax = max($maxPendapatan, $maxPengeluaran, $maxLabaRugi);
+        $maxPendapatan = !empty($allPendapatan) ? max($allPendapatan) : 0;
+        $maxPengeluaran = !empty($allPengeluaran) ? max($allPengeluaran) : 0;
+        $maxLabaRugi = !empty($allLabaRugi) ? max($allLabaRugi) : 0;
+        $globalMax = max($maxPendapatan, $maxPengeluaran, $maxLabaRugi, 1);
 
         // Second pass: create chart data with proper scaling
         for ($i = 1; $i <= 12; $i++) {
@@ -373,7 +429,9 @@ class LaporanController extends Controller
             'chartData',
             'monthlyData',
             'bulan',
-            'tahun'
+            'tahun',
+            'persentasePerubahan',
+            'globalMax'
         ));
     }
 }

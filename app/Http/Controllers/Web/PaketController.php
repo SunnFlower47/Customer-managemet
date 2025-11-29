@@ -47,7 +47,10 @@ class PaketController extends BaseController
      */
     public function show(Paket $paket)
     {
-        return view('pakets.show', compact('paket'));
+        // Paginate pelanggan yang menggunakan paket ini
+        $pelanggans = $paket->pelanggans()->with('penagih')->paginate(10);
+
+        return view('pakets.show', compact('paket', 'pelanggans'));
     }
 
     /**

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'role.permission' => \App\Http\Middleware\RolePermissionMiddleware::class,
+            'customer.auth' => \App\Http\Middleware\CustomerAuth::class,
+            'api.rate' => \App\Http\Middleware\ApiRateLimit::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -12,7 +12,21 @@
             background-color: #f8f9fa;
             font-size: 12px;
         }
-        
+
+        /* Add top margin to prevent button overlap on mobile */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 70px;
+            }
+        }
+
+
         /* PDF-specific body styles */
         @media print {
             body {
@@ -29,7 +43,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
-        
+
         /* PDF-specific container styles */
         @media print {
             .invoice-container {
@@ -46,7 +60,7 @@
             text-align: center;
             border-bottom: 3px solid #667eea;
         }
-        
+
         /* PDF-specific header styles */
         @media print {
             .header {
@@ -74,7 +88,7 @@
         .content {
             padding: 20px;
         }
-        
+
         /* PDF-specific content styles */
         @media print {
             .content {
@@ -152,11 +166,67 @@
             font-size: 10px;
         }
         .action-buttons {
-            position: fixed;
+            position: absolute;
             top: 20px;
             right: 20px;
             display: flex;
             gap: 10px;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* Mobile responsive buttons */
+        @media (max-width: 768px) {
+            .action-buttons {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                flex-direction: row;
+                gap: 8px;
+                border-radius: 8px;
+                z-index: 9999;
+                padding: 10px;
+                justify-content: center;
+            }
+
+            .print-button, .download-button {
+                flex: 1;
+                justify-content: center;
+                padding: 12px 15px;
+                font-size: 14px;
+                min-height: 44px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .action-buttons {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                padding: 8px;
+                gap: 6px;
+                z-index: 9999;
+            }
+
+            .print-button, .download-button {
+                padding: 10px 12px;
+                font-size: 13px;
+                min-height: 40px;
+            }
         }
         /* Hide buttons in PDF generation */
         @media print, @page {
@@ -165,7 +235,7 @@
                 visibility: hidden !important;
             }
         }
-        
+
         /* PDF-specific styles */
         @page {
             margin: 0.25in;
@@ -183,6 +253,33 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            pointer-events: auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .print-button:focus, .download-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        .print-button:active, .download-button:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .print-button:hover, .download-button:hover {
+            transform: translateY(-1px);
         }
         .print-button:hover, .download-button:hover {
             background: #5a6fd8;
@@ -206,7 +303,7 @@
         <a href="#" class="print-button" onclick="window.print(); return false;">
             <i class="fas fa-print"></i> Cetak
         </a>
-        <a href="{{ route('pembayarans.invoice.pdf', $pembayaran) }}" class="download-button" target="_blank">
+        <a href="{{ route('pembayarans.invoice.pdf', $pembayaran) }}" class="download-button">
             <i class="fas fa-download"></i> Download PDF
         </a>
     </div>
@@ -218,14 +315,14 @@
             <div class="company-info">
                 @php
                     $companyProfile = \App\Models\CompanyProfile::first();
-                    $companyName = $companyProfile->official_name ?? 'BCM';
-                    $companyInitials = $companyProfile->initials ?? 'BCM';
+                    $companyName = $companyProfile->official_name ?? 'PCM.net';
+                    $companyInitials = $companyProfile->initials ?? 'PCM';
                 @endphp
                 <div class="company-name">{{ $companyName }}</div>
                 <div class="company-details">
                     {{ $companyInitials }} WiFi Billing Management System<br>
                     {{ $companyProfile->alamat ?? 'Jl. Raya Teknologi No. 123, Jakarta' }}<br>
-                    Telp: {{ $companyProfile->nomor_kontak ?? '(021) 1234-5678' }} | Email: {{ $companyProfile->email_support ?? 'info@bcmnet.com' }}
+                    Telp: {{ $companyProfile->nomor_kontak ?? '(021) 1234-5678' }} | Email: {{ $companyProfile->email_support ?? 'info@pcm.net' }}
                 </div>
             </div>
             <div class="invoice-title">FAKTUR PEMBAYARAN</div>
@@ -317,7 +414,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Terima kasih telah menggunakan layanan {{ $companyProfile->official_name ?? 'BCM' }}</p>
+            <p>Terima kasih telah menggunakan layanan {{ $companyProfile->official_name ?? 'PCM.net' }}</p>
             <p>Faktur ini dicetak pada {{ now()->format('d F Y H:i:s') }}</p>
         </div>
     </div>

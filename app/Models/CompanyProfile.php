@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Cache;
 
 class CompanyProfile extends Model
 {
@@ -16,6 +17,10 @@ class CompanyProfile extends Model
         'alamat',
         'nomor_kontak',
         'whatsapp',
+        'dana_phone',
+        'mandiri_account',
+        'mandiri_account_name',
+        'payment_whatsapp',
         'email_support',
         'logo_path',
         'website',
@@ -30,32 +35,32 @@ class CompanyProfile extends Model
     {
         if ($this->logo_path) {
             // Try multiple approaches for shared hosting compatibility
-            
+
             // 1. Try Laravel route first
             try {
                 return route('logo', ['filename' => basename($this->logo_path)]);
             } catch (\Exception $e) {
                 // Route not available, try direct paths
             }
-            
+
             // 2. Try storage path
             $storagePath = 'storage/' . $this->logo_path;
             if (file_exists(public_path($storagePath))) {
                 return asset($storagePath);
             }
-            
+
             // 3. Try direct path in public
             if (file_exists(public_path($this->logo_path))) {
                 return asset($this->logo_path);
             }
-            
+
             // 4. Try with uploads folder (common in shared hosting)
             $uploadsPath = 'uploads/' . basename($this->logo_path);
             if (file_exists(public_path($uploadsPath))) {
                 return asset($uploadsPath);
             }
         }
-        
+
         // Default fallback
         return asset('icon-192x192.png');
     }
@@ -118,5 +123,21 @@ class CompanyProfile extends Model
     public function getInitialsAttribute()
     {
         return $this->inisial_perusahaan ?: 'BCM';
+    }
+
+    /**
+     * Boot method to clear cache on save/update/delete
+     */
+    protected static function booted()
+    {
+        static::saved(function () {
+            Cache::forget('company_profile');
+            Cache::forget('payment_methods');
+        });
+
+        static::deleted(function () {
+            Cache::forget('company_profile');
+            Cache::forget('payment_methods');
+        });
     }
 }

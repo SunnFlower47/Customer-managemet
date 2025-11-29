@@ -79,6 +79,39 @@ class RolePermissionSeeder extends Seeder
 
             // Audit Trail
             'view-audit-trail',
+
+            // Customer Portal
+            'view-customer-portal',
+
+            // MikroTik Management
+            'view-mikrotik',
+            'manage-mikrotik',
+
+            // ODP Management
+            'view-odp',
+            'manage-odp',
+
+            // Mapping Management
+            'view-mapping',
+            'manage-mapping',
+
+            // OLT Monitoring
+            'view-olt',
+            'manage-olt',
+            'sync-olt',
+
+            // ONU Management
+            'view-onu',
+            'manage-onu',
+            'reboot-onu',
+
+            // VLAN Database
+            'view-vlan',
+            'manage-vlan',
+
+            // Speed Profiles
+            'view-speed-profile',
+            'manage-speed-profile',
         ];
 
         foreach ($permissions as $permission) {
@@ -115,6 +148,12 @@ class RolePermissionSeeder extends Seeder
             'view-laporan-pengeluaran',
             'view-laporan-laba-rugi',
             'export-laporan',
+            'view-odp',
+            'view-mapping',
+            'view-olt',
+            'view-onu',
+            'view-vlan',
+            'view-speed-profile',
         ]);
 
         // Penagih - Limited access for collectors

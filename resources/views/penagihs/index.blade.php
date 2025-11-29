@@ -3,206 +3,227 @@
 @section('title', 'Penagih - WiFi Billing Management')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-    <div class="sm:flex sm:items-center">
-        <div class="sm:flex-auto">
-            <h1 class="text-2xl font-semibold text-gray-900">Data Penagih</h1>
-            <p class="mt-2 text-sm text-gray-700">Kelola data penagih yang bertugas menagih pembayaran pelanggan.</p>
+<div class="space-y-6 lg:space-y-8">
+    <div class="page-header">
+        <div class="flex items-center gap-3 sm:gap-4">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg text-white text-xl sm:text-2xl relative">
+                <i class="fas fa-user-tie"></i>
+                <div class="absolute -top-1 -right-1 h-5 w-5 bg-purple-500 rounded-full border-2 border-white flex items-center justify-center">
+                    <i class="fas fa-circle text-[6px] text-white"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="page-header__title text-slate-900">Data Penagih</h1>
+                <p class="mt-1 text-xs sm:text-sm text-gray-600">Kelola data penagih yang bertugas menagih pembayaran pelanggan</p>
+            </div>
         </div>
-        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <a href="{{ route('penagihs.create') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Tambah Penagih
+        <div class="page-header__actions flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold border border-gray-200 rounded-xl text-gray-700 bg-white">
+                <i class="fas fa-info-circle mr-2 text-purple-500"></i>{{ $penagihs->total() }} penagih
+            </div>
+            <a href="{{ route('penagihs.create') }}"
+               class="inline-flex items-center justify-center px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:shadow-lg transition">
+                <i class="fas fa-plus mr-2 text-xs sm:text-sm"></i>Tambah Penagih
             </a>
         </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <!-- Desktop Table -->
+    <div class="app-card app-card--soft overflow-hidden">
         <div class="hidden lg:block overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                    Nama Penagih
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                    Email
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                    No HP
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                    Status
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                    Akun User
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                    Pelanggan
-                                </th>
-                                <th scope="col" class="relative px-6 py-3">
-                                    <span class="sr-only">Actions</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($penagihs as $penagih)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $penagih->nama }}</div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900 break-all max-w-xs">{{ $penagih->email }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $penagih->no_hp ?: '-' }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $penagih->aktif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                        {{ $penagih->aktif ? 'Aktif' : 'Nonaktif' }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($penagih->user)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ $penagih->user->name }}
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            Tidak Ada
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $penagih->pelanggans->count() }} pelanggan
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <div class="flex justify-center space-x-2">
-                                        <!-- Tombol Detail -->
-                                        <a href="{{ route('penagihs.show', $penagih) }}"
-                                           class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition duration-150"
-                                           title="Lihat Detail">
-                                            <i class="fas fa-eye mr-1"></i>Detail
-                                        </a>
-
-                                        <!-- Tombol Edit -->
-                                        <a href="{{ route('penagihs.edit', $penagih) }}"
-                                           class="inline-flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition duration-150"
-                                           title="Edit Data">
-                                            <i class="fas fa-edit mr-1"></i>Edit
-                                        </a>
-
-                                        <!-- Tombol Hapus -->
-                                        <form method="POST" action="{{ route('penagihs.destroy', $penagih) }}" class="inline delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition duration-150"
-                                                    title="Hapus Data">
-                                                <i class="fas fa-trash mr-1"></i>Hapus
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
-                                    Tidak ada penagih yang ditemukan.
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+            <table class="data-table min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-blue-500 to-blue-600">
+                    <tr>
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-user-tie mr-2"></i>Nama Penagih
+                        </th>
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-envelope mr-2"></i>Email
+                        </th>
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-phone mr-2"></i>No HP
+                        </th>
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-info-circle mr-2"></i>Status
+                        </th>
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-user mr-2"></i>Akun User
+                        </th>
+                        <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-users mr-2"></i>Pelanggan
+                        </th>
+                        <th scope="col" class="px-5 py-3 text-center text-[11px] font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-cog mr-2"></i>Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    @forelse($penagihs as $penagih)
+                    <tr class="hover:bg-blue-50 transition">
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center shadow relative">
+                                    <div class="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full border-2 border-white"></div>
+                                    {{ substr($penagih->nama, 0, 1) }}
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900 truncate">{{ $penagih->nama }}</p>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <p class="text-xs text-gray-600 bg-gray-50 px-3 py-2 rounded-xl truncate max-w-xs" title="{{ $penagih->email }}">
+                                <i class="fas fa-envelope mr-1 text-gray-400"></i>{{ $penagih->email }}
+                            </p>
+                        </td>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <p class="text-xs text-gray-700 bg-blue-50 px-3 py-2 rounded-xl">
+                                <i class="fas fa-phone mr-1 text-blue-600"></i>{{ $penagih->no_hp ?: '-' }}
+                            </p>
+                        </td>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] font-semibold {{ $penagih->aktif ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
+                                <i class="fas fa-circle mr-1 text-[9px]"></i>{{ $penagih->aktif ? 'Aktif' : 'Nonaktif' }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            @if($penagih->user)
+                                <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                    <i class="fas fa-user mr-1"></i>{{ $penagih->user->name }}
+                                </div>
+                            @else
+                                <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-gray-50 text-gray-500 border border-gray-100">
+                                    <i class="fas fa-user-slash mr-1"></i>Tidak Ada
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                                <i class="fas fa-users mr-1"></i>{{ $penagih->pelanggans->count() }} pelanggan
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 whitespace-nowrap text-center text-xs font-medium">
+                            <div class="inline-flex flex-wrap justify-center gap-2">
+                                <a href="{{ route('penagihs.show', $penagih) }}"
+                                   class="inline-flex items-center px-3.5 py-2 text-[12px] bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-lg transition"
+                                   title="Lihat Detail">
+                                    <i class="fas fa-eye mr-2"></i>Detail
+                                </a>
+                                <a href="{{ route('penagihs.edit', $penagih) }}"
+                                   class="inline-flex items-center px-3.5 py-2 text-[12px] bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition"
+                                   title="Edit Data">
+                                    <i class="fas fa-edit mr-2"></i>Edit
+                                </a>
+                                <form method="POST" action="{{ route('penagihs.destroy', $penagih) }}" class="inline delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="inline-flex items-center px-3.5 py-2 text-[12px] bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition"
+                                            title="Hapus Data">
+                                        <i class="fas fa-trash mr-2"></i>Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-5 py-16 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
+                                    <i class="fas fa-user-tie text-gray-400 text-3xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">Tidak ada penagih</h3>
+                                <p class="text-gray-500 text-lg mb-6">Mulai dengan menambahkan penagih pertama Anda.</p>
+                                <a href="{{ route('penagihs.create') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 hover:shadow-lg hover:scale-105 transition-all duration-200 font-bold">
+                                    <i class="fas fa-plus mr-2"></i>Tambah Penagih Pertama
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        <!-- Mobile Cards -->
-        <div class="lg:hidden">
+        <div class="lg:hidden space-y-3">
             @forelse($penagihs as $penagih)
-            <div class="border-b border-gray-200 p-4 hover:bg-gray-50 transition duration-150">
-                <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center mb-3">
-                            <div class="flex-shrink-0 h-12 w-12">
-                                <div class="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
-                                    <i class="fas fa-user-tie text-blue-600 text-lg"></i>
-                                </div>
-                            </div>
-                            <div class="ml-3 flex-1 min-w-0">
-                                <div class="text-lg font-medium text-gray-900 truncate">{{ $penagih->nama }}</div>
-                                <div class="text-sm text-gray-500 break-all">{{ $penagih->email }}</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
-                            <div>
-                                <span class="font-medium">No HP:</span><br>
-                                <span>{{ $penagih->no_hp }}</span>
-                            </div>
-                            <div>
-                                <span class="font-medium">Status:</span><br>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                    @if($penagih->status === 'aktif') bg-green-100 text-green-800
-                                    @else bg-red-100 text-red-800 @endif">
-                                    {{ ucfirst($penagih->status) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-500">
-                                {{ $penagih->pelanggans_count }} pelanggan
-                            </span>
-                            @if($penagih->user)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                <i class="fas fa-user mr-1"></i>Ada Akun
-                            </span>
-                            @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                <i class="fas fa-user-slash mr-1"></i>Belum Ada Akun
-                            </span>
-                            @endif
-                        </div>
+            <div class="mobile-card bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-lg transition">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center relative">
+                        <div class="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full border-2 border-white"></div>
+                        {{ substr($penagih->nama, 0, 1) }}
                     </div>
-
-                    <div class="flex flex-col space-y-2 ml-4">
-                        <a href="{{ route('penagihs.show', $penagih) }}"
-                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-eye mr-1"></i>Detail
-                        </a>
-                        <a href="{{ route('penagihs.edit', $penagih) }}"
-                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-edit mr-1"></i>Edit
-                        </a>
-                        <form method="POST" action="{{ route('penagihs.destroy', $penagih) }}" class="delete-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                <i class="fas fa-trash mr-1"></i>Hapus
-                            </button>
-                        </form>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-semibold text-gray-900 truncate">{{ $penagih->nama }}</p>
+                        <p class="text-xs text-gray-500 truncate" title="{{ $penagih->email }}">{{ $penagih->email }}</p>
                     </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold {{ $penagih->aktif ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
+                        {{ $penagih->aktif ? 'Aktif' : 'Nonaktif' }}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 my-3 text-[11px] text-gray-600">
+                    <div class="bg-gray-50 px-3 py-2 rounded-xl">
+                        <span class="font-semibold text-gray-800 block mb-1">No HP</span>
+                        <span class="text-gray-900 font-semibold">{{ $penagih->no_hp ?: '-' }}</span>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded-xl">
+                        <span class="font-semibold text-gray-800 block mb-1">Pelanggan</span>
+                        <span class="text-gray-900 font-semibold">{{ $penagih->pelanggans->count() }} pelanggan</span>
+                    </div>
+                </div>
+                @if($penagih->user)
+                <div class="mb-3 bg-blue-50 px-3 py-2 rounded-xl border border-blue-100">
+                    <span class="text-[11px] font-semibold text-gray-800 block mb-1">Akun User</span>
+                    <span class="text-xs text-blue-700 font-semibold flex items-center gap-1">
+                        <i class="fas fa-user"></i>{{ $penagih->user->name }}
+                    </span>
+                </div>
+                @endif
+                <div class="grid grid-cols-3 gap-2 text-[11px] font-semibold">
+                    <a href="{{ route('penagihs.show', $penagih) }}" class="inline-flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-md transition">
+                        <i class="fas fa-eye mb-1"></i>Detail
+                    </a>
+                    <a href="{{ route('penagihs.edit', $penagih) }}" class="inline-flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-md transition">
+                        <i class="fas fa-edit mb-1"></i>Edit
+                    </a>
+                    <form method="POST" action="{{ route('penagihs.destroy', $penagih) }}" class="delete-form">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full inline-flex flex-col items-center justify-center px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-md transition">
+                            <i class="fas fa-trash mb-1"></i>Hapus
+                        </button>
+                    </form>
                 </div>
             </div>
             @empty
-            <div class="text-center py-12">
-                <i class="fas fa-user-tie text-gray-400 text-4xl mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada penagih</h3>
-                <p class="text-gray-500">Mulai dengan menambahkan penagih pertama Anda.</p>
+            <div class="text-center py-16">
+                <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <i class="fas fa-user-tie text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Tidak ada penagih</h3>
+                <p class="text-gray-500 text-lg mb-6">Mulai dengan menambahkan penagih pertama Anda.</p>
+                <a href="{{ route('penagihs.create') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 hover:shadow-lg hover:scale-105 transition-all duration-200 font-bold">
+                    <i class="fas fa-plus mr-2"></i>Tambah Penagih Pertama
+                </a>
             </div>
             @endforelse
         </div>
     </div>
 
-    <!-- Pagination -->
     @if($penagihs->hasPages())
-    <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4">
-        {{ $penagihs->appends(request()->query())->links('vendor.pagination.tailwind') }}
+    <div class="app-card">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs sm:text-sm text-gray-700">
+                Menampilkan
+                <span class="font-medium">{{ $penagihs->firstItem() }}</span>
+                sampai
+                <span class="font-medium">{{ $penagihs->lastItem() }}</span>
+                dari
+                <span class="font-medium">{{ $penagihs->total() }}</span>
+                penagih
+            </div>
+            <div class="flex space-x-2">
+                {{ $penagihs->appends(request()->query())->links('vendor.pagination.tailwind') }}
+            </div>
+        </div>
     </div>
     @endif
 </div>
@@ -211,37 +232,24 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Penagihs page loaded, initializing SweetAlert...');
-
-    // Handle delete confirmation with SweetAlert
     const deleteForms = document.querySelectorAll('.delete-form');
-    console.log('Found delete forms:', deleteForms.length);
-
     deleteForms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Delete form submitted');
-
             const form = this;
             let penagihName = '';
-
-            // Try to get penagih name from desktop table (tr)
             const tableRow = form.closest('tr');
             if (tableRow) {
                 penagihName = tableRow.querySelector('td:first-child').textContent.trim();
             } else {
-                // Try to get penagih name from mobile card
-                const cardContainer = form.closest('.border-b');
+                const cardContainer = form.closest('.mobile-card');
                 if (cardContainer) {
-                    const nameElement = cardContainer.querySelector('h3, .font-medium, .text-lg');
+                    const nameElement = cardContainer.querySelector('.font-semibold');
                     if (nameElement) {
                         penagihName = nameElement.textContent.trim();
                     }
                 }
             }
-
-            console.log('Penagih to delete:', penagihName);
-
             Swal.fire({
                 title: 'Hapus Penagih?',
                 text: `Apakah Anda yakin ingin menghapus penagih "${penagihName}"?`,
@@ -253,32 +261,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    console.log('User confirmed deletion');
                     form.submit();
-                } else {
-                    console.log('User cancelled deletion');
                 }
             });
         });
     });
 
-    // Show SweetAlert for session messages
     @if(session('success'))
-        Swal.fire({
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            icon: 'success',
-            confirmButtonColor: '#10B981'
-        });
+    Swal.fire({
+        title: 'Berhasil!',
+        text: '{{ session('success') }}',
+        icon: 'success',
+        confirmButtonColor: '#10B981'
+    });
     @endif
 
     @if(session('error'))
-        Swal.fire({
-            title: 'Error!',
-            text: '{{ session('error') }}',
-            icon: 'error',
-            confirmButtonColor: '#EF4444'
-        });
+    Swal.fire({
+        title: 'Error!',
+        text: '{{ session('error') }}',
+        icon: 'error',
+        confirmButtonColor: '#EF4444'
+    });
     @endif
 });
 </script>

@@ -1,6 +1,11 @@
 # 📊 Database Schema - WiFi Customer Management System
 
+**Last Updated**: November 2024  
+**Version**: 4.0.0
+
 ## Complete Database Structure
+
+> **Note**: This schema includes all tables including the latest features: MikroTik integration, ODP management, and location mapping.
 
 ### 1. Users Table
 **Purpose**: Store system users (admin, penagih)
@@ -83,7 +88,21 @@
 | tanggal_mulai | date | NOT NULL | Service start date |
 | tanggal_pembayaran | integer | DEFAULT 1 | Payment day of month (1-31) |
 | penagih_id | bigint | NULLABLE, FOREIGN KEY | Collector ID |
-| status | enum('aktif', 'nonaktif', 'suspend') | DEFAULT 'aktif' | Customer status |
+| status | enum('aktif', 'isolir', 'bayar double') | DEFAULT 'aktif' | Customer status |
+| latitude | decimal(10,8) | NULLABLE | Customer latitude |
+| longitude | decimal(11,8) | NULLABLE | Customer longitude |
+| odp_id | bigint | NULLABLE, FOREIGN KEY | ODP ID |
+| mikrotik_id | bigint | NULLABLE, FOREIGN KEY | MikroTik router ID |
+| exists_in_mikrotik | boolean | NULLABLE | PPPoE exists in router |
+| mikrotik_last_checked | timestamp | NULLABLE | Last MikroTik check time |
+| mikrotik_router_name | varchar(255) | NULLABLE | Router name where PPPoE found |
+| mikrotik_status | varchar(255) | NULLABLE | PPPoE status in router |
+| mikrotik_ip | varchar(255) | NULLABLE | IP address from router |
+| mikrotik_profile | varchar(255) | NULLABLE | PPPoE profile in router |
+| password | varchar(255) | NULLABLE | Customer login password (hashed) |
+| remember_token | varchar(100) | NULLABLE | Remember me token |
+| last_login_at | timestamp | NULLABLE | Last login timestamp |
+| is_default_password | boolean | DEFAULT true | Default password flag |
 | created_at | timestamp | NOT NULL | Record creation time |
 | updated_at | timestamp | NOT NULL | Record update time |
 
@@ -99,6 +118,8 @@
 **Relationships**:
 - belongsTo: Paket
 - belongsTo: Penagih
+- belongsTo: Odp (nullable)
+- belongsTo: Mikrotik (nullable)
 - hasMany: Pembayaran
 - hasMany: CustomerPackage (package history)
 
@@ -303,8 +324,8 @@ Backup Histories   Pembayarans (0..1) -----> (1) Pakets
 
 ### Customer Status
 - `aktif`: Customer is active and receiving service
-- `nonaktif`: Customer is inactive but not suspended
-- `suspend`: Customer is suspended (usually for non-payment)
+- `isolir`: Customer is isolated (inactive)
+- `bayar double`: Customer needs to pay double (suspended for non-payment)
 
 ### Payment Status
 - `belum_bayar`: Payment is pending

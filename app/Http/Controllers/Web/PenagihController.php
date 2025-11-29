@@ -63,6 +63,11 @@ class PenagihController extends BaseController
                 'aktif' => true,
             ]);
 
+            // Ensure role & permissions applied
+            if (method_exists($user, 'assignRole')) {
+                $user->assignRole('penagih');
+            }
+
             $penagih->update(['user_id' => $user->id]);
         }
 

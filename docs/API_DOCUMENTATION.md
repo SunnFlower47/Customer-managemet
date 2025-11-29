@@ -1,7 +1,16 @@
 # WiFi Customer Management System - API Documentation
 
+**Last Updated**: November 2024  
+**Version**: 4.0.0
+
 ## Overview
-API lengkap untuk sistem manajemen pelanggan WiFi yang mendukung payment gateway dan WhatsApp automation.
+API lengkap untuk sistem manajemen pelanggan WiFi yang mendukung:
+- Customer Self-Service Portal (Mobile/Web App)
+- Payment Gateway dan WhatsApp automation
+- Ticket System untuk customer support
+- Payment Proof validation
+- Admin management integration
+
 
 **Base URL:** `http://your-domain.com/api/v1`
 
@@ -343,7 +352,7 @@ Ambil daftar pelanggan dengan pagination dan filter.
 - `search` - Pencarian nama/pppoe/no_hp/alamat
 - `paket_id` - Filter berdasarkan paket
 - `penagih_id` - Filter berdasarkan penagih
-- `status` - Filter berdasarkan status (aktif/nonaktif)
+- `status` - Filter berdasarkan status (aktif/isolir)
 - `per_page` - Jumlah data per halaman (default: 15)
 
 **Response:**
@@ -624,6 +633,566 @@ const sendPaymentCode = async (kodePembayaran, phoneNumber) => {
     });
     return await response.json();
 };
+```
+
+---
+
+## Customer Self-Service API
+
+### Customer Authentication
+
+#### 1. Customer Login
+**POST** `/customer/auth/login`
+
+Login untuk customer menggunakan nomor HP atau PPPoE dan password.
+
+**Request Body:**
+```json
+{
+    "username": "081234567890",
+    "password": "password123"
+}
+```
+
+**Note:** `username` bisa berupa nomor HP atau PPPoE username.
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Login successful",
+    "token": "1|abc123...",
+    "customer": {
+        "id": 1,
+        "nama": "John Doe",
+        "no_hp": "081234567890",
+        "email": "john@example.com",
+        "alamat": "Jl. Example No. 123",
+        "is_default_password": false,
+        "last_login_at": "2025-01-14T10:30:00.000000Z"
+    }
+}
+```
+
+#### 2. Customer Logout
+**POST** `/customer/auth/logout`
+
+Logout customer dan revoke token.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Logout successful"
+}
+```
+
+#### 3. Get Customer Profile
+**GET** `/customer/auth/me`
+
+Get informasi customer yang sedang login.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "nama": "John Doe",
+        "no_hp": "081234567890",
+        "email": "john@example.com",
+        "alamat": "Jl. Example No. 123",
+        "paket": {
+            "id": 1,
+            "nama_paket": "Paket 10 Mbps",
+            "harga": 150000
+        },
+        "penagih": {
+            "id": 1,
+            "nama": "Penagih A"
+        }
+    }
+}
+```
+
+#### 4. Change Password
+**POST** `/customer/auth/change-password`
+
+Ubah password customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "current_password": "oldpassword",
+    "new_password": "newpassword123",
+    "new_password_confirmation": "newpassword123"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Password berhasil diubah"
+}
+```
+
+### Customer Payment Management
+
+#### 1. Get Unpaid Bills
+**GET** `/customer/payment/bills`
+
+Get daftar tagihan yang belum dibayar.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "kode_pembayaran": "PAY-20250114-001",
+            "harga_paket": 150000,
+            "tanggal_jatuh_tempo": "2025-01-20",
+            "status": "belum_lunas",
+            "paket": {
+                "nama_paket": "Paket 10 Mbps"
+            }
+        }
+    ]
+}
+```
+
+#### 2. Get Payment History
+**GET** `/customer/payment/history`
+
+Get riwayat pembayaran customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Query Parameters:**
+- `page` (optional): Halaman (default: 1)
+- `per_page` (optional): Jumlah data per halaman (default: 15)
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "kode_pembayaran": "PAY-20250114-001",
+            "harga_paket": 150000,
+            "tanggal_bayar": "2025-01-14T10:30:00.000000Z",
+            "status": "lunas",
+            "paket": {
+                "nama_paket": "Paket 10 Mbps"
+            }
+        }
+    ],
+    "pagination": {
+        "current_page": 1,
+        "last_page": 1,
+        "per_page": 15,
+        "total": 1
+    }
+}
+```
+
+#### 3. Upload Payment Proof
+**POST** `/customer/payment/upload-proof`
+
+Upload bukti pembayaran.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body (multipart/form-data):**
+```
+pembayaran_id: 1
+proof_file: [file]
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Bukti pembayaran berhasil diupload",
+    "data": {
+        "payment_proof_id": 1,
+        "status": "pending",
+        "file_url": "http://domain.com/storage/payment_proofs/file.jpg"
+    }
+}
+```
+
+#### 4. Send Payment Proof to WhatsApp
+**POST** `/customer/payment/send-wa`
+
+Kirim bukti pembayaran via WhatsApp.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "pembayaran_id": 1,
+    "message": "Bukti pembayaran untuk kode PAY-20250114-001"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Bukti pembayaran berhasil dikirim via WhatsApp"
+}
+```
+
+#### 5. Get Payment Status
+**GET** `/customer/payment/status/{id}`
+
+Get status pembayaran dan bukti pembayaran.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "pembayaran": {
+            "id": 1,
+            "kode_pembayaran": "PAY-20250114-001",
+            "status": "lunas",
+            "tanggal_bayar": "2025-01-14T10:30:00.000000Z"
+        },
+        "payment_proofs": [
+            {
+                "id": 1,
+                "status": "verified",
+                "file_url": "http://domain.com/storage/payment_proofs/file.jpg",
+                "admin_notes": "Pembayaran sudah diverifikasi",
+                "verified_at": "2025-01-14T11:00:00.000000Z"
+            }
+        ]
+    }
+}
+```
+
+### Customer Support (Ticket System)
+
+#### 1. Get Customer Tickets
+**GET** `/customer/support/tickets`
+
+Get daftar ticket customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Query Parameters:**
+- `status` (optional): Filter by status (open, in_progress, resolved, closed)
+- `page` (optional): Halaman (default: 1)
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "kode_ticket": "TKT-20250114-001",
+            "judul": "Internet lambat",
+            "kategori": "technical",
+            "prioritas": "medium",
+            "status": "open",
+            "created_at": "2025-01-14T10:30:00.000000Z"
+        }
+    ],
+    "pagination": {
+        "current_page": 1,
+        "last_page": 1,
+        "per_page": 15,
+        "total": 1
+    }
+}
+```
+
+#### 2. Create Ticket
+**POST** `/customer/support/tickets`
+
+Buat ticket baru.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "judul": "Internet lambat",
+    "deskripsi": "Internet saya sangat lambat sejak kemarin",
+    "kategori": "technical",
+    "prioritas": "medium"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Ticket berhasil dibuat",
+    "data": {
+        "id": 1,
+        "kode_ticket": "TKT-20250114-001",
+        "judul": "Internet lambat",
+        "status": "open"
+    }
+}
+```
+
+#### 3. Get Ticket Detail
+**GET** `/customer/support/tickets/{id}`
+
+Get detail ticket.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "kode_ticket": "TKT-20250114-001",
+        "judul": "Internet lambat",
+        "deskripsi": "Internet saya sangat lambat sejak kemarin",
+        "kategori": "technical",
+        "prioritas": "medium",
+        "status": "open",
+        "created_at": "2025-01-14T10:30:00.000000Z",
+        "comments": [
+            {
+                "id": 1,
+                "comment": "Terima kasih atas laporan Anda. Tim kami akan segera mengecek.",
+                "created_at": "2025-01-14T11:00:00.000000Z",
+                "user": {
+                    "name": "Admin Support"
+                }
+            }
+        ],
+        "attachments": []
+    }
+}
+```
+
+#### 4. Add Comment to Ticket
+**POST** `/customer/support/tickets/{id}/comments`
+
+Tambah komentar ke ticket.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "comment": "Masalah masih berlanjut sampai sekarang"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Komentar berhasil ditambahkan"
+}
+```
+
+#### 5. Upload Attachment to Ticket
+**POST** `/customer/support/tickets/{id}/attachments`
+
+Upload file attachment ke ticket.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body (multipart/form-data):**
+```
+attachment: [file]
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Attachment berhasil diupload",
+    "data": {
+        "attachment_id": 1,
+        "file_url": "http://domain.com/storage/ticket_attachments/file.jpg"
+    }
+}
+```
+
+#### 6. Rate Ticket Resolution
+**POST** `/customer/support/tickets/{id}/rate`
+
+Beri rating untuk resolusi ticket.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "rating": 5,
+    "customer_feedback": "Masalah sudah teratasi dengan baik"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Rating berhasil disimpan"
+}
+```
+
+### Customer Profile Management
+
+#### 1. Get Customer Profile
+**GET** `/customer/profile/`
+
+Get profil customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "nama": "John Doe",
+        "no_hp": "081234567890",
+        "email": "john@example.com",
+        "alamat": "Jl. Example No. 123",
+        "paket": {
+            "id": 1,
+            "nama_paket": "Paket 10 Mbps",
+            "harga": 150000
+        },
+        "penagih": {
+            "id": 1,
+            "nama": "Penagih A"
+        }
+    }
+}
+```
+
+#### 2. Update Customer Profile
+**PUT** `/customer/profile/`
+
+Update profil customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "nama": "John Doe Updated",
+    "email": "john.updated@example.com",
+    "alamat": "Jl. Example Updated No. 123"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Profil berhasil diperbarui",
+    "data": {
+        "id": 1,
+        "nama": "John Doe Updated",
+        "email": "john.updated@example.com",
+        "alamat": "Jl. Example Updated No. 123"
+    }
+}
+```
+
+#### 3. Change Password
+**POST** `/customer/profile/change-password`
+
+Ubah password customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "current_password": "oldpassword",
+    "new_password": "newpassword123",
+    "new_password_confirmation": "newpassword123"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Password berhasil diubah"
+}
+```
+
+#### 4. Get Customer Statistics
+**GET** `/customer/profile/statistics`
+
+Get statistik customer.
+
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "total_payments": 12,
+        "paid_payments": 10,
+        "unpaid_payments": 2,
+        "total_tickets": 3,
+        "resolved_tickets": 2,
+        "open_tickets": 1,
+        "average_rating": 4.5
+    }
+}
+```
+
+### Admin Customer Management
+
+#### 1. Generate Default Password
+**POST** `/admin/customer/generate-password`
+
+Generate password default (123456) untuk customer (Admin only).
+
+**Headers:** `Authorization: Bearer {admin_token}`
+
+**Request Body:**
+```json
+{
+    "pelanggan_id": 1
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Password default (123456) berhasil dibuat",
+    "data": {
+        "default_password": "PWD123456"
+    }
+}
 ```
 
 ---

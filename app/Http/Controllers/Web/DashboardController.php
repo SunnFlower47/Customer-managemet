@@ -7,6 +7,7 @@ use App\Models\Pelanggan;
 use App\Models\Pembayaran;
 use App\Models\Paket;
 use App\Models\Penagih;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -32,24 +33,52 @@ class DashboardController extends Controller
             }
         }
 
-        // Dashboard statistics
-        $stats = [
-            'total_pelanggan' => $this->getTotalPelanggan($user),
-            'total_paket' => Paket::where('aktif', true)->count(),
-            'total_penagih' => Penagih::where('aktif', true)->count(),
-            'pendapatan_bulan_ini' => $pembayaranQuery->clone()
-                ->where('bulan_tagihan', $currentMonth)
+        // Dashboard statistics with caching
+        $stats = CacheService::getDashboardStats();
+        $growthStats = CacheService::getGrowthStats();
+
+        // Add role-specific stats
+        if ($user->role === 'penagih') {
+            $penagih = Penagih::where('user_id', $user->id)->first();
+            if ($penagih) {
+                $stats['pendapatan_bulan_ini'] = $pembayaranQuery->clone()
+                    ->where('bulan_tagihan', $currentMonth)
+                    ->where('tahun_tagihan', $currentYear)
+                    ->where('status', 'lunas')
+                    ->sum('jumlah');
+                $stats['tagihan_belum_bayar'] = $pembayaranQuery->clone()
+                    ->where('status', 'belum_bayar')
+                    ->sum('jumlah');
+            } else {
+                $stats['pendapatan_bulan_ini'] = 0;
+                $stats['tagihan_belum_bayar'] = 0;
+            }
+        } else {
+            $stats['pendapatan_bulan_ini'] = Pembayaran::where('bulan_tagihan', $currentMonth)
                 ->where('tahun_tagihan', $currentYear)
                 ->where('status', 'lunas')
-                ->sum('jumlah'),
-            'tagihan_belum_bayar' => $pembayaranQuery->clone()
-                ->where('status', 'belum_bayar')
-                ->sum('jumlah'),
-            'total_tagihan_bulan_ini' => $pembayaranQuery->clone()
-                ->where('bulan_tagihan', $currentMonth)
-                ->where('tahun_tagihan', $currentYear)
-                ->sum('jumlah'),
-        ];
+                ->sum('jumlah');
+            $stats['tagihan_belum_bayar'] = Pembayaran::where('status', 'belum_bayar')->sum('jumlah');
+        }
+
+        // Add growth data to stats
+        $stats['customer_growth'] = $growthStats['customers']['growth'];
+        $stats['revenue_growth'] = $growthStats['revenue']['growth'];
+        $stats['current_month_customers'] = $growthStats['customers']['current'];
+        $stats['last_month_customers'] = $growthStats['customers']['last_month'];
+        $stats['current_month_revenue'] = $growthStats['revenue']['current'];
+        $stats['last_month_revenue'] = $growthStats['revenue']['last_month'];
+
+        // Ensure all required keys exist with default values
+        $stats = array_merge([
+            'total_pelanggan' => 0,
+            'total_paket' => 0,
+            'total_penagih' => 0,
+            'pendapatan_bulan_ini' => 0,
+            'tagihan_belum_bayar' => 0,
+            'customer_growth' => 0,
+            'revenue_growth' => 0,
+        ], $stats);
 
         // Recent pembayarans (limit to 10 for performance)
         $recentPembayarans = $pembayaranQuery->clone()
@@ -65,6 +94,15 @@ class DashboardController extends Controller
         $monthlyRevenue = $this->getMonthlyRevenue($user);
 
         return view('dashboard.index', compact('stats', 'recentPembayarans', 'statusPerPenagih', 'monthlyRevenue'));
+    }
+
+    /**
+     * Clear dashboard cache
+     */
+    public function clearCache()
+    {
+        CacheService::clearDashboardCache();
+        return back()->with('success', 'Cache dashboard berhasil dihapus!');
     }
 
     private function getTotalPelanggan($user)
@@ -86,7 +124,8 @@ class DashboardController extends Controller
             }])
             ->withSum(['pembayarans as tagihan_belum_bayar_sum' => function($q) {
                 $q->where('status', 'belum_bayar');
-            }], 'jumlah');
+            }], 'jumlah')
+            ->withSum('pembayarans as total_tagihan_sum', 'jumlah');
 
         if ($user->role === 'penagih') {
             $query->where('user_id', $user->id);
@@ -98,6 +137,7 @@ class DashboardController extends Controller
                 'nama' => $penagih->nama,
                 'total_pelanggan' => $penagih->pelanggans_count,
                 'tagihan_belum_bayar' => $penagih->tagihan_belum_bayar_sum ?? 0,
+                'total_tagihan' => $penagih->total_tagihan_sum ?? 0,
             ];
         });
     }

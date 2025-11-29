@@ -18,18 +18,19 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create Admin User
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@wifi.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'aktif' => true,
-        ]);
+        // $admin = User::create([
+        //     'name' => 'Admin',
+        //     'email' => 'admin@wifi.com',
+        //     'password' => Hash::make('password'),
+        //     'role' => 'admin',
+        //     'aktif' => true,
+        // ]);
 
         // Run essential seeders only
         $this->call([
             RolePermissionSeeder::class,
             CompanyProfileSeeder::class,
+            TicketPaymentProofPermissionSeeder::class,
         ]);
     }
 }

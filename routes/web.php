@@ -14,6 +14,12 @@ use App\Http\Controllers\Web\PengeluaranController as WebPengeluaranController;
 use App\Http\Controllers\Web\LaporanController as WebLaporanController;
 use App\Http\Controllers\Web\SettingController as WebSettingController;
 use App\Http\Controllers\Web\SeoController as WebSeoController;
+use App\Http\Controllers\Web\AdminTicketController;
+use App\Http\Controllers\Web\AdminPaymentProofController;
+use App\Http\Controllers\Web\NotificationController;
+use App\Http\Controllers\Web\OdpController;
+use App\Http\Controllers\Web\MappingController;
+use App\Http\Controllers\Web\MikrotikController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,10 +44,10 @@ Route::get('/sw.js', function () {
 // Logo Route for Shared Hosting
 Route::get('/logo/{filename}', function ($filename) {
     $companyProfile = \App\Models\CompanyProfile::first();
-    
+
     if ($companyProfile && $companyProfile->logo_path) {
         $logoPath = storage_path('app/public/' . $companyProfile->logo_path);
-        
+
         if (file_exists($logoPath)) {
             return Response::file($logoPath, [
                 'Content-Type' => 'image/png',
@@ -49,7 +55,7 @@ Route::get('/logo/{filename}', function ($filename) {
             ]);
         }
     }
-    
+
     // Fallback to default icon
     return Response::file(public_path('icon-192x192.png'), [
         'Content-Type' => 'image/png',
@@ -100,8 +106,35 @@ Route::get('/robots.txt', [WebSeoController::class, 'robots']);
 
 // Public routes
 Route::get('/', function () {
-    return redirect('/login');
-});
+    return view('welcome');
+})->name('welcome');
+
+// Customer Portal Routes (Public - Serve React App)
+Route::get('/customer-portal', function () {
+    $filePath = public_path('../customer-portal/build/index.html');
+    if (file_exists($filePath)) {
+        return response()->file($filePath);
+    }
+    return response()->json(['error' => 'Customer portal not found'], 404);
+})->name('customer-portal.index');
+
+// Customer Portal Static Files
+Route::get('/customer-portal/static/{path}', function ($path) {
+    $filePath = public_path("../customer-portal/build/static/{$path}");
+    if (file_exists($filePath)) {
+        return response()->file($filePath);
+    }
+    return response()->json(['error' => 'Static file not found'], 404);
+})->where('path', '.*');
+
+// Customer Portal SPA Routes (catch all)
+Route::get('/customer-portal/*', function () {
+    $filePath = public_path('../customer-portal/build/index.html');
+    if (file_exists($filePath)) {
+        return response()->file($filePath);
+    }
+    return response()->json(['error' => 'Customer portal not found'], 404);
+})->name('customer-portal.spa');
 
 Route::get('/login', [WebAuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [WebAuthController::class, 'login']);
@@ -111,6 +144,9 @@ Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [WebDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/clear-cache', [WebDashboardController::class, 'clearCache'])->name('dashboard.clear-cache');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
     Route::get('/api/server-time', function() {
         $now = now()->setTimezone('Asia/Jakarta');
         return response()->json([
@@ -169,6 +205,7 @@ Route::middleware(['auth'])->group(function () {
     // Pelanggans
     Route::middleware(['permission:view-pelanggan'])->group(function () {
         Route::get('/pelanggans', [WebPelangganController::class, 'index'])->name('pelanggans.index');
+        Route::get('/pelanggans/suggestions', [WebPelangganController::class, 'suggest'])->name('pelanggans.suggestions');
     });
 
     Route::middleware(['permission:create-pelanggan'])->group(function () {
@@ -187,6 +224,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:delete-pelanggan'])->group(function () {
         Route::delete('/pelanggans/{pelanggan}', [WebPelangganController::class, 'destroy'])->name('pelanggans.destroy');
+        Route::post('/pelanggans/bulk-delete', [WebPelangganController::class, 'bulkDelete'])->name('pelanggans.bulk-delete');
+    });
+
+    Route::middleware(['permission:edit-pelanggan'])->group(function () {
+        Route::post('/pelanggans/bulk-update-status', [WebPelangganController::class, 'bulkUpdateStatus'])->name('pelanggans.bulk-update-status');
     });
 
     Route::middleware(['permission:export-pelanggan'])->group(function () {
@@ -196,6 +238,7 @@ Route::middleware(['auth'])->group(function () {
     // Pembayarans
     Route::middleware(['permission:view-pembayaran'])->group(function () {
         Route::get('/pembayarans', [WebPembayaranController::class, 'index'])->name('pembayarans.index');
+        Route::get('/pembayarans/suggestions', [WebPembayaranController::class, 'suggest'])->name('pembayarans.suggestions');
         Route::get('/pembayarans/{pembayaran}', [WebPembayaranController::class, 'show'])->name('pembayarans.show');
     });
 
@@ -206,6 +249,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/pembayarans/{pembayaran}', [WebPembayaranController::class, 'update'])->name('pembayarans.update');
         Route::patch('/pembayarans/{pembayaran}/status', [WebPembayaranController::class, 'updateStatus'])->name('pembayarans.update-status');
         Route::patch('/pembayarans/{pembayaran}/mark-paid', [WebPembayaranController::class, 'markPaid'])->name('pembayarans.mark-paid');
+        Route::post('/pembayarans/bulk-update-status', [WebPembayaranController::class, 'bulkUpdateStatus'])->name('pembayarans.bulk-update-status');
+        Route::post('/pembayarans/bulk-mark-paid', [WebPembayaranController::class, 'bulkMarkPaid'])->name('pembayarans.bulk-mark-paid');
     });
 
     Route::middleware(['permission:delete-pembayaran'])->group(function () {
@@ -311,8 +356,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/settings/company-profile', [WebSettingController::class, 'updateCompanyProfile'])->name('settings.update-company-profile');
         Route::post('/settings/update-profile', [WebSettingController::class, 'updateProfile'])->name('settings.update-profile');
         Route::post('/settings/backup', [WebSettingController::class, 'createBackup'])->name('settings.create-backup');
-        Route::get('/settings/backup/{backupHistory}/download', [WebSettingController::class, 'downloadBackup'])->name('settings.backup.download');
-        Route::post('/settings/backup/{backupHistory}/restore', [WebSettingController::class, 'restoreBackup'])->name('settings.backup.restore');
+        Route::get('/settings/backup/download/{filename}', [WebSettingController::class, 'downloadBackup'])->name('settings.backup.download');
         Route::post('/settings/roles', [WebSettingController::class, 'createRole'])->name('settings.create-role');
         Route::put('/settings/roles/{role}', [WebSettingController::class, 'updateRole'])->name('settings.update-role');
         Route::post('/settings/roles/{role}/permissions', [WebSettingController::class, 'updateRolePermissions'])->name('settings.update-role-permissions');
@@ -322,5 +366,174 @@ Route::middleware(['auth'])->group(function () {
     // Database Backup (for dashboard)
     Route::middleware(['permission:manage-company-profile'])->group(function () {
         Route::get('/backup/database', [WebSettingController::class, 'createBackup'])->name('backup.database');
+    });
+
+    // Admin Ticket Management
+    Route::middleware(['permission:view-ticket'])->group(function () {
+        Route::get('/admin/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');
+        Route::get('/admin/tickets/statistics', [AdminTicketController::class, 'statistics'])->name('admin.tickets.statistics');
+        Route::get('/admin/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('admin.tickets.show');
+    });
+
+    Route::middleware(['permission:edit-ticket'])->group(function () {
+        Route::put('/admin/tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('admin.tickets.update-status');
+        Route::put('/admin/tickets/{ticket}/assign', [AdminTicketController::class, 'assign'])->name('admin.tickets.assign');
+        Route::post('/admin/tickets/{ticket}/comments', [AdminTicketController::class, 'addComment'])->name('admin.tickets.add-comment');
+    });
+
+    // Admin Payment Proof Management
+    Route::middleware(['permission:view-payment-proof'])->group(function () {
+        Route::get('/admin/payment-proofs', [AdminPaymentProofController::class, 'index'])->name('admin.payment-proofs.index');
+        Route::get('/admin/payment-proofs/statistics', [AdminPaymentProofController::class, 'statistics'])->name('admin.payment-proofs.statistics');
+        Route::get('/admin/payment-proofs/{paymentProof}', [AdminPaymentProofController::class, 'show'])->name('admin.payment-proofs.show');
+        Route::get('/admin/payment-proofs/{paymentProof}/download', [AdminPaymentProofController::class, 'download'])->name('admin.payment-proofs.download');
+    });
+
+    Route::middleware(['permission:verify-payment-proof'])->group(function () {
+        Route::put('/admin/payment-proofs/{paymentProof}/verify', [AdminPaymentProofController::class, 'verify'])->name('admin.payment-proofs.verify');
+        Route::put('/admin/payment-proofs/{paymentProof}/reject', [AdminPaymentProofController::class, 'reject'])->name('admin.payment-proofs.reject');
+    });
+
+    // Customer Portal Management
+    Route::middleware(['permission:view-customer-portal'])->group(function () {
+        Route::get('/customer-portal', function () {
+            return view('admin.dashboard');
+        })->name('customer-portal.index');
+    });
+
+    // Mapping
+    Route::middleware(['permission:view-mapping'])->group(function () {
+        Route::get('/mapping', [MappingController::class, 'index'])->name('mapping.index');
+        Route::get('/mapping/search-pelanggans', [MappingController::class, 'searchPelanggans'])->name('mapping.search-pelanggans');
+    });
+
+    // MikroTik Management
+    Route::middleware(['permission:view-mikrotik'])->group(function () {
+        Route::get('/mikrotiks', [MikrotikController::class, 'index'])->name('mikrotiks.index');
+    });
+
+    Route::middleware(['permission:manage-mikrotik'])->group(function () {
+        Route::get('/mikrotiks/create', [MikrotikController::class, 'create'])->name('mikrotiks.create');
+        Route::post('/mikrotiks', [MikrotikController::class, 'store'])->name('mikrotiks.store');
+        Route::get('/mikrotiks/{mikrotik}/edit', [MikrotikController::class, 'edit'])->name('mikrotiks.edit');
+        Route::put('/mikrotiks/{mikrotik}', [MikrotikController::class, 'update'])->name('mikrotiks.update');
+        Route::delete('/mikrotiks/{mikrotik}', [MikrotikController::class, 'destroy'])->name('mikrotiks.destroy');
+    });
+
+    Route::middleware(['permission:view-mikrotik'])->group(function () {
+        Route::get('/mikrotiks/{mikrotik}', [MikrotikController::class, 'show'])->name('mikrotiks.show');
+        Route::post('/mikrotiks/{mikrotik}/test-connection', [MikrotikController::class, 'testConnection'])->name('mikrotiks.test-connection');
+        Route::post('/mikrotiks/{mikrotik}/search-pppoe', [MikrotikController::class, 'searchPppoe'])->name('mikrotiks.search-pppoe');
+    });
+
+    // Mapping - Update pelanggan location (Admin only)
+    Route::middleware(['permission:manage-mapping'])->group(function () {
+        Route::put('/mapping/pelanggans/{pelanggan}/location', [MappingController::class, 'updatePelangganLocation'])->name('mapping.update-pelanggan-location');
+    });
+
+    // ODP Management (view)
+    Route::middleware(['permission:view-odp'])->group(function () {
+        Route::get('/odps', [OdpController::class, 'index'])->name('odps.index');
+    });
+
+    // ODP Management (Admin only - create/edit/delete)
+    // IMPORTANT: Routes with specific paths (like /create, /edit) must come BEFORE parameterized routes (/{odp})
+    Route::middleware(['permission:manage-odp'])->group(function () {
+        Route::get('/odps/create', [OdpController::class, 'create'])->name('odps.create');
+        Route::post('/odps', [OdpController::class, 'store'])->name('odps.store');
+        Route::get('/odps/{odp}/edit', [OdpController::class, 'edit'])->name('odps.edit');
+        Route::put('/odps/{odp}', [OdpController::class, 'update'])->name('odps.update');
+        Route::delete('/odps/{odp}', [OdpController::class, 'destroy'])->name('odps.destroy');
+    });
+
+    Route::middleware(['permission:view-odp'])->group(function () {
+        Route::get('/odps/{odp}', [OdpController::class, 'show'])->name('odps.show');
+    });
+
+    // OLT Monitoring Dashboard
+    Route::middleware(['permission:view-olt'])->group(function () {
+        Route::get('/olt-monitoring/dashboard', [\App\Http\Controllers\Web\OltDashboardController::class, 'index'])->name('olt-monitoring.dashboard');
+    });
+
+    // OLT Management
+    Route::middleware(['permission:view-olt'])->group(function () {
+        Route::get('/olts', [\App\Http\Controllers\Web\OltController::class, 'index'])->name('olts.index');
+    });
+
+    Route::middleware(['permission:manage-olt'])->group(function () {
+        Route::get('/olts/create', [\App\Http\Controllers\Web\OltController::class, 'create'])->name('olts.create');
+        Route::post('/olts', [\App\Http\Controllers\Web\OltController::class, 'store'])->name('olts.store');
+        Route::get('/olts/{olt}/edit', [\App\Http\Controllers\Web\OltController::class, 'edit'])->name('olts.edit');
+        Route::put('/olts/{olt}', [\App\Http\Controllers\Web\OltController::class, 'update'])->name('olts.update');
+        Route::delete('/olts/{olt}', [\App\Http\Controllers\Web\OltController::class, 'destroy'])->name('olts.destroy');
+        Route::post('/olts/monitor-all', [\App\Http\Controllers\Web\OltController::class, 'monitorAll'])->name('olts.monitor-all');
+    });
+
+    // OLT Sync (specific paths must come before parameterized routes)
+    Route::middleware(['permission:sync-olt'])->group(function () {
+        Route::post('/olts/{olt}/sync', [\App\Http\Controllers\Web\OltSyncController::class, 'sync'])->name('olts.sync');
+        Route::get('/olts/sync/{syncLog}/progress', [\App\Http\Controllers\Web\OltSyncController::class, 'getProgress'])->name('olts.sync.progress');
+    });
+
+    Route::middleware(['permission:view-olt'])->group(function () {
+        Route::get('/olts/{olt}', [\App\Http\Controllers\Web\OltController::class, 'show'])->name('olts.show');
+        Route::post('/olts/{olt}/test-connection', [\App\Http\Controllers\Web\OltController::class, 'testConnection'])->name('olts.test-connection');
+    });
+
+    // ONU Management
+    Route::middleware(['permission:view-onu'])->group(function () {
+        Route::get('/onus', [\App\Http\Controllers\Web\OnuController::class, 'index'])->name('onus.index');
+    });
+
+    // ONU Register (place before parameterized /onus/{onu})
+    Route::middleware(['permission:manage-onu'])->group(function () {
+        Route::get('/onus/register', [\App\Http\Controllers\Web\OnuRegisterController::class, 'create'])->name('onus.register');
+        Route::post('/onus/register', [\App\Http\Controllers\Web\OnuRegisterController::class, 'store'])->name('onus.register.store');
+    });
+
+    Route::middleware(['permission:view-onu'])->group(function () {
+        Route::get('/onus/{onu}', [\App\Http\Controllers\Web\OnuController::class, 'show'])->name('onus.show');
+    });
+
+    Route::middleware(['permission:manage-onu'])->group(function () {
+        Route::put('/onus/{onu}', [\App\Http\Controllers\Web\OnuController::class, 'update'])->name('onus.update');
+        Route::delete('/onus/{onu}', [\App\Http\Controllers\Web\OnuController::class, 'destroy'])->name('onus.destroy');
+    });
+
+    Route::middleware(['permission:reboot-onu'])->group(function () {
+        Route::post('/onus/{onu}/reboot', [\App\Http\Controllers\Web\OnuController::class, 'reboot'])->name('onus.reboot');
+        Route::post('/onus/{onu}/reset', [\App\Http\Controllers\Web\OnuController::class, 'reset'])->name('onus.reset');
+        Route::post('/onus/{onu}/disable', [\App\Http\Controllers\Web\OnuController::class, 'disable'])->name('onus.disable');
+        Route::post('/onus/{onu}/enable', [\App\Http\Controllers\Web\OnuController::class, 'enable'])->name('onus.enable');
+    });
+
+    // ONU Service Management
+    Route::middleware(['permission:manage-onu'])->group(function () {
+        Route::post('/onus/{onu}/services', [\App\Http\Controllers\Web\OnuServiceController::class, 'store'])->name('onus.services.store');
+        Route::put('/onus/{onu}/services/{service}', [\App\Http\Controllers\Web\OnuServiceController::class, 'update'])->name('onus.services.update');
+        Route::delete('/onus/{onu}/services/{service}', [\App\Http\Controllers\Web\OnuServiceController::class, 'destroy'])->name('onus.services.destroy');
+        Route::put('/onus/{onu}/services/{service}/remote-access', [\App\Http\Controllers\Web\OnuServiceController::class, 'updateRemoteAccess'])->name('onus.services.remote-access');
+    });
+
+    // VLAN Database
+    Route::middleware(['permission:view-vlan'])->group(function () {
+        Route::get('/vlans', [\App\Http\Controllers\Web\VlanController::class, 'index'])->name('vlans.index');
+    });
+
+    Route::middleware(['permission:manage-vlan'])->group(function () {
+        Route::post('/vlans', [\App\Http\Controllers\Web\VlanController::class, 'store'])->name('vlans.store');
+        Route::put('/vlans/{vlan}', [\App\Http\Controllers\Web\VlanController::class, 'update'])->name('vlans.update');
+        Route::delete('/vlans/{vlan}', [\App\Http\Controllers\Web\VlanController::class, 'destroy'])->name('vlans.destroy');
+    });
+
+    // Speed Profiles
+    Route::middleware(['permission:view-speed-profile'])->group(function () {
+        Route::get('/speed-profiles', [\App\Http\Controllers\Web\SpeedProfileController::class, 'index'])->name('speed-profiles.index');
+    });
+
+    Route::middleware(['permission:manage-speed-profile'])->group(function () {
+        Route::post('/speed-profiles', [\App\Http\Controllers\Web\SpeedProfileController::class, 'store'])->name('speed-profiles.store');
+        Route::put('/speed-profiles/{speedProfile}', [\App\Http\Controllers\Web\SpeedProfileController::class, 'update'])->name('speed-profiles.update');
+        Route::delete('/speed-profiles/{speedProfile}', [\App\Http\Controllers\Web\SpeedProfileController::class, 'destroy'])->name('speed-profiles.destroy');
     });
 });

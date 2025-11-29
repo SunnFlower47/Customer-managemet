@@ -22,3 +22,18 @@ Schedule::command('bills:generate-monthly-accurate')
 Schedule::command('bills:generate-monthly')
     ->monthlyOn(1, '09:00')
     ->description('Generate monthly bills for all active customers (backup method)');
+
+// OLT Monitoring - Monitor all OLTs every 30 seconds
+Schedule::command('olts:monitor')
+    ->everyThirtySeconds()
+    ->description('Monitor all OLT devices status');
+
+// OLT Sync - Sync database every 5 minutes
+Schedule::command('olts:sync')
+    ->everyFiveMinutes()
+    ->description('Sync OLT database with devices');
+
+// Check unregistered ONUs every 10 minutes
+Schedule::command('olts:check-unregistered')
+    ->everyTenMinutes()
+    ->description('Check and auto-discover unregistered ONUs');

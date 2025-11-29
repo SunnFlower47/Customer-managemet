@@ -84,6 +84,60 @@ class PembayaranController extends BaseController
         return view('pembayarans.index', compact('pembayarans', 'penagihs'));
     }
 
+    /**
+     * Provide realtime payment search suggestions.
+     */
+    public function suggest(Request $request)
+    {
+        $request->validate([
+            'q' => 'nullable|string|max:255',
+        ]);
+
+        $search = trim($request->input('q', ''));
+
+        $query = Pembayaran::query()
+            ->select('id', 'kode_pembayaran', 'pelanggan_id', 'jumlah', 'status', 'bulan_tagihan', 'tahun_tagihan', 'penagih_id', 'created_at')
+            ->with(['pelanggan:id,nama,pppoe', 'penagih:id,nama'])
+            ->latest()
+            ->limit(8);
+
+        if (Auth::user()->role === 'penagih') {
+            $penagihId = Penagih::where('user_id', Auth::id())->value('id');
+            if ($penagihId) {
+                $query->where('penagih_id', $penagihId);
+            }
+        }
+
+        if (strlen($search) >= 2) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_pembayaran', 'like', "%{$search}%")
+                    ->orWhereHas('pelanggan', function ($subQ) use ($search) {
+                        $subQ->where('nama', 'like', "%{$search}%")
+                            ->orWhere('pppoe', 'like', "%{$search}%")
+                            ->orWhere('no_hp', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('penagih', function ($subQ) use ($search) {
+                        $subQ->where('nama', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $results = $query->get()->map(function ($pembayaran) {
+            return [
+                'id' => $pembayaran->id,
+                'kode' => $pembayaran->kode_pembayaran,
+                'pelanggan' => $pembayaran->pelanggan?->nama,
+                'pppoe' => $pembayaran->pelanggan?->pppoe,
+                'jumlah' => number_format((float)$pembayaran->jumlah, 0, ',', '.'),
+                'status' => $pembayaran->status,
+                'periode' => \Carbon\Carbon::create(null, $pembayaran->bulan_tagihan, 1)->format('M') . ' ' . $pembayaran->tahun_tagihan,
+                'detail_url' => route('pembayarans.show', $pembayaran),
+            ];
+        });
+
+        return response()->json(['data' => $results]);
+    }
+
     // Create and Store methods removed - payments are generated automatically
 
     /**
@@ -173,7 +227,7 @@ class PembayaranController extends BaseController
         // bulan_tagihan, tahun_tagihan, pelanggan_id, penagih_id are IMMUTABLE
         // SEMENTARA: jumlah dapat diubah untuk memperbaiki kesalahan input paket
         $updateData = $request->only(['jumlah', 'status', 'keterangan']);
-        
+
         // Handle tanggal_bayar based on status
         if ($request->status === 'lunas' && $request->tanggal_bayar) {
             $updateData['tanggal_bayar'] = $request->tanggal_bayar;
@@ -215,6 +269,63 @@ class PembayaranController extends BaseController
             ->with('success', 'Pembayaran berhasil ditandai sebagai lunas.')
             ->with('show_invoice_option', true)
             ->with('pembayaran_id', $pembayaran->id);
+    }
+
+    /**
+     * Bulk update status pembayarans
+     */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|json',
+            'status' => 'required|in:belum_bayar,lunas'
+        ]);
+
+        $ids = json_decode($request->ids, true);
+        
+        if (!is_array($ids) || empty($ids)) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
+        }
+
+        $updateData = ['status' => $request->status];
+        
+        // If changing to lunas, set tanggal_bayar
+        if ($request->status === 'lunas') {
+            $updateData['tanggal_bayar'] = now();
+        } else {
+            $updateData['tanggal_bayar'] = null;
+        }
+
+        $count = Pembayaran::whereIn('id', $ids)->update($updateData);
+
+        $redirectParams = $request->only(['page', 'search', 'status', 'penagih_id', 'bulan', 'tahun']);
+        return redirect()->route('pembayarans.index', $redirectParams)
+            ->with('success', "Berhasil mengubah status {$count} pembayaran menjadi " . ($request->status === 'lunas' ? 'Lunas' : 'Belum Bayar') . ".");
+    }
+
+    /**
+     * Bulk mark payments as paid
+     */
+    public function bulkMarkPaid(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|json'
+        ]);
+
+        $ids = json_decode($request->ids, true);
+        
+        if (!is_array($ids) || empty($ids)) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
+        }
+
+        $count = Pembayaran::whereIn('id', $ids)->update([
+            'status' => 'lunas',
+            'tanggal_bayar' => now()
+        ]);
+
+        $redirectParams = $request->only(['page', 'search', 'status', 'penagih_id', 'bulan', 'tahun']);
+        return redirect()->route('pembayarans.index', $redirectParams)
+            ->with('success', "Berhasil menandai {$count} pembayaran sebagai lunas.");
     }
 
     /**

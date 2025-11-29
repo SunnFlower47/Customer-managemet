@@ -22,3 +22,32 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# API Controllers - Sensitive Information (Keep local, don't commit to GitHub)
+# /app/Http/Controllers/Api/
+# /routes/api.php
+# /config/api.php
+# /docs/API_SECURITY_GUIDE.md
+# /docs/API_DOCUMENTATION.md
+# /API_DOCUMENTATION.md
+
+# Test files and data - Sensitive Information
+# /test/
+# /tests/
+# /test_*.php
+# *_test.php
+# /test-data/
+# /sample-data/
+# /database/seeders/test/
+# /storage/app/test/
+# /storage/logs/test/
+
+# Root folder files - Sensitive Information
+/TESTING_REPORT.md
+# /COMPREHENSIVE_AUDIT_REPORT.md
+/pelanggan.xlsx
+*.xlsx
+*.xls
+
+# Public folder - Contains assets and sensitive files
+# /public/

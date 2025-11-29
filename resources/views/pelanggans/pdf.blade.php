@@ -57,11 +57,11 @@
             color: #059669;
             font-weight: bold;
         }
-        .status-nonaktif {
+        .status-isolir {
             color: #dc2626;
             font-weight: bold;
         }
-        .status-suspend {
+        .status-bayar-double {
             color: #d97706;
             font-weight: bold;
         }
@@ -95,8 +95,8 @@
     <div class="info">
         <strong>Total Pelanggan:</strong> {{ $pelanggans->count() }} orang<br>
         <strong>Pelanggan Aktif:</strong> {{ $pelanggans->where('status', 'aktif')->count() }} orang<br>
-        <strong>Pelanggan Nonaktif:</strong> {{ $pelanggans->where('status', 'nonaktif')->count() }} orang<br>
-        <strong>Pelanggan Suspend:</strong> {{ $pelanggans->where('status', 'suspend')->count() }} orang
+        <strong>Pelanggan Isolir:</strong> {{ $pelanggans->where('status', 'isolir')->count() }} orang<br>
+        <strong>Pelanggan Bayar Double:</strong> {{ $pelanggans->where('status', 'bayar double')->count() }} orang
     </div>
 
     <table>
@@ -121,8 +121,12 @@
                 <td>{{ $pelanggan->pppoe }}</td>
                 <td>{{ $pelanggan->no_hp }}</td>
                 <td>
-                    {{ $pelanggan->paket->nama_paket }}<br>
-                    <small>Rp {{ number_format((float)$pelanggan->paket->harga, 0, ',', '.') }}</small>
+                    @if($pelanggan->paket)
+                        {{ $pelanggan->paket->nama_paket }}<br>
+                        <small>Rp {{ number_format((float)$pelanggan->paket->harga, 0, ',', '.') }}</small>
+                    @else
+                        <span class="text-gray-400 italic">Belum ada paket</span>
+                    @endif
                 </td>
                 <td>
                     @if($pelanggan->penagih)
@@ -132,7 +136,7 @@
                     @endif
                 </td>
                 <td>Tanggal {{ $pelanggan->tanggal_pembayaran }}</td>
-                <td class="status-{{ $pelanggan->status }}">
+                <td class="status-{{ str_replace(' ', '-', $pelanggan->status) }}">
                     {{ ucfirst($pelanggan->status) }}
                 </td>
                 <td>{{ \Illuminate\Support\Str::limit($pelanggan->alamat, 50) }}</td>

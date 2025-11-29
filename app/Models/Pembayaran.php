@@ -65,7 +65,31 @@ class Pembayaran extends Model
      */
     public function getHistoricalPackageNameAttribute()
     {
-        return $this->nama_paket ?: ($this->paket ? $this->paket->nama_paket : 'Unknown Package');
+        // Priority: nama_paket (historical) > paket relationship > fallback
+        if (!empty($this->nama_paket)) {
+            return $this->nama_paket;
+        }
+
+        // Try to get from relationship if loaded
+        if ($this->relationLoaded('paket') && $this->paket) {
+            return $this->paket->nama_paket;
+        }
+
+        // Try to load relationship if not loaded
+        if ($this->paket_id) {
+            $paket = $this->paket;
+            if ($paket) {
+                return $paket->nama_paket;
+            }
+        }
+
+        // Last resort: try to get from pelanggan's current package
+        if ($this->relationLoaded('pelanggan') && $this->pelanggan && $this->pelanggan->paket) {
+            return $this->pelanggan->paket->nama_paket;
+        }
+
+        // Final fallback
+        return 'Paket Tidak Diketahui';
     }
 
     /**

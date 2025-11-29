@@ -213,7 +213,6 @@
                         <i class="fas fa-info-circle mr-1"></i>Klik di peta untuk mengatur koordinat, atau drag marker untuk menyesuaikan
                     </p>
                 </div>
-
                 <div>
                     <label for="odp_id" class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-map-marker-alt mr-2 text-purple-500"></i>ODP Terkait (Opsional)

@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pelanggans', function (Blueprint $table) {
-            $table->unsignedBigInteger('mikrotik_id')->nullable()->after('odp_id');
+            // Use 'status' column which definitely exists, or add at the end if status doesn't exist
+            // Note: odp_id is added later in migration 2025_11_26_120100, so we can't use it here
+            $afterColumn = 'status'; // This column exists in the base pelanggans table
+
+            $table->unsignedBigInteger('mikrotik_id')->nullable()->after($afterColumn);
             $table->boolean('exists_in_mikrotik')->nullable()->default(false)->after('mikrotik_id');
             $table->timestamp('mikrotik_last_checked')->nullable()->after('exists_in_mikrotik');
             $table->string('mikrotik_router_name')->nullable()->after('mikrotik_last_checked');

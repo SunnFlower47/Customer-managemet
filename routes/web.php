@@ -505,6 +505,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/onus/{onu}/reset', [\App\Http\Controllers\Web\OnuController::class, 'reset'])->name('onus.reset');
         Route::post('/onus/{onu}/disable', [\App\Http\Controllers\Web\OnuController::class, 'disable'])->name('onus.disable');
         Route::post('/onus/{onu}/enable', [\App\Http\Controllers\Web\OnuController::class, 'enable'])->name('onus.enable');
+        Route::post('/onus/{onu}/clear-config', [\App\Http\Controllers\Web\OnuController::class, 'clearConfig'])->name('onus.clear-config');
+        Route::post('/onus/{onu}/change-serial', [\App\Http\Controllers\Web\OnuController::class, 'changeSerialNumber'])->name('onus.change-serial');
     });
 
     // ONU Service Management

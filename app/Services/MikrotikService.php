@@ -4,15 +4,39 @@ namespace App\Services;
 
 use App\Models\Mikrotik;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 use Exception;
 
 class MikrotikService
 {
     /**
+     * Check if testing mode is enabled
+     */
+    private function isTestingMode(): bool
+    {
+        return Config::get('mikrotik.testing_mode', false);
+    }
+
+    /**
      * Test connection to MikroTik router
      */
     public function testConnection(Mikrotik $mikrotik): array
     {
+        // Return mock data if testing mode is enabled
+        if ($this->isTestingMode()) {
+            $mikrotik->update([
+                'connection_status' => 'online',
+                'last_connected_at' => now(),
+                'last_error' => null,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Koneksi berhasil (Testing Mode)',
+                'identity' => Config::get('mikrotik.mock.identity', 'Test Router'),
+            ];
+        }
+
         try {
             $connection = $this->connect($mikrotik);
 
@@ -221,6 +245,12 @@ class MikrotikService
      */
     public function findPppoe(Mikrotik $mikrotik, string $username): ?array
     {
+        // Return mock data if testing mode is enabled
+        if ($this->isTestingMode()) {
+            $mockSecrets = Config::get('mikrotik.mock.pppoe_secrets', []);
+            return $mockSecrets[$username] ?? null;
+        }
+
         try {
             $connection = $this->connect($mikrotik);
 
@@ -244,6 +274,11 @@ class MikrotikService
      */
     public function getActivePppoeUsers(Mikrotik $mikrotik): array
     {
+        // Return mock data if testing mode is enabled
+        if ($this->isTestingMode()) {
+            return Config::get('mikrotik.mock.pppoe_users', []);
+        }
+
         try {
             $connection = $this->connect($mikrotik);
 
@@ -267,6 +302,11 @@ class MikrotikService
      */
     public function getResourceUsage(Mikrotik $mikrotik): array
     {
+        // Return mock data if testing mode is enabled
+        if ($this->isTestingMode()) {
+            return Config::get('mikrotik.mock.resource_usage', []);
+        }
+
         try {
             $connection = $this->connect($mikrotik);
 

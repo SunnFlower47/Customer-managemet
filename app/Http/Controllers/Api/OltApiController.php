@@ -26,7 +26,7 @@ class OltApiController extends Controller
     {
         // Check cache first
         $cachedData = Cache::get("olt_data_{$olt->id}");
-        
+
         if ($cachedData && $olt->last_checked_at && now()->diffInSeconds($olt->last_checked_at) < 30) {
             return response()->json([
                 'success' => true,
@@ -57,7 +57,7 @@ class OltApiController extends Controller
 
         foreach ($olts as $olt) {
             $cachedData = Cache::get("olt_data_{$olt->id}");
-            
+
             $data[] = [
                 'olt_id' => $olt->id,
                 'kode_olt' => $olt->kode_olt,
@@ -83,29 +83,40 @@ class OltApiController extends Controller
         try {
             $driver = OltDriverFactory::create($onu->olt);
             $bandwidthUsage = $driver->getBandwidthUsage($onu->card, $onu->port);
-            
+
             $currentData = !empty($bandwidthUsage) ? $bandwidthUsage[0] : [
                 'download' => 0,
                 'upload' => 0,
             ];
 
-            // Generate historical data (last 24 hours, 1 hour intervals)
-            $history = [];
-            for ($i = 23; $i >= 0; $i--) {
-                $timestamp = now()->subHours($i);
-                $history[] = [
-                    'timestamp' => $timestamp->toIso8601String(),
-                    'download' => rand(1000000, 50000000), // Kbps
-                    'upload' => rand(500000, 10000000), // Kbps
-                ];
-            }
+            // Get historical data from cache or generate from current data
+            $cacheKey = "onu_traffic_history_{$onu->id}";
+            $history = \Illuminate\Support\Facades\Cache::get($cacheKey, []);
 
-            // Add current data
+            // Add current data to history
             $history[] = [
                 'timestamp' => now()->toIso8601String(),
                 'download' => $currentData['download'] ?? 0,
                 'upload' => $currentData['upload'] ?? 0,
             ];
+
+            // Keep only last 24 hours (144 data points if polling every 10 minutes)
+            $history = array_slice($history, -144);
+
+            // Cache for next request
+            \Illuminate\Support\Facades\Cache::put($cacheKey, $history, now()->addHours(25));
+
+            // If no history, generate sample data for display
+            if (empty($history)) {
+                for ($i = 23; $i >= 0; $i--) {
+                    $timestamp = now()->subHours($i);
+                    $history[] = [
+                        'timestamp' => $timestamp->toIso8601String(),
+                        'download' => ($currentData['download'] ?? 0) * (0.8 + (rand(0, 40) / 100)), // ±20% variation
+                        'upload' => ($currentData['upload'] ?? 0) * (0.8 + (rand(0, 40) / 100)),
+                    ];
+                }
+            }
 
             return response()->json([
                 'success' => true,

@@ -6,16 +6,20 @@ use App\Http\Controllers\Web\BaseController;
 use App\Models\Onu;
 use App\Models\Pelanggan;
 use App\Models\Odp;
+use App\Models\Olt;
 use App\Services\OnuManagementService;
+use App\Services\OltSyncService;
 use Illuminate\Http\Request;
 
 class OnuController extends BaseController
 {
     protected $onuService;
+    protected $syncService;
 
-    public function __construct(OnuManagementService $onuService)
+    public function __construct(OnuManagementService $onuService, OltSyncService $syncService)
     {
         $this->onuService = $onuService;
+        $this->syncService = $syncService;
     }
 
     /**
@@ -94,9 +98,18 @@ class OnuController extends BaseController
     public function show(Onu $onu)
     {
         $onu->load(['olt', 'ponPort', 'pelanggan', 'odp', 'services.speedProfile']);
-        
+
         // Get latest details from OLT
         $details = $this->onuService->getOnuDetails($onu);
+
+        // Get ONU configuration from OLT (service, LAN ports, WiFi) for auto-detect
+        $onuConfig = [];
+        try {
+            $driver = \App\Services\OltDriverFactory::create($onu->olt);
+            $onuConfig = $driver->getOnuConfig($onu->serial_number);
+        } catch (\Exception $e) {
+            // Ignore error, use existing data
+        }
 
         // Get bandwidth usage for this ONU
         $bandwidthData = [];
@@ -135,7 +148,8 @@ class OnuController extends BaseController
             'availableServiceIds',
             'pelanggans',
             'odps',
-            'pelangganOdpMap'
+            'pelangganOdpMap',
+            'onuConfig'
         ));
     }
 
@@ -221,6 +235,92 @@ class OnuController extends BaseController
         }
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    /**
+     * Clear ONU configuration
+     */
+    public function clearConfig(Request $request, Onu $onu)
+    {
+        try {
+            $driver = \App\Services\OltDriverFactory::create($onu->olt);
+            $result = $driver->clearOnuConfig($onu->serial_number);
+
+            // Log user action
+            if ($result['success']) {
+                $eventService = new \App\Services\OnuEventService();
+                $eventService->logUserAction($onu, 'clear_config', "User melakukan clear config pada ONU {$onu->serial_number}");
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json($result);
+            }
+
+            return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+        } catch (\Exception $e) {
+            $message = 'Error: ' . $e->getMessage();
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 500);
+            }
+
+            return back()->with('error', $message);
+        }
+    }
+
+    /**
+     * Change ONU serial number
+     */
+    public function changeSerialNumber(Request $request, Onu $onu)
+    {
+        $request->validate([
+            'new_serial_number' => 'required|string|max:255|unique:onus,serial_number,' . $onu->id,
+        ]);
+
+        try {
+            $oldSerial = $onu->serial_number;
+            $newSerial = $request->new_serial_number;
+
+            $driver = \App\Services\OltDriverFactory::create($onu->olt);
+            $result = $driver->changeOnuSerialNumber($oldSerial, $newSerial);
+
+            if ($result['success']) {
+                // Update database
+                $onu->update(['serial_number' => $newSerial]);
+
+                // Log user action
+                $eventService = new \App\Services\OnuEventService();
+                $eventService->logUserAction(
+                    $onu,
+                    'serial_changed',
+                    "User mengubah Serial Number dari {$oldSerial} ke {$newSerial}"
+                );
+                // Also log as event with old/new value
+                $eventService->logEvent(
+                    $onu,
+                    'serial_changed',
+                    'info',
+                    $oldSerial,
+                    $newSerial,
+                    null,
+                    "User mengubah Serial Number dari {$oldSerial} ke {$newSerial}"
+                );
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json($result);
+            }
+
+            return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+        } catch (\Exception $e) {
+            $message = 'Error: ' . $e->getMessage();
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 500);
+            }
+
+            return back()->with('error', $message);
+        }
     }
 }
 

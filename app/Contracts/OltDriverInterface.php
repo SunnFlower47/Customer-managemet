@@ -76,5 +76,30 @@ interface OltDriverInterface
      * Configure ONU service (VLAN, WiFi, LAN port, remote access)
      */
     public function configureService(Onu $onu, OnuService $service, array $payload = []): array;
+
+    /**
+     * Get OLT temperature in Celsius
+     */
+    public function getOltTemperature(): float;
+
+    /**
+     * Get FAN speed (array of fan speeds)
+     */
+    public function getFanSpeed(): array;
+
+    /**
+     * Get power supply status
+     */
+    public function getPowerSupplyStatus(): array;
+
+    /**
+     * Clear ONU configuration
+     */
+    public function clearOnuConfig(string $serialNumber): array;
+
+    /**
+     * Change ONU serial number
+     */
+    public function changeOnuSerialNumber(string $oldSerial, string $newSerial): array;
 }
 

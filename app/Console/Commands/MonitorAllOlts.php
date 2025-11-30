@@ -24,12 +24,17 @@ class MonitorAllOlts extends Command
     /**
      * Execute the console command.
      */
-    public function handle(OltMonitoringService $monitoringService)
+    public function handle()
     {
-        $this->info('Starting OLT monitoring...');
-        
-        $monitoringService->monitorAll();
-        
-        $this->info('OLT monitoring completed.');
+        $this->info('Starting OLT realtime monitoring...');
+
+        $realtimeService = new \App\Services\OltRealtimeMonitoringService(
+            new \App\Services\OltEventService(),
+            new \App\Services\OnuEventService()
+        );
+
+        $realtimeService->monitorAllOlts();
+
+        $this->info('OLT realtime monitoring completed.');
     }
 }

@@ -32,9 +32,15 @@ class OltSyncService
             'started_at' => now(),
         ]);
 
+        // Initialize event service outside try-catch so it's available in both blocks
+        $oltEventService = new \App\Services\OltEventService();
+        
+        // Log sync started event
+        $oltEventService->logEvent($olt, 'sync_started', 'info', null, 'Sinkronisasi OLT dimulai');
+
         try {
             $driver = OltDriverFactory::create($olt);
-            
+
             // Test connection first
             $connectionTest = $driver->testConnection();
             if (!$connectionTest['success']) {
@@ -59,7 +65,7 @@ class OltSyncService
 
                 // Get ONU list for this port
                 $onuList = $driver->getOnuList($portData['card'] ?? 1, $portData['port'] ?? 1);
-                
+
                 // Sync ONUs
                 foreach ($onuList as $onuData) {
                     $result = $this->syncOnu($olt, $portData, $onuData);
@@ -84,6 +90,12 @@ class OltSyncService
             // Update OLT last synced
             $olt->update(['last_checked_at' => now()]);
 
+            // Log sync completed event
+            $oltEventService->logEvent($olt, 'sync_completed', 'info', [
+                'new_onus' => $newOnus,
+                'updated_onus' => $updatedOnus,
+            ], "Sinkronisasi selesai: {$newOnus} ONU baru, {$updatedOnus} ONU di-update");
+
             return $syncLog;
         } catch (\Exception $e) {
             Log::error("OLT Sync Error [{$olt->kode_olt}]: " . $e->getMessage());
@@ -94,6 +106,11 @@ class OltSyncService
                 'errors' => $syncLog->errors + 1,
                 'completed_at' => now(),
             ]);
+
+            // Log sync failed event (using the same $oltEventService instance)
+            $oltEventService->logEvent($olt, 'sync_failed', 'critical', [
+                'error' => $e->getMessage(),
+            ], "Sinkronisasi gagal: " . $e->getMessage());
 
             return $syncLog;
         }
@@ -131,6 +148,9 @@ class OltSyncService
             $isNew = true;
         }
 
+        // Check if ONU is unmapped to pelanggan
+        $unmapped = empty($onu->pelanggan_id);
+
         // Update ONU data
         $onu->fill([
             'olt_pon_port_id' => $ponPort->id,
@@ -151,11 +171,68 @@ class OltSyncService
             'last_online_at' => ($onuData['status'] ?? 'unknown') === 'online' ? now() : $onu->last_online_at,
             'last_synced_at' => now(),
             'olt_config' => $onuData['config'] ?? null,
+            'unmapped_to_pelanggan' => $unmapped, // Flag ONU belum dimapping
         ]);
 
         $onu->save();
 
+        // Sync service configuration from OLT if ONU exists and has config
+        if ($onu->exists && !empty($onuData['config'])) {
+            $this->syncOnuServices($onu, $onuData['config']);
+        }
+
         return ['new' => $isNew, 'onu' => $onu];
+    }
+
+    /**
+     * Sync ONU service configuration from OLT
+     */
+    protected function syncOnuServices(Onu $onu, array $config): void
+    {
+        try {
+            // Only sync if ONU doesn't have services yet (to avoid overwriting manual config)
+            if ($onu->services()->count() > 0) {
+                return;
+            }
+
+            // Extract service configuration from OLT config
+            if (isset($config['services']) && is_array($config['services'])) {
+                foreach ($config['services'] as $serviceId => $serviceConfig) {
+                    \App\Models\OnuService::create([
+                        'onu_id' => $onu->id,
+                        'service_id' => $serviceId,
+                        'wan_mode' => $serviceConfig['wan_mode'] ?? 'pppoe',
+                        'vlan_id' => $serviceConfig['vlan_id'] ?? null,
+                        'pppoe_username' => $serviceConfig['pppoe_username'] ?? null,
+                        'pppoe_password' => $serviceConfig['pppoe_password'] ?? null,
+                        'static_ip' => $serviceConfig['static_ip'] ?? null,
+                        'static_gateway' => $serviceConfig['static_gateway'] ?? null,
+                        'static_subnet' => $serviceConfig['static_subnet'] ?? null,
+                        'download_speed' => $serviceConfig['download_speed'] ?? null,
+                        'upload_speed' => $serviceConfig['upload_speed'] ?? null,
+                        'wifi_config' => $config['wifi'] ?? $serviceConfig['wifi'] ?? null, // WiFi dari root config atau service config
+                        'lan_port_config' => $config['lan_ports'] ?? $serviceConfig['lan_ports'] ?? null, // LAN ports dari root config atau service config
+                        'is_active' => $serviceConfig['is_active'] ?? true,
+                    ]);
+                }
+            } elseif (!empty($config['lan_ports']) || !empty($config['wifi'])) {
+                // Jika tidak ada service tapi ada LAN/WiFi config, buat service default
+                \App\Models\OnuService::create([
+                    'onu_id' => $onu->id,
+                    'service_id' => 1,
+                    'wan_mode' => 'pppoe',
+                    'vlan_id' => $config['services'][1]['vlan_id'] ?? null,
+                    'wifi_config' => $config['wifi'] ?? null,
+                    'lan_port_config' => $config['lan_ports'] ?? null,
+                    'is_active' => true,
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning("Failed to sync ONU services", [
+                'onu_id' => $onu->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

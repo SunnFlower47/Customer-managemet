@@ -36,6 +36,12 @@ class Olt extends Model
         'is_active',
         'last_checked_at',
         'last_error',
+        'temperature',
+        'fan_speed',
+        'power_supply_status',
+        'last_temperature_check',
+        'last_fan_check',
+        'last_power_check',
     ];
 
     protected function casts(): array
@@ -49,6 +55,11 @@ class Olt extends Model
             'longitude' => 'decimal:8',
             'is_active' => 'boolean',
             'last_checked_at' => 'datetime',
+            'temperature' => 'decimal:2',
+            'fan_speed' => 'array',
+            'last_temperature_check' => 'datetime',
+            'last_fan_check' => 'datetime',
+            'last_power_check' => 'datetime',
         ];
     }
 
@@ -112,6 +123,22 @@ class Olt extends Model
     public function latestSyncLog()
     {
         return $this->hasOne(OltSyncLog::class)->latestOfMany();
+    }
+
+    /**
+     * Get events for this OLT
+     */
+    public function events()
+    {
+        return $this->hasMany(OltEvent::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get unresolved events
+     */
+    public function unresolvedEvents()
+    {
+        return $this->hasMany(OltEvent::class)->whereNull('resolved_at');
     }
 
     /**

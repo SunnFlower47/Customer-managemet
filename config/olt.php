@@ -119,5 +119,53 @@ return [
         'poor' => ['min' => -30, 'max' => -25],
         'critical' => ['min' => -999, 'max' => -30],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mock Mode Settings (UNTUK TESTING SAJA)
+    |--------------------------------------------------------------------------
+    |
+    | Mock mode digunakan untuk testing tanpa OLT fisik.
+    |
+    | ⚠️ PENTING: Matikan mock mode di production!
+    |
+    | Cara mematikan mock mode:
+    | 1. Set OLT_MOCK_MODE=false di .env
+    | 2. Atau set 'mock_mode' => false di config/olt.php
+    | 3. Pastikan tidak ada OLT dengan IP 127.0.0.1 atau localhost
+    | 4. Hapus atau jangan jalankan OltTestDataSeeder di production
+    |
+    */
+
+    'mock_mode' => env('OLT_MOCK_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mock IP Addresses
+    |--------------------------------------------------------------------------
+    |
+    | IP addresses yang akan otomatis menggunakan mock driver.
+    | Di production, pastikan tidak ada OLT dengan IP ini.
+    |
+    */
+
+    'mock_ip_addresses' => [
+        '127.0.0.1',
+        'localhost',
+        '::1',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Realtime Monitoring Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Konfigurasi untuk realtime monitoring OLT dan ONU.
+    |
+    */
+    'realtime_polling_interval' => env('OLT_REALTIME_POLLING_INTERVAL', 30), // in seconds (10-30 recommended)
+    'temperature_threshold_warning' => env('OLT_TEMPERATURE_THRESHOLD_WARNING', 70.0), // Celsius
+    'temperature_threshold_critical' => env('OLT_TEMPERATURE_THRESHOLD_CRITICAL', 85.0), // Celsius
+    'fan_speed_minimum' => env('OLT_FAN_SPEED_MINIMUM', 2000), // RPM
 ];
 

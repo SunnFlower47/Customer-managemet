@@ -24,16 +24,25 @@ Schedule::command('bills:generate-monthly')
     ->description('Generate monthly bills for all active customers (backup method)');
 
 // OLT Monitoring - Monitor all OLTs every 30 seconds
-Schedule::command('olts:monitor')
-    ->everyThirtySeconds()
-    ->description('Monitor all OLT devices status');
+// Hanya aktif jika OLT_AUTO_SYNC_ENABLED=true di .env (default: true)
+if (env('OLT_AUTO_SYNC_ENABLED', true)) {
+    Schedule::command('olts:monitor')
+        ->everyThirtySeconds()
+        ->description('Monitor all OLT devices status');
+}
 
 // OLT Sync - Sync database every 5 minutes
-Schedule::command('olts:sync')
-    ->everyFiveMinutes()
-    ->description('Sync OLT database with devices');
+// Hanya aktif jika OLT_AUTO_SYNC_ENABLED=true di .env (default: true)
+if (env('OLT_AUTO_SYNC_ENABLED', true)) {
+    Schedule::command('olts:sync')
+        ->everyFiveMinutes()
+        ->description('Sync OLT database with devices');
+}
 
 // Check unregistered ONUs every 10 minutes
-Schedule::command('olts:check-unregistered')
-    ->everyTenMinutes()
-    ->description('Check and auto-discover unregistered ONUs');
+// Hanya aktif jika OLT_AUTO_SYNC_ENABLED=true di .env (default: true)
+if (env('OLT_AUTO_SYNC_ENABLED', true)) {
+    Schedule::command('olts:check-unregistered')
+        ->everyTenMinutes()
+        ->description('Check and auto-discover unregistered ONUs');
+}

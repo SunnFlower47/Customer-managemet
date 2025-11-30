@@ -1,9 +1,27 @@
 @php
 $inputClass = 'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
 $labelClass = 'block text-xs font-semibold text-gray-700 mb-2';
-$wifiConfig = old('wifi', $service->wifi_config ?? []);
-$lanConfig = old('lan_ports', $service->lan_port_config ?? []);
+
+// Get config from service or auto-detect from OLT
+$onuConfig = $onuConfig ?? [];
+$autoDetectConfig = $onuConfig['config'] ?? [];
+
+// WiFi config: use service config, or auto-detect from OLT, or empty
+$wifiConfig = old('wifi', $service->wifi_config ?? $autoDetectConfig['wifi'] ?? []);
+
+// LAN config: use service config, or auto-detect from OLT, or empty
+$lanConfig = old('lan_ports', $service->lan_port_config ?? $autoDetectConfig['lan_ports'] ?? []);
+
+// LAN ports: auto-detect from OLT if available, otherwise use default
+$detectedLanPorts = $autoDetectConfig['lan_ports'] ?? [];
 $lanPorts = ['lan1' => 'LAN 1', 'lan2' => 'LAN 2', 'lan3' => 'LAN 3', 'lan4' => 'LAN 4'];
+
+// If LAN ports detected from OLT, show only detected ports
+if (!empty($detectedLanPorts)) {
+    $lanPorts = array_intersect_key($lanPorts, $detectedLanPorts);
+    // Merge detected ports with default to ensure all 4 ports are available
+    $lanPorts = array_merge(['lan1' => 'LAN 1', 'lan2' => 'LAN 2', 'lan3' => 'LAN 3', 'lan4' => 'LAN 4'], $lanPorts);
+}
 @endphp
 
 <div class="space-y-4" x-data="{ wanMode: '{{ old('wan_mode', $service->wan_mode ?? 'pppoe') }}', vlanSource: '{{ old('vlan_id') ? 'database' : 'manual' }}', wifiEnabled: {{ old('wifi.enabled', data_get($wifiConfig, 'enabled', true)) ? 'true' : 'false' }} }">
@@ -162,7 +180,14 @@ $lanPorts = ['lan1' => 'LAN 1', 'lan2' => 'LAN 2', 'lan3' => 'LAN 3', 'lan4' => 
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-sm font-semibold text-gray-900">WiFi Settings</h3>
-                <p class="text-xs text-gray-500">Atur SSID, security, dan band.</p>
+                <p class="text-xs text-gray-500">
+                    Atur SSID, security, dan band.
+                    @if(!empty($autoDetectConfig['wifi']))
+                        <span class="text-green-600 font-semibold">
+                            <i class="fas fa-check-circle"></i> Auto-detect dari OLT
+                        </span>
+                    @endif
+                </p>
             </div>
             <label class="inline-flex items-center gap-2 cursor-pointer">
                 <span class="text-xs font-semibold text-gray-600">Aktif</span>
@@ -216,18 +241,27 @@ $lanPorts = ['lan1' => 'LAN 1', 'lan2' => 'LAN 2', 'lan3' => 'LAN 3', 'lan4' => 
             @foreach($lanPorts as $key => $label)
             @php
                 $portConfig = $lanConfig[$key] ?? [];
+                $detectedPort = $autoDetectConfig['lan_ports'][$key] ?? null;
+                $isDetected = !empty($detectedPort);
             @endphp
-            <div class="border border-gray-200 rounded-xl p-3 space-y-3">
+            <div class="border border-gray-200 rounded-xl p-3 space-y-3 {{ $isDetected ? 'bg-green-50 border-green-200' : '' }}">
                 <div class="flex items-center justify-between text-xs">
                     <span class="font-semibold text-gray-700">{{ $label }}</span>
-                    <span class="text-gray-400">{{ strtoupper($key) }}</span>
+                    <div class="flex items-center gap-2">
+                        @if($isDetected)
+                        <span class="text-green-600 text-[10px] font-semibold">
+                            <i class="fas fa-check-circle"></i> Terdeteksi
+                        </span>
+                        @endif
+                        <span class="text-gray-400">{{ strtoupper($key) }}</span>
+                    </div>
                 </div>
                 <div>
                     <label class="{{ $labelClass }}">Mode</label>
                     <select name="lan_ports[{{ $key }}][mode]" class="{{ $inputClass }}">
                         <option value="">Pilih Mode</option>
                         @foreach(['internet' => 'Internet', 'iptv' => 'IPTV', 'voip' => 'VoIP', 'bridge' => 'Bridge'] as $modeValue => $modeLabel)
-                        <option value="{{ $modeValue }}" {{ old("lan_ports.$key.mode", $portConfig['mode'] ?? '') === $modeValue ? 'selected' : '' }}>
+                        <option value="{{ $modeValue }}" {{ old("lan_ports.$key.mode", $portConfig['mode'] ?? $detectedPort['mode'] ?? '') === $modeValue ? 'selected' : '' }}>
                             {{ $modeLabel }}
                         </option>
                         @endforeach
@@ -235,7 +269,7 @@ $lanPorts = ['lan1' => 'LAN 1', 'lan2' => 'LAN 2', 'lan3' => 'LAN 3', 'lan4' => 
                 </div>
                 <div>
                     <label class="{{ $labelClass }}">VLAN</label>
-                    <input type="number" name="lan_ports[{{ $key }}][vlan]" value="{{ old("lan_ports.$key.vlan", $portConfig['vlan'] ?? '') }}" class="{{ $inputClass }}" placeholder="Opsional" min="1" max="4096">
+                    <input type="number" name="lan_ports[{{ $key }}][vlan]" value="{{ old("lan_ports.$key.vlan", $portConfig['vlan'] ?? $detectedPort['vlan'] ?? '') }}" class="{{ $inputClass }}" placeholder="Opsional" min="1" max="4096">
                 </div>
                 <div>
                     <label class="{{ $labelClass }}">Catatan</label>

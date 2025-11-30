@@ -104,7 +104,7 @@ class MockOltDriver extends BaseOltDriver
     {
         // Simulasi delay koneksi
         usleep(500000); // 0.5 detik
-        
+
         return [
             'success' => true,
             'message' => 'Koneksi mock berhasil (Mode Testing)',
@@ -167,7 +167,7 @@ class MockOltDriver extends BaseOltDriver
     public function getOnuDetails(string $serialNumber): array
     {
         $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
-        
+
         if (!$onu) {
             return [
                 'success' => false,
@@ -219,7 +219,7 @@ class MockOltDriver extends BaseOltDriver
     public function getBandwidthUsage(int $card = null, int $port = null): array
     {
         $usage = [];
-        
+
         if ($card && $port) {
             // Specific port
             $usage[] = [
@@ -266,7 +266,7 @@ class MockOltDriver extends BaseOltDriver
     public function rebootOnu(string $serialNumber): array
     {
         $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
-        
+
         if (!$onu) {
             return [
                 'success' => false,
@@ -286,7 +286,7 @@ class MockOltDriver extends BaseOltDriver
     public function resetOnu(string $serialNumber): array
     {
         $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
-        
+
         if (!$onu) {
             return [
                 'success' => false,
@@ -305,7 +305,7 @@ class MockOltDriver extends BaseOltDriver
     public function disableOnu(string $serialNumber): array
     {
         $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
-        
+
         if (!$onu) {
             return [
                 'success' => false,
@@ -324,7 +324,7 @@ class MockOltDriver extends BaseOltDriver
     public function enableOnu(string $serialNumber): array
     {
         $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
-        
+
         if (!$onu) {
             return [
                 'success' => false,
@@ -343,7 +343,7 @@ class MockOltDriver extends BaseOltDriver
     public function getOnuConfig(string $serialNumber): array
     {
         $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
-        
+
         if (!$onu) {
             return [
                 'success' => false,
@@ -408,6 +408,69 @@ class MockOltDriver extends BaseOltDriver
             'success' => true,
             'message' => "Konfigurasi service {$service->service_id} untuk ONU {$onu->serial_number} berhasil (simulasi)",
             'payload' => $payload,
+        ];
+    }
+
+    public function getOltTemperature(): float
+    {
+        return 42.0; // Mock temperature
+    }
+
+    public function getFanSpeed(): array
+    {
+        return [
+            'fan1' => 2694,
+            'fan2' => 2688,
+        ];
+    }
+
+    public function getPowerSupplyStatus(): array
+    {
+        return [
+            'status' => 'normal',
+            'voltage' => 12.0,
+            'current' => 5.5,
+        ];
+    }
+
+    public function clearOnuConfig(string $serialNumber): array
+    {
+        $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $serialNumber);
+
+        if (!$onu) {
+            return [
+                'success' => false,
+                'message' => 'ONU tidak ditemukan',
+            ];
+        }
+
+        usleep(300000);
+
+        return [
+            'success' => true,
+            'message' => "Konfigurasi ONU {$serialNumber} berhasil di-clear (simulasi)",
+        ];
+    }
+
+    public function changeOnuSerialNumber(string $oldSerial, string $newSerial): array
+    {
+        $onu = collect($this->mockData['onus'])->firstWhere('serial_number', $oldSerial);
+
+        if (!$onu) {
+            return [
+                'success' => false,
+                'message' => 'ONU dengan serial ' . $oldSerial . ' tidak ditemukan',
+            ];
+        }
+
+        // Update mock data
+        $onu['serial_number'] = $newSerial;
+
+        usleep(300000);
+
+        return [
+            'success' => true,
+            'message' => "Serial Number ONU berhasil diubah dari {$oldSerial} ke {$newSerial} (simulasi)",
         ];
     }
 }

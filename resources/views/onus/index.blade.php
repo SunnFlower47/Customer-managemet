@@ -20,6 +20,36 @@
 @endphp
 
 <div class="space-y-6 lg:space-y-8" x-data="{ showThresholdModal: false, warning: {{ $thresholdWarning }}, good: {{ $thresholdGood }} }">
+    <!-- Info Alert - Show if no ONUs -->
+    @if($onus->isEmpty() && !request()->has('search') && !request()->has('olt_id'))
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-xl">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-3"></i>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-blue-900 mb-1">ONU Belum Terdeteksi</p>
+                <p class="text-xs text-blue-800 mb-2">
+                    ONU <strong>tidak otomatis muncul</strong> di menu ini. Anda perlu melakukan <strong>sinkronisasi (sync)</strong> dari OLT terlebih dahulu untuk mengambil data ONU dari OLT.
+                </p>
+                <div class="text-xs text-blue-700 space-y-1">
+                    <p><strong>📋 Cara mendeteksi ONU:</strong></p>
+                    <ol class="list-decimal ml-4 space-y-1">
+                        <li>Buka halaman detail OLT (Menu: <strong>OLT Monitoring → OLTs</strong>)</li>
+                        <li>Klik tombol <strong>"Sinkron"</strong> di header halaman detail OLT</li>
+                        <li>Tunggu proses selesai (progress bar akan menampilkan persentase)</li>
+                        <li>ONU yang terdeteksi akan muncul di menu ini</li>
+                    </ol>
+                    <p class="mt-2"><strong>💡 Tips:</strong> Sistem juga memiliki auto-sync yang berjalan setiap 5 menit untuk update otomatis.</p>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ route('olts.index') }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-server mr-2"></i>Ke Halaman OLTs untuk Sync
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="page-header">
         <div class="flex items-center gap-3 sm:gap-4">
             <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-teal-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg text-white text-xl sm:text-2xl">

@@ -42,6 +42,9 @@ class Onu extends Model
         'last_synced_at',
         'olt_config',
         'last_error',
+        'unmapped_to_pelanggan',
+        'last_event_at',
+        'last_event_type',
     ];
 
     protected function casts(): array
@@ -60,6 +63,8 @@ class Onu extends Model
             'last_offline_at' => 'datetime',
             'last_synced_at' => 'datetime',
             'olt_config' => 'array',
+            'unmapped_to_pelanggan' => 'boolean',
+            'last_event_at' => 'datetime',
         ];
     }
 
@@ -184,5 +189,29 @@ class Onu extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for unmapped ONUs (belum dimapping ke pelanggan)
+     */
+    public function scopeUnmapped($query)
+    {
+        return $query->where('unmapped_to_pelanggan', true)->orWhereNull('pelanggan_id');
+    }
+
+    /**
+     * Get events for this ONU
+     */
+    public function events()
+    {
+        return $this->hasMany(OnuEvent::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get unresolved events
+     */
+    public function unresolvedEvents()
+    {
+        return $this->hasMany(OnuEvent::class)->whereNull('resolved_at');
     }
 }

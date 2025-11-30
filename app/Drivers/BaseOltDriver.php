@@ -38,14 +38,14 @@ abstract class BaseOltDriver implements OltDriverInterface
         switch ($version) {
             case '1':
                 return @snmpget($this->olt->ip_address, $community, $oid, $timeout, $retries);
-            
+
             case '2c':
                 if (function_exists('snmp2_get')) {
                     return @snmp2_get($this->olt->ip_address, $community, $oid, $timeout, $retries);
                 }
                 // Fallback to v1 if v2c function not available
                 return @snmpget($this->olt->ip_address, $community, $oid, $timeout, $retries);
-            
+
             case '3':
                 // SNMPv3 requires username, auth protocol, auth password, priv protocol, priv password
                 // For now, fallback to v2c if v3 not properly configured
@@ -54,7 +54,7 @@ abstract class BaseOltDriver implements OltDriverInterface
                     return @snmp2_get($this->olt->ip_address, $community, $oid, $timeout, $retries);
                 }
                 return @snmpget($this->olt->ip_address, $community, $oid, $timeout, $retries);
-            
+
             default:
                 // Default to v2c
                 if (function_exists('snmp2_get')) {
@@ -77,20 +77,20 @@ abstract class BaseOltDriver implements OltDriverInterface
         switch ($version) {
             case '1':
                 return @snmpset($this->olt->ip_address, $community, $oid, $type, $value, $timeout, $retries) !== false;
-            
+
             case '2c':
                 if (function_exists('snmp2_set')) {
                     return @snmp2_set($this->olt->ip_address, $community, $oid, $type, $value, $timeout, $retries) !== false;
                 }
                 return @snmpset($this->olt->ip_address, $community, $oid, $type, $value, $timeout, $retries) !== false;
-            
+
             case '3':
                 Log::warning("SNMPv3 SET not fully implemented, falling back to v2c");
                 if (function_exists('snmp2_set')) {
                     return @snmp2_set($this->olt->ip_address, $community, $oid, $type, $value, $timeout, $retries) !== false;
                 }
                 return @snmpset($this->olt->ip_address, $community, $oid, $type, $value, $timeout, $retries) !== false;
-            
+
             default:
                 if (function_exists('snmp2_set')) {
                     return @snmp2_set($this->olt->ip_address, $community, $oid, $type, $value, $timeout, $retries) !== false;
@@ -112,20 +112,20 @@ abstract class BaseOltDriver implements OltDriverInterface
         switch ($version) {
             case '1':
                 return @snmprealwalk($this->olt->ip_address, $community, $oid, $timeout, $retries);
-            
+
             case '2c':
                 if (function_exists('snmp2_real_walk')) {
                     return @snmp2_real_walk($this->olt->ip_address, $community, $oid, $timeout, $retries);
                 }
                 return @snmprealwalk($this->olt->ip_address, $community, $oid, $timeout, $retries);
-            
+
             case '3':
                 Log::warning("SNMPv3 WALK not fully implemented, falling back to v2c");
                 if (function_exists('snmp2_real_walk')) {
                     return @snmp2_real_walk($this->olt->ip_address, $community, $oid, $timeout, $retries);
                 }
                 return @snmprealwalk($this->olt->ip_address, $community, $oid, $timeout, $retries);
-            
+
             default:
                 if (function_exists('snmp2_real_walk')) {
                     return @snmp2_real_walk($this->olt->ip_address, $community, $oid, $timeout, $retries);
@@ -295,6 +295,56 @@ abstract class BaseOltDriver implements OltDriverInterface
             'success' => true,
             'message' => 'Registrasi dikirim (simulasi)',
             'onu_id' => null,
+        ];
+    }
+
+    /**
+     * Get OLT temperature in Celsius
+     */
+    public function getOltTemperature(): float
+    {
+        return 0.0; // Stub - must be implemented by child class
+    }
+
+    /**
+     * Get FAN speed (array of fan speeds)
+     */
+    public function getFanSpeed(): array
+    {
+        return []; // Stub - must be implemented by child class
+    }
+
+    /**
+     * Get power supply status
+     */
+    public function getPowerSupplyStatus(): array
+    {
+        return [
+            'status' => 'unknown',
+            'voltage' => null,
+            'current' => null,
+        ]; // Stub - must be implemented by child class
+    }
+
+    /**
+     * Clear ONU configuration
+     */
+    public function clearOnuConfig(string $serialNumber): array
+    {
+        return [
+            'success' => false,
+            'message' => 'Clear config belum diimplementasikan untuk vendor ini',
+        ];
+    }
+
+    /**
+     * Change ONU serial number
+     */
+    public function changeOnuSerialNumber(string $oldSerial, string $newSerial): array
+    {
+        return [
+            'success' => false,
+            'message' => 'Ganti SN belum diimplementasikan untuk vendor ini',
         ];
     }
 }

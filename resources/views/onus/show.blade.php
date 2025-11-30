@@ -40,7 +40,7 @@
                 credentials: 'same-origin'
             });
             const result = await response.json();
-            
+
             if (result.success && result.data) {
                 this.currentDownload = result.data.current.download_mbps || 0;
                 this.currentUpload = result.data.current.upload_mbps || 0;
@@ -63,7 +63,7 @@
             const date = new Date(h.timestamp);
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         });
-        
+
         const downloadData = history.map(h => (h.download / 1000).toFixed(2));
         const uploadData = history.map(h => (h.upload / 1000).toFixed(2));
 
@@ -523,7 +523,7 @@ $pelangganSearchOptionsModal = $pelanggans->map(function ($pelanggan) {
                         <i class="fas fa-sync" :class="{ 'fa-spin': loadingTraffic }"></i> Refresh
                     </button>
                 </div>
-                
+
                 <!-- Current Speed -->
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
@@ -659,7 +659,7 @@ $pelangganSearchOptionsModal = $pelanggans->map(function ($pelanggan) {
         </div>
         <form method="POST" action="{{ route('onus.services.store', $onu) }}" class="px-5 py-4">
             @csrf
-            @include('onus.partials.service-form', ['service' => null])
+            @include('onus.partials.service-form', ['service' => null, 'onuConfig' => $onuConfig ?? [], 'speedProfiles' => $speedProfiles, 'vlans' => $vlans, 'availableServiceIds' => $availableServiceIds])
             <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
                 <button type="button" @click="showAddServiceModal = false" class="btn-secondary">Batal</button>
                 <button type="submit" class="btn-primary"><i class="fas fa-save mr-2"></i>Simpan Service</button>
@@ -681,7 +681,7 @@ $pelangganSearchOptionsModal = $pelanggans->map(function ($pelanggan) {
         </div>
         <form method="POST" action="{{ route('onus.services.update', [$onu, $service]) }}" class="px-5 py-4">
             @csrf @method('PUT')
-            @include('onus.partials.service-form', ['service' => $service])
+            @include('onus.partials.service-form', ['service' => $service, 'onuConfig' => $onuConfig ?? [], 'speedProfiles' => $speedProfiles, 'vlans' => $vlans])
             <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
                 <button type="button" @click="showEditServiceModal = false" class="btn-secondary">Batal</button>
                 <button type="submit" class="btn-primary"><i class="fas fa-save mr-2"></i>Update Service</button>
@@ -706,10 +706,10 @@ $pelangganSearchOptionsModal = $pelanggans->map(function ($pelanggan) {
             $currentRules = $primaryService?->remote_access_rules ?? [];
         @endphp
         @if($primaryService)
-        <form method="POST" action="{{ route('onus.services.remote-access', [$onu, $primaryService]) }}" 
+        <form method="POST" action="{{ route('onus.services.remote-access', [$onu, $primaryService]) }}"
               class="px-5 py-4 space-y-4"
-              x-data="{ 
-                remoteRules: @js($currentRules), 
+              x-data="{
+                remoteRules: @js($currentRules),
                 newRule: { name: '', ingress: 'WAN', service: 'web', action: 'allow', enabled: true, source_ip: '', destination_ip: '' },
                 addRule() {
                     if (!this.newRule.name || this.newRule.name.trim() === '') {
@@ -823,7 +823,7 @@ $pelangganSearchOptionsModal = $pelanggans->map(function ($pelanggan) {
 
                 <!-- Hidden input untuk rules -->
                 <input type="hidden" name="rules" x-ref="rulesInput" :value="JSON.stringify(remoteRules)">
-                
+
                 <!-- Debug info -->
                 <div class="text-xs text-gray-400 mb-2" x-show="remoteRules.length > 0">
                     <i class="fas fa-info-circle mr-1"></i>
@@ -833,7 +833,7 @@ $pelangganSearchOptionsModal = $pelanggans->map(function ($pelanggan) {
                     <i class="fas fa-exclamation-circle mr-1"></i>
                     Tambahkan minimal 1 rule sebelum menyimpan
                 </div>
-                
+
                 <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
                     <button type="button" @click="showRemoteAccessModal = false" class="btn-secondary">Batal</button>
                     <button type="submit" class="btn-primary" :disabled="remoteRules.length === 0" :class="{ 'opacity-50 cursor-not-allowed': remoteRules.length === 0 }">

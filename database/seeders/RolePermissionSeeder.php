@@ -99,23 +99,23 @@ class RolePermissionSeeder extends Seeder
             'view-mapping',
             'manage-mapping',
 
-            // OLT Monitoring
-            'view-olt',
-            'manage-olt',
-            'sync-olt',
+            // // OLT Monitoring
+            // 'view-olt',
+            // 'manage-olt',
+            // 'sync-olt',
 
-            // ONU Management
-            'view-onu',
-            'manage-onu',
-            'reboot-onu',
+            // // ONU Management
+            // 'view-onu',
+            // 'manage-onu',
+            // 'reboot-onu',
 
-            // VLAN Database
-            'view-vlan',
-            'manage-vlan',
+            // // VLAN Database
+            // 'view-vlan',
+            // 'manage-vlan',
 
-            // Speed Profiles
-            'view-speed-profile',
-            'manage-speed-profile',
+            // // Speed Profiles
+            // 'view-speed-profile',
+            // 'manage-speed-profile',
         ];
 
         foreach ($permissions as $permission) {

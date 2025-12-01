@@ -107,7 +107,7 @@
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             @php
-                                $usedPorts = $odc->used_ports ?? 0;
+                                $usedPorts = $odc->odps_count ?? 0;
                                 $capacity = max(0, $odc->kapasitas_port);
                                 $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
                             @endphp
@@ -127,7 +127,7 @@
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             @php
-                                $usedPorts = $odc->used_ports ?? 0;
+                                $usedPorts = $odc->odps_count ?? 0;
                                 $capacity = max(0, $odc->kapasitas_port);
                                 $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
                                 $statusClass = match($computedStatus) {
@@ -193,7 +193,7 @@
                                 <p class="text-xs text-gray-500 truncate">{{ $odc->nama }}</p>
                             </div>
                             @php
-                                $usedPorts = $odc->used_ports ?? 0;
+                                $usedPorts = $odc->odps_count ?? 0;
                                 $capacity = max(0, $odc->kapasitas_port);
                                 $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
                                 $statusClass = match($computedStatus) {
@@ -213,7 +213,7 @@
                 <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
                     <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">
                         @php
-                            $usedPorts = $odc->used_ports ?? 0;
+                            $usedPorts = $odc->odps_count ?? 0;
                             $capacity = max(0, $odc->kapasitas_port);
                             $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
                         @endphp

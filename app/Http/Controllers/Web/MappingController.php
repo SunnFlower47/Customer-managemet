@@ -45,7 +45,7 @@ class MappingController extends BaseController
             $pelanggansQuery->where('status', $request->status);
         }
 
-        $pelanggans = $pelanggansQuery->with(['paket', 'penagih', 'odp'])->get();
+        $pelanggans = $pelanggansQuery->with(['paket', 'penagih', 'odp.odc'])->get();
 
         // Get filter options
         $allOdcs = Odc::orderBy('nama')->get();

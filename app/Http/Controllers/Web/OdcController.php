@@ -33,11 +33,6 @@ class OdcController extends BaseController
 
         $odcs = $query
             ->withCount('odps')
-            ->withCount([
-                'odps as used_ports' => function ($q) {
-                    $q->select(DB::raw('COALESCE(SUM(port_terpakai), 0)'));
-                },
-            ])
             ->orderBy('created_at', 'desc')
             ->paginate(20)
             ->appends($request->query());
@@ -81,7 +76,8 @@ class OdcController extends BaseController
     {
         $odc->load(['odps.pelanggans']);
 
-        $usedPorts = $odc->odps->sum('port_terpakai');
+        // Port terpakai ODC = jumlah ODP yang terhubung (setiap ODP = 1 port)
+        $usedPorts = $odc->odps()->count();
 
         return view('odcs.show', compact('odc', 'usedPorts'));
     }

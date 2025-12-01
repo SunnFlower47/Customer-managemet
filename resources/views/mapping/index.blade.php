@@ -503,6 +503,15 @@
                     <p class="text-gray-700 mb-1">${@json($odp->nama)}</p>
                     <p class="text-xs text-gray-500 mb-2">${@json($odp->alamat ?: 'Tidak ada alamat')}</p>
                     <p class="text-xs text-gray-600 mb-2">Port: ${@json($odp->port_terpakai)}/${@json($odp->kapasitas)}</p>
+                    @if($odp->odc)
+                    <p class="text-xs text-indigo-600 mb-2">
+                        <i class="fas fa-project-diagram mr-1"></i>Terhubung ke ODC: <strong>${@json($odp->odc->kode_odc)}</strong> - ${@json($odp->odc->nama)}
+                    </p>
+                    @else
+                    <p class="text-xs text-gray-400 mb-2">
+                        <i class="fas fa-project-diagram mr-1"></i>Belum terhubung ke ODC
+                    </p>
+                    @endif
                     <a href="{{ route('odps.show', $odp) }}" class="text-blue-600 hover:underline text-xs mr-3">
                         <i class="fas fa-eye mr-1"></i>Detail
                     </a>
@@ -534,7 +543,10 @@
                     <p class="text-xs text-gray-600 mb-1">${@json($pelanggan->pppoe)}</p>
                     <p class="text-xs text-gray-500 mb-2">${@json($pelanggan->alamat ?: 'Tidak ada alamat')}</p>
                     @if($pelanggan->odp)
-                    <p class="text-xs text-purple-600 mb-2"><i class="fas fa-map-marker-alt mr-1"></i>ODP: ${@json($pelanggan->odp->kode_odp)}</p>
+                    <p class="text-xs text-purple-600 mb-1"><i class="fas fa-map-marker-alt mr-1"></i>ODP: ${@json($pelanggan->odp->kode_odp)}</p>
+                    @if($pelanggan->odp->odc)
+                    <p class="text-xs text-indigo-600 mb-2"><i class="fas fa-project-diagram mr-1"></i>ODC: ${@json($pelanggan->odp->odc->kode_odc)}</p>
+                    @endif
                     @endif
                     <a href="{{ route('pelanggans.show', $pelanggan) }}" class="text-blue-600 hover:underline text-xs mr-3">
                         <i class="fas fa-eye mr-1"></i>Detail

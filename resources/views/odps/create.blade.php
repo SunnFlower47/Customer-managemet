@@ -114,6 +114,27 @@
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="odc_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-project-diagram mr-2 text-purple-500"></i>Terhubung ke ODC
+                    </label>
+                    <select name="odc_id"
+                            id="odc_id"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm font-medium bg-gray-50 focus:bg-white @error('odc_id') border-red-500 @enderror">
+                        <option value="">Pilih ODC (opsional)</option>
+                        @foreach($odcs as $odc)
+                        <option value="{{ $odc->id }}" {{ old('odc_id') == $odc->id ? 'selected' : '' }}>
+                            {{ $odc->kode_odc }} - {{ $odc->nama }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error('odc_id')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             <div>
                 <label for="foto" class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-image mr-2 text-purple-500"></i>Foto ODP

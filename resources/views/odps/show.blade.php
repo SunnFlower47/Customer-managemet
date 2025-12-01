@@ -70,6 +70,26 @@
                         <dt class="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Pelanggan Terhubung</dt>
                         <dd class="text-lg font-bold text-green-900">{{ $odp->pelanggans->count() }} pelanggan</dd>
                     </div>
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
+                        <dt class="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Terhubung ke ODC</dt>
+                        <dd class="text-sm text-gray-900">
+                            @if($odp->odc)
+                                <div class="flex items-center justify-between gap-2">
+                                    <div>
+                                        <p class="font-semibold">{{ $odp->odc->kode_odc }}</p>
+                                        <p class="text-xs text-gray-600">{{ $odp->odc->nama }}</p>
+                                    </div>
+                                    <a href="{{ route('odcs.show', $odp->odc) }}" class="text-indigo-600 hover:underline text-xs font-semibold">
+                                        <i class="fas fa-eye mr-1"></i>Detail ODC
+                                    </a>
+                                </div>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                                    <i class="fas fa-exclamation-circle mr-1 text-[10px]"></i>Belum terhubung ke ODC
+                                </span>
+                            @endif
+                        </dd>
+                    </div>
                 </dl>
                 @if($odp->alamat)
                 <div class="bg-white border border-gray-100 rounded-xl px-4 py-3">

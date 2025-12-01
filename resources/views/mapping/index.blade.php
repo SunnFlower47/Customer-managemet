@@ -449,14 +449,6 @@
             iconAnchor: [17, 17]
         });
 
-        const connectedOdps{{ $odc->id }} = @json($odc->odps->map(function($odp) {
-            return [
-                'kode' => $odp->kode_odp,
-                'nama' => $odp->nama,
-                'id' => $odp->id,
-            ];
-        }));
-
         const odcMarker{{ $odc->id }} = L.marker([{{ $odc->latitude }}, {{ $odc->longitude }}], { icon: odcIcon{{ $odc->id }} })
             .addTo(odcLayer)
             .bindPopup(`
@@ -465,16 +457,18 @@
                     <p class="text-gray-700 mb-1">{{ $odc->nama }}</p>
                     <p class="text-xs text-gray-500 mb-2">{{ $odc->alamat ?? 'Tidak ada alamat' }}</p>
                     <p class="text-xs text-gray-600 mb-2">ODP tersambung: {{ $odc->odps->count() }}</p>
-                    ${connectedOdps{{ $odc->id }}.length ? `
-                        <div class="mb-2 max-h-24 overflow-y-auto">
-                            ${connectedOdps{{ $odc->id }}.map(odp => `
-                                <div class="flex items-center justify-between text-xs text-gray-700 mb-1">
-                                    <span>${odp.kode} - ${odp.nama}</span>
-                                    <a href="{{ url('/odps') }}/${odp.id}" class="text-blue-600 hover:underline"><i class="fas fa-eye"></i></a>
-                                </div>
-                            `).join('')}
+                    @if($odc->odps->count())
+                    <div class="mb-2 max-h-24 overflow-y-auto">
+                        @foreach($odc->odps as $odp)
+                        <div class="flex items-center justify-between text-xs text-gray-700 mb-1">
+                            <span>{{ $odp->kode_odp }} - {{ $odp->nama }}</span>
+                            <a href="{{ route('odps.show', $odp) }}" class="text-blue-600 hover:underline">
+                                <i class="fas fa-eye"></i>
+                            </a>
                         </div>
-                    ` : ''}
+                        @endforeach
+                    </div>
+                    @endif
                     <a href="{{ route('odcs.show', $odc) }}" class="text-indigo-600 hover:underline text-xs mr-3">
                         <i class="fas fa-eye mr-1"></i>Detail ODC
                     </a>

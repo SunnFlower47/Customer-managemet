@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Web\BaseController;
 use App\Models\Odp;
+use App\Models\Odc;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -57,7 +58,8 @@ class OdpController extends BaseController
      */
     public function create()
     {
-        return view('odps.create');
+        $odcs = Odc::orderBy('nama')->get();
+        return view('odps.create', compact('odcs'));
     }
 
     /**
@@ -73,6 +75,7 @@ class OdpController extends BaseController
             'alamat' => 'nullable|string',
             'kapasitas' => 'required|integer|min:0',
             'status' => 'required|in:aktif,nonaktif',
+            'odc_id' => 'nullable|exists:odcs,id',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
@@ -106,7 +109,7 @@ class OdpController extends BaseController
             $odp->refresh();
         }
 
-        $odp->load('pelanggans.paket', 'pelanggans.penagih');
+        $odp->load('pelanggans.paket', 'pelanggans.penagih', 'odc');
         $pelanggans = $odp->pelanggans()->with(['paket', 'penagih'])->paginate(10);
 
         return view('odps.show', compact('odp', 'pelanggans'));
@@ -117,7 +120,8 @@ class OdpController extends BaseController
      */
     public function edit(Odp $odp)
     {
-        return view('odps.edit', compact('odp'));
+        $odcs = Odc::orderBy('nama')->get();
+        return view('odps.edit', compact('odp', 'odcs'));
     }
 
     /**
@@ -133,6 +137,7 @@ class OdpController extends BaseController
             'alamat' => 'nullable|string',
             'kapasitas' => 'required|integer|min:0',
             'status' => 'required|in:aktif,nonaktif',
+            'odc_id' => 'nullable|exists:odcs,id',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 

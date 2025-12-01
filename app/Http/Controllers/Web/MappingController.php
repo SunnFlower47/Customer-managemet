@@ -17,7 +17,7 @@ class MappingController extends BaseController
     {
         // Get all ODCs and ODPs
         $odcs = Odc::with('odps')->get();
-        $odps = Odp::active()->with('odc')->get();
+        $odps = Odp::active()->with(['odc', 'parentOdp.odc', 'childOdps'])->get();
 
         // Get all pelanggans with location
         $pelanggansQuery = Pelanggan::whereNotNull('latitude')

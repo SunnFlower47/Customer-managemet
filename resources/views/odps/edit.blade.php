@@ -134,6 +134,33 @@
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <div>
+                    <label for="parent_odp_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-link mr-2 text-purple-500"></i>Hubungkan ke ODP Terdekat
+                    </label>
+                    <select name="parent_odp_id"
+                            id="parent_odp_id"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm font-medium bg-gray-50 focus:bg-white @error('parent_odp_id') border-red-500 @enderror">
+                        <option value="">Pilih ODP Terdekat (opsional)</option>
+                        @foreach($activeOdps as $activeOdp)
+                        <option value="{{ $activeOdp->id }}" {{ old('parent_odp_id', $odp->parent_odp_id) == $activeOdp->id ? 'selected' : '' }}
+                                data-lat="{{ $activeOdp->latitude }}"
+                                data-lng="{{ $activeOdp->longitude }}">
+                            {{ $activeOdp->kode_odp }} - {{ $activeOdp->nama }}
+                            @if($activeOdp->odc)
+                                (ODC: {{ $activeOdp->odc->kode_odc }})
+                            @endif
+                        </option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>Pilih ODP aktif terdekat untuk menghubungkan ODP ini
+                    </p>
+                    @error('parent_odp_id')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <div>
@@ -205,7 +232,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
                     <i class="fas fa-map mr-2 text-purple-500"></i>Pilih dari Peta
                 </label>
-                <x-map-picker 
+                <x-map-picker
                     map-id="map-picker"
                     latitude-input-id="latitude"
                     longitude-input-id="longitude"
@@ -233,5 +260,36 @@
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const odcSelect = document.getElementById('odc_id');
+    const parentOdpSelect = document.getElementById('parent_odp_id');
+
+    function validateExclusive() {
+        if (odcSelect.value && parentOdpSelect.value) {
+            // Jika keduanya terisi, kosongkan yang terakhir dipilih
+            alert('Pilih salah satu: Hubungkan ke ODC atau Hubungkan ke ODP terdekat.');
+            if (odcSelect.value) {
+                parentOdpSelect.value = '';
+            }
+        }
+    }
+
+    odcSelect.addEventListener('change', function() {
+        if (this.value && parentOdpSelect.value) {
+            parentOdpSelect.value = '';
+        }
+    });
+
+    parentOdpSelect.addEventListener('change', function() {
+        if (this.value && odcSelect.value) {
+            odcSelect.value = '';
+        }
+    });
+});
+</script>
+@endpush
 @endsection
 

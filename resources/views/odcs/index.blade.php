@@ -107,7 +107,7 @@
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             @php
-                                $usedPorts = $odc->odps_count ?? 0;
+                                $usedPorts = $odc->direct_odps_count ?? 0;
                                 $capacity = max(0, $odc->kapasitas_port);
                                 $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
                             @endphp
@@ -122,12 +122,12 @@
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                                <i class="fas fa-map-marker-alt mr-1"></i>{{ $odc->odps_count }} ODP
+                                <i class="fas fa-map-marker-alt mr-1"></i>{{ $odc->total_odps_count ?? $odc->odps->count() }} ODP
                             </div>
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             @php
-                                $usedPorts = $odc->odps_count ?? 0;
+                                $usedPorts = $odc->direct_odps_count ?? 0;
                                 $capacity = max(0, $odc->kapasitas_port);
                                 $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
                                 $statusClass = match($computedStatus) {
@@ -193,7 +193,7 @@
                                 <p class="text-xs text-gray-500 truncate">{{ $odc->nama }}</p>
                             </div>
                             @php
-                                $usedPorts = $odc->odps_count ?? 0;
+                                $usedPorts = $odc->direct_odps_count ?? 0;
                                 $capacity = max(0, $odc->kapasitas_port);
                                 $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
                                 $statusClass = match($computedStatus) {
@@ -213,7 +213,7 @@
                 <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
                     <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">
                         @php
-                            $usedPorts = $odc->odps_count ?? 0;
+                            $usedPorts = $odc->direct_odps_count ?? 0;
                             $capacity = max(0, $odc->kapasitas_port);
                             $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
                         @endphp
@@ -225,7 +225,7 @@
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-2.5">
                         <p class="text-[10px] font-semibold text-blue-600 mb-1">Jumlah ODP</p>
-                        <p class="text-xs font-semibold text-blue-800">{{ $odc->odps_count }} ODP</p>
+                        <p class="text-xs font-semibold text-blue-800">{{ $odc->total_odps_count ?? $odc->odps->count() }} ODP</p>
                     </div>
                     @if($odc->alamat)
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-2.5 col-span-2">

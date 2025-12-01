@@ -22,6 +22,7 @@ class Odp extends Model
         'foto',
         'olt_id',
         'odc_id',
+        'parent_odp_id',
     ];
 
     protected function casts(): array
@@ -59,6 +60,22 @@ class Odp extends Model
     }
 
     /**
+     * Get the parent ODP (if this ODP is connected to another ODP)
+     */
+    public function parentOdp()
+    {
+        return $this->belongsTo(Odp::class, 'parent_odp_id');
+    }
+
+    /**
+     * Get all child ODPs connected to this ODP
+     */
+    public function childOdps()
+    {
+        return $this->hasMany(Odp::class, 'parent_odp_id');
+    }
+
+    /**
      * Get active pelanggans count
      */
     public function getActivePelanggansCountAttribute()
@@ -72,6 +89,42 @@ class Odp extends Model
     public function getAvailablePortsAttribute()
     {
         return max(0, $this->kapasitas - $this->port_terpakai);
+    }
+
+    /**
+     * Calculate port terpakai: pelanggan aktif + jumlah ODP child
+     */
+    public function calculatePortTerpakai()
+    {
+        $activePelanggans = $this->pelanggans()->where('status', 'aktif')->count();
+        $childOdpsCount = $this->childOdps()->count();
+        return $activePelanggans + $childOdpsCount;
+    }
+
+    /**
+     * Update port terpakai based on current data
+     */
+    public function syncPortTerpakai()
+    {
+        $portTerpakai = $this->calculatePortTerpakai();
+        if ($this->port_terpakai != $portTerpakai) {
+            $this->update(['port_terpakai' => $portTerpakai]);
+        }
+        return $portTerpakai;
+    }
+
+    /**
+     * Update parent ODP port terpakai (cascade update)
+     */
+    public function updateParentPortTerpakai()
+    {
+        if ($this->parentOdp) {
+            $this->parentOdp->syncPortTerpakai();
+            // Cascade to parent's parent if exists
+            if ($this->parentOdp->parentOdp) {
+                $this->parentOdp->updateParentPortTerpakai();
+            }
+        }
     }
 
     /**

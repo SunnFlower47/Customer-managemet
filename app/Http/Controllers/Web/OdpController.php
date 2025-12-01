@@ -40,14 +40,9 @@ class OdpController extends BaseController
             ->appends($request->query());
 
         // Sync port_terpakai for all ODPs (ensure data is up to date)
+        // Port terpakai = pelanggan aktif + jumlah ODP child
         foreach ($odps as $odp) {
-            $activeCount = \App\Models\Pelanggan::where('odp_id', $odp->id)
-                ->where('status', 'aktif')
-                ->count();
-
-            if ($odp->port_terpakai != $activeCount) {
-                $odp->update(['port_terpakai' => $activeCount]);
-            }
+            $odp->syncPortTerpakai();
         }
 
         return view('odps.index', compact('odps'));
@@ -59,7 +54,14 @@ class OdpController extends BaseController
     public function create()
     {
         $odcs = Odc::orderBy('nama')->get();
-        return view('odps.create', compact('odcs'));
+        // Get active ODPs with coordinates for "Hubungkan ke ODP Terdekat" dropdown
+        $activeOdps = Odp::where('status', 'aktif')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->with('odc')
+            ->orderBy('nama')
+            ->get();
+        return view('odps.create', compact('odcs', 'activeOdps'));
     }
 
     /**
@@ -76,10 +78,32 @@ class OdpController extends BaseController
             'kapasitas' => 'required|integer|min:0',
             'status' => 'required|in:aktif,nonaktif',
             'odc_id' => 'nullable|exists:odcs,id',
+            'parent_odp_id' => 'nullable|exists:odps,id',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'parent_odp_id.exists' => 'ODP yang dipilih tidak ditemukan.',
         ]);
 
+        // Validasi mutual exclusive: ODC dan parent_odp tidak bisa dipilih bersamaan
+        if ($request->filled('odc_id') && $request->filled('parent_odp_id')) {
+            return back()->withErrors([
+                'odc_id' => 'Pilih salah satu: Hubungkan ke ODC atau Hubungkan ke ODP terdekat.',
+                'parent_odp_id' => 'Pilih salah satu: Hubungkan ke ODC atau Hubungkan ke ODP terdekat.',
+            ])->withInput();
+        }
+
         $data = $request->all();
+
+        // Jika pilih parent_odp, set odc_id dari parent (inherit)
+        if ($request->filled('parent_odp_id')) {
+            $parentOdp = Odp::find($request->parent_odp_id);
+            if ($parentOdp) {
+                $data['odc_id'] = $parentOdp->odc_id;
+            }
+        } else {
+            // Jika tidak pilih parent_odp, set null
+            $data['parent_odp_id'] = null;
+        }
 
         // Handle foto upload
         if ($request->hasFile('foto')) {
@@ -89,7 +113,16 @@ class OdpController extends BaseController
             $data['foto'] = $path;
         }
 
-        Odp::create($data);
+        // Set port terpakai awal = 0 (belum ada pelanggan/child)
+        $data['port_terpakai'] = 0;
+
+        $odp = Odp::create($data);
+
+        // Update port terpakai parent ODP jika ada
+        if ($odp->parentOdp) {
+            $odp->parentOdp->syncPortTerpakai();
+            $odp->parentOdp->updateParentPortTerpakai();
+        }
 
         return $this->redirectToRouteWithParams('odps.index', $request, 'ODP berhasil ditambahkan.');
     }
@@ -99,17 +132,11 @@ class OdpController extends BaseController
      */
     public function show(Odp $odp)
     {
-        // Sync port_terpakai before showing
-        $activeCount = \App\Models\Pelanggan::where('odp_id', $odp->id)
-            ->where('status', 'aktif')
-            ->count();
+        // Sync port_terpakai before showing (include ODP child)
+        $odp->syncPortTerpakai();
+        $odp->refresh();
 
-        if ($odp->port_terpakai != $activeCount) {
-            $odp->update(['port_terpakai' => $activeCount]);
-            $odp->refresh();
-        }
-
-        $odp->load('pelanggans.paket', 'pelanggans.penagih', 'odc');
+        $odp->load('pelanggans.paket', 'pelanggans.penagih', 'odc', 'parentOdp.odc', 'childOdps');
         $pelanggans = $odp->pelanggans()->with(['paket', 'penagih'])->paginate(10);
 
         return view('odps.show', compact('odp', 'pelanggans'));
@@ -121,7 +148,15 @@ class OdpController extends BaseController
     public function edit(Odp $odp)
     {
         $odcs = Odc::orderBy('nama')->get();
-        return view('odps.edit', compact('odp', 'odcs'));
+        // Get active ODPs, exclude the ODP being edited
+        $activeOdps = Odp::where('status', 'aktif')
+            ->where('id', '!=', $odp->id)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->with('odc')
+            ->orderBy('nama')
+            ->get();
+        return view('odps.edit', compact('odp', 'odcs', 'activeOdps'));
     }
 
     /**
@@ -138,10 +173,36 @@ class OdpController extends BaseController
             'kapasitas' => 'required|integer|min:0',
             'status' => 'required|in:aktif,nonaktif',
             'odc_id' => 'nullable|exists:odcs,id',
+            'parent_odp_id' => 'nullable|exists:odps,id',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'parent_odp_id.exists' => 'ODP yang dipilih tidak ditemukan.',
         ]);
 
+        // Validasi mutual exclusive: ODC dan parent_odp tidak bisa dipilih bersamaan
+        if ($request->filled('odc_id') && $request->filled('parent_odp_id')) {
+            return back()->withErrors([
+                'odc_id' => 'Pilih salah satu: Hubungkan ke ODC atau Hubungkan ke ODP terdekat.',
+                'parent_odp_id' => 'Pilih salah satu: Hubungkan ke ODC atau Hubungkan ke ODP terdekat.',
+            ])->withInput();
+        }
+
+        // Simpan parent_odp_id lama untuk update port terpakai
+        $oldParentOdpId = $odp->parent_odp_id;
+        $newParentOdpId = $request->filled('parent_odp_id') ? $request->parent_odp_id : null;
+
         $data = $request->all();
+
+        // Jika pilih parent_odp, set odc_id dari parent (inherit)
+        if ($request->filled('parent_odp_id')) {
+            $parentOdp = Odp::find($request->parent_odp_id);
+            if ($parentOdp) {
+                $data['odc_id'] = $parentOdp->odc_id;
+            }
+        } else {
+            // Jika tidak pilih parent_odp, set null
+            $data['parent_odp_id'] = null;
+        }
 
         // Handle foto upload
         if ($request->hasFile('foto')) {
@@ -161,6 +222,29 @@ class OdpController extends BaseController
 
         $odp->update($data);
 
+        // Handle perubahan parent_odp_id: update port terpakai parent lama dan baru
+        if ($oldParentOdpId != $newParentOdpId) {
+            // Update parent lama (jika ada)
+            if ($oldParentOdpId) {
+                $oldParent = Odp::find($oldParentOdpId);
+                if ($oldParent) {
+                    $oldParent->syncPortTerpakai();
+                    $oldParent->updateParentPortTerpakai();
+                }
+            }
+            // Update parent baru (jika ada)
+            if ($newParentOdpId) {
+                $newParent = Odp::find($newParentOdpId);
+                if ($newParent) {
+                    $newParent->syncPortTerpakai();
+                    $newParent->updateParentPortTerpakai();
+                }
+            }
+        }
+
+        // Sync port terpakai ODP ini
+        $odp->syncPortTerpakai();
+
         return $this->redirectToRouteWithParams('odps.index', $request, 'ODP berhasil diperbarui.');
     }
 
@@ -175,12 +259,27 @@ class OdpController extends BaseController
                 ->with('error', 'ODP tidak dapat dihapus karena masih memiliki pelanggan terhubung.');
         }
 
+        // Check if ODP has child ODPs
+        if ($odp->childOdps()->count() > 0) {
+            return redirect()->route('odps.index')
+                ->with('error', 'ODP tidak dapat dihapus karena masih memiliki ODP child terhubung.');
+        }
+
+        // Simpan parent ODP untuk update port terpakai setelah delete
+        $parentOdp = $odp->parentOdp;
+
         // Delete foto if exists
         if ($odp->foto) {
             Storage::disk('public')->delete($odp->foto);
         }
 
         $odp->delete();
+
+        // Update port terpakai parent ODP setelah delete
+        if ($parentOdp) {
+            $parentOdp->syncPortTerpakai();
+            $parentOdp->updateParentPortTerpakai();
+        }
 
         return $this->redirectToRouteWithParams('odps.index', $request, 'ODP berhasil dihapus.');
     }

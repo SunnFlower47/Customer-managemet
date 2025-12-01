@@ -27,6 +27,8 @@
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         min-width: 200px;
+        max-height: 80vh;
+        overflow-y: auto;
     }
     .map-legend {
         position: absolute;
@@ -37,6 +39,7 @@
         padding: 12px;
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-width: 180px;
     }
     .legend-item {
         display: flex;
@@ -51,6 +54,59 @@
         border-radius: 50%;
         border: 2px solid white;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 640px) {
+        .map-controls {
+            top: 5px;
+            right: 5px;
+            padding: 8px;
+            min-width: 140px;
+            max-width: 150px;
+            max-height: 70vh;
+            font-size: 10px;
+        }
+        .map-controls label {
+            font-size: 10px !important;
+            gap: 4px;
+        }
+        .map-controls .text-sm {
+            font-size: 10px !important;
+        }
+        .map-controls .space-y-2 > * {
+            margin-bottom: 4px;
+        }
+        .map-controls .space-y-3 > * {
+            margin-bottom: 6px;
+        }
+        .map-controls input[type="checkbox"] {
+            width: 12px;
+            height: 12px;
+        }
+        .map-legend {
+            bottom: 5px;
+            left: 5px;
+            padding: 6px 8px;
+            max-width: 120px;
+            font-size: 10px;
+        }
+        .map-legend p {
+            font-size: 10px !important;
+            margin-bottom: 4px !important;
+        }
+        .legend-item {
+            gap: 4px;
+            margin-bottom: 4px;
+            font-size: 9px;
+        }
+        .legend-icon {
+            width: 14px;
+            height: 14px;
+        }
+        .legend-item span {
+            font-size: 9px;
+        }
     }
 </style>
 @endpush
@@ -174,6 +230,18 @@
                             <input type="checkbox" id="toggle-pelanggan" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                             <span>Pelanggan</span>
                         </label>
+                        <label class="flex items-center gap-2 text-xs">
+                            <input type="checkbox" id="toggle-connection" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <span>Garis ODC-ODP</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs">
+                            <input type="checkbox" id="toggle-pelanggan-connection" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                            <span>Garis Pelanggan-ODP</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs">
+                            <input type="checkbox" id="toggle-odp-connection" checked class="rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+                            <span>Garis ODP-ODP</span>
+                        </label>
                     </div>
                     <div class="mt-3 pt-3 border-t border-gray-200">
                         <label class="flex items-center gap-2 text-xs">
@@ -199,6 +267,18 @@
             <div class="legend-item">
                 <div class="legend-icon" style="background: #10b981;"></div>
                 <span>Pelanggan</span>
+            </div>
+            <div class="legend-item">
+                <div style="width: 20px; height: 3px; background: #6366f1; border-radius: 2px; margin-right: 8px; opacity: 0.7;"></div>
+                <span>Garis ODC-ODP</span>
+            </div>
+            <div class="legend-item">
+                <div style="width: 20px; height: 2px; background: #10b981; border-radius: 2px; margin-right: 8px; opacity: 0.6;"></div>
+                <span>Garis Pelanggan-ODP</span>
+            </div>
+            <div class="legend-item">
+                <div style="width: 20px; height: 2.5px; background: #f59e0b; border-radius: 2px; margin-right: 8px; opacity: 0.7;"></div>
+                <span>Garis ODP-ODP</span>
             </div>
         </div>
     </div>
@@ -358,7 +438,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
-    let map, odcLayer, odpLayer, pelangganLayer, locationPickerMap, locationPickerMarker;
+    let map, odcLayer, odpLayer, pelangganLayer, connectionLayer, pelangganConnectionLayer, odpConnectionLayer, locationPickerMap, locationPickerMarker;
     let selectedPelangganId = null;
     let searchTimeout = null;
     let currentTileLayer = null;
@@ -396,11 +476,17 @@
             chunkedLoading: true,
             maxClusterRadius: 50
         }).addTo(map);
+        connectionLayer = L.layerGroup().addTo(map);
+        pelangganConnectionLayer = L.layerGroup().addTo(map);
+        odpConnectionLayer = L.layerGroup().addTo(map);
 
-        // Load markers
+        // Load markers and connections
         loadOdcMarkers();
         loadODPMarkers();
         loadPelangganMarkers();
+        loadConnectionLines();
+        loadPelangganConnectionLines();
+        loadOdpConnectionLines();
 
         // Toggle layers
         document.getElementById('toggle-odc').addEventListener('change', function(e) {
@@ -424,6 +510,30 @@
                 map.addLayer(pelangganLayer);
             } else {
                 map.removeLayer(pelangganLayer);
+            }
+        });
+
+        document.getElementById('toggle-connection').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(connectionLayer);
+            } else {
+                map.removeLayer(connectionLayer);
+            }
+        });
+
+        document.getElementById('toggle-pelanggan-connection').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(pelangganConnectionLayer);
+            } else {
+                map.removeLayer(pelangganConnectionLayer);
+            }
+        });
+
+        document.getElementById('toggle-odp-connection').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(odpConnectionLayer);
+            } else {
+                map.removeLayer(odpConnectionLayer);
             }
         });
 
@@ -503,13 +613,23 @@
                     <p class="text-gray-700 mb-1">${@json($odp->nama)}</p>
                     <p class="text-xs text-gray-500 mb-2">${@json($odp->alamat ?: 'Tidak ada alamat')}</p>
                     <p class="text-xs text-gray-600 mb-2">Port: ${@json($odp->port_terpakai)}/${@json($odp->kapasitas)}</p>
+                    @if($odp->parentOdp)
+                    <p class="text-xs text-amber-600 mb-1">
+                        <i class="fas fa-link mr-1"></i>Terhubung ke ODP: <strong>${@json($odp->parentOdp->kode_odp)}</strong> - ${@json($odp->parentOdp->nama)}
+                    </p>
+                    @endif
                     @if($odp->odc)
-                    <p class="text-xs text-indigo-600 mb-2">
-                        <i class="fas fa-project-diagram mr-1"></i>Terhubung ke ODC: <strong>${@json($odp->odc->kode_odc)}</strong> - ${@json($odp->odc->nama)}
+                    <p class="text-xs text-indigo-600 mb-1">
+                        <i class="fas fa-project-diagram mr-1"></i>ODC: <strong>${@json($odp->odc->kode_odc)}</strong> - ${@json($odp->odc->nama)}
                     </p>
                     @else
-                    <p class="text-xs text-gray-400 mb-2">
+                    <p class="text-xs text-gray-400 mb-1">
                         <i class="fas fa-project-diagram mr-1"></i>Belum terhubung ke ODC
+                    </p>
+                    @endif
+                    @if($odp->childOdps->count() > 0)
+                    <p class="text-xs text-purple-600 mb-2">
+                        <i class="fas fa-sitemap mr-1"></i>ODP Child: {{ $odp->childOdps->count() }} terhubung
                     </p>
                     @endif
                     <a href="{{ route('odps.show', $odp) }}" class="text-blue-600 hover:underline text-xs mr-3">
@@ -556,6 +676,123 @@
                     </a>
                 </div>
             `);
+        @endforeach
+    }
+
+    // Load connection lines (ODC to ODP)
+    // Hanya untuk ODP yang terhubung langsung ke ODC (tidak punya parent_odp_id)
+    function loadConnectionLines() {
+        connectionLayer.clearLayers();
+
+        @foreach($odcs as $odc)
+        @if($odc->latitude && $odc->longitude && $odc->odps->count() > 0)
+        @foreach($odc->odps as $odp)
+        @if($odp->latitude && $odp->longitude && !$odp->parent_odp_id)
+        // Hanya gambar garis jika ODP terhubung langsung (tidak punya parent ODP)
+        // Create polyline from ODC to ODP
+        const connectionLine{{ $odc->id }}_{{ $odp->id }} = L.polyline(
+            [
+                [{{ $odc->latitude }}, {{ $odc->longitude }}],
+                [{{ $odp->latitude }}, {{ $odp->longitude }}]
+            ],
+            {
+                color: '#6366f1', // Indigo color
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '5, 5', // Dashed line
+                smoothFactor: 1
+            }
+        ).addTo(connectionLayer);
+
+        // Add popup to line showing connection info
+        connectionLine{{ $odc->id }}_{{ $odp->id }}.bindPopup(`
+            <div class="text-xs">
+                <p class="font-semibold text-indigo-600 mb-1">Koneksi ODC-ODP</p>
+                <p class="text-gray-700 mb-1">
+                    <strong>ODC:</strong> {{ $odc->kode_odc }} - {{ $odc->nama }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>ODP:</strong> {{ $odp->kode_odp }} - {{ $odp->nama }}
+                </p>
+            </div>
+        `);
+        @endif
+        @endforeach
+        @endif
+        @endforeach
+    }
+
+    // Load connection lines (Pelanggan to ODP)
+    function loadPelangganConnectionLines() {
+        pelangganConnectionLayer.clearLayers();
+
+        @foreach($pelanggans as $pelanggan)
+        @if($pelanggan->odp && $pelanggan->latitude && $pelanggan->longitude && $pelanggan->odp->latitude && $pelanggan->odp->longitude)
+        // Create polyline from Pelanggan to ODP
+        const pelangganConnectionLine{{ $pelanggan->id }} = L.polyline(
+            [
+                [{{ $pelanggan->latitude }}, {{ $pelanggan->longitude }}],
+                [{{ $pelanggan->odp->latitude }}, {{ $pelanggan->odp->longitude }}]
+            ],
+            {
+                color: '#10b981', // Green color for pelanggan-ODP connection
+                weight: 2,
+                opacity: 0.6,
+                dashArray: '3, 3', // Smaller dash for pelanggan connections
+                smoothFactor: 1
+            }
+        ).addTo(pelangganConnectionLayer);
+
+        // Add popup to line showing connection info
+        pelangganConnectionLine{{ $pelanggan->id }}.bindPopup(`
+            <div class="text-xs">
+                <p class="font-semibold text-green-600 mb-1">Koneksi Pelanggan-ODP</p>
+                <p class="text-gray-700 mb-1">
+                    <strong>Pelanggan:</strong> {{ $pelanggan->nama }} ({{ $pelanggan->pppoe }})
+                </p>
+                <p class="text-gray-700">
+                    <strong>ODP:</strong> {{ $pelanggan->odp->kode_odp }} - {{ $pelanggan->odp->nama }}
+                </p>
+            </div>
+        `);
+        @endif
+        @endforeach
+    }
+
+    // Load connection lines (ODP to ODP parent-child)
+    function loadOdpConnectionLines() {
+        odpConnectionLayer.clearLayers();
+
+        @foreach($odps as $odp)
+        @if($odp->parentOdp && $odp->latitude && $odp->longitude && $odp->parentOdp->latitude && $odp->parentOdp->longitude)
+        // Create polyline from child ODP to parent ODP
+        const odpConnectionLine{{ $odp->id }} = L.polyline(
+            [
+                [{{ $odp->latitude }}, {{ $odp->longitude }}],
+                [{{ $odp->parentOdp->latitude }}, {{ $odp->parentOdp->longitude }}]
+            ],
+            {
+                color: '#f59e0b', // Amber color for ODP-ODP connection
+                weight: 2.5,
+                opacity: 0.7,
+                dashArray: '4, 4', // Dashed line
+                smoothFactor: 1
+            }
+        ).addTo(odpConnectionLayer);
+
+        // Add popup to line showing connection info
+        odpConnectionLine{{ $odp->id }}.bindPopup(`
+            <div class="text-xs">
+                <p class="font-semibold text-amber-600 mb-1">Koneksi ODP Parent-Child</p>
+                <p class="text-gray-700 mb-1">
+                    <strong>Child:</strong> {{ $odp->kode_odp }} - {{ $odp->nama }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Parent:</strong> {{ $odp->parentOdp->kode_odp }} - {{ $odp->parentOdp->nama }}
+                </p>
+            </div>
+        `);
+        @endif
         @endforeach
     }
 

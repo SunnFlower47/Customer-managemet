@@ -29,8 +29,8 @@ class DatabaseSeeder extends Seeder
         // Run essential seeders only
         $this->call([
             RolePermissionSeeder::class,
-            CompanyProfileSeeder::class,
-            TicketPaymentProofPermissionSeeder::class,
+            // CompanyProfileSeeder::class,
+            // TicketPaymentProofPermissionSeeder::class,
         ]);
     }
 }

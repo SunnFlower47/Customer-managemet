@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Odp;
+use App\Observers\OdpObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -43,5 +45,8 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Route::bind('speedProfile', function ($value) {
             return \App\Models\SpeedProfile::findOrFail($value);
         });
+
+        // Register ODP Observer
+        Odp::observe(OdpObserver::class);
     }
 }

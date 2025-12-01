@@ -32,7 +32,11 @@ class OdcController extends BaseController
         }
 
         $odcs = $query
-            ->withCount('odps')
+            ->withCount([
+                'odps as direct_odps_count' => function ($q) {
+                    $q->whereNull('parent_odp_id'); // Hanya ODP yang terhubung langsung
+                }
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(20)
             ->appends($request->query());
@@ -76,8 +80,9 @@ class OdcController extends BaseController
     {
         $odc->load(['odps.pelanggans']);
 
-        // Port terpakai ODC = jumlah ODP yang terhubung (setiap ODP = 1 port)
-        $usedPorts = $odc->odps()->count();
+        // Port terpakai ODC = jumlah ODP yang terhubung LANGSUNG (parent_odp_id IS NULL)
+        // ODP yang terhubung melalui parent ODP tidak menghitung port ODC
+        $usedPorts = $odc->odps()->whereNull('parent_odp_id')->count();
 
         return view('odcs.show', compact('odc', 'usedPorts'));
     }

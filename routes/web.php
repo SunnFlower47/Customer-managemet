@@ -18,6 +18,7 @@ use App\Http\Controllers\Web\AdminTicketController;
 use App\Http\Controllers\Web\AdminPaymentProofController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\OdpController;
+use App\Http\Controllers\Web\OdcController;
 use App\Http\Controllers\Web\MappingController;
 use App\Http\Controllers\Web\MikrotikController;
 
@@ -448,6 +449,20 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:view-odp'])->group(function () {
         Route::get('/odps/{odp}', [OdpController::class, 'show'])->name('odps.show');
+    });
+
+    // ODC Management (reuse ODP permissions)
+    Route::middleware(['permission:view-odp'])->group(function () {
+        Route::get('/odcs', [OdcController::class, 'index'])->name('odcs.index');
+        Route::get('/odcs/{odc}', [OdcController::class, 'show'])->name('odcs.show');
+    });
+
+    Route::middleware(['permission:manage-odp'])->group(function () {
+        Route::get('/odcs/create', [OdcController::class, 'create'])->name('odcs.create');
+        Route::post('/odcs', [OdcController::class, 'store'])->name('odcs.store');
+        Route::get('/odcs/{odc}/edit', [OdcController::class, 'edit'])->name('odcs.edit');
+        Route::put('/odcs/{odc}', [OdcController::class, 'update'])->name('odcs.update');
+        Route::delete('/odcs/{odc}', [OdcController::class, 'destroy'])->name('odcs.destroy');
     });
 
     // OLT Monitoring Dashboard

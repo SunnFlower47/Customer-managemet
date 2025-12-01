@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('pelanggans', function (Blueprint $table) {
             // Use 'status' column which definitely exists, or add at the end if status doesn't exist
-            // Note: odp_id is added later in migration 2025_11_26_120100, so we can't use it here
             $afterColumn = 'status'; // This column exists in the base pelanggans table
 
             $table->unsignedBigInteger('mikrotik_id')->nullable()->after($afterColumn);

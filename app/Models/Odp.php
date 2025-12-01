@@ -20,6 +20,8 @@ class Odp extends Model
         'port_terpakai',
         'status',
         'foto',
+        'olt_id',
+        'odc_id',
     ];
 
     protected function casts(): array
@@ -38,6 +40,14 @@ class Odp extends Model
     public function olt()
     {
         return $this->belongsTo(Olt::class);
+    }
+
+    /**
+     * Get the ODC that owns this ODP
+     */
+    public function odc()
+    {
+        return $this->belongsTo(Odc::class);
     }
 
     /**

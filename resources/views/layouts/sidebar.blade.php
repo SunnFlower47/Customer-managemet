@@ -108,6 +108,7 @@
                 @endif
             </a>
             @endcan
+
             @can('view-odc')
             <!-- ODC -->
             <a href="{{ route('odcs.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('odcs.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -225,7 +226,7 @@
             @endcanany
 
             <!-- OLT Monitoring -->
-            {{-- @canany(['view-olt', 'view-onu', 'view-vlan', 'view-speed-profile'])
+            @canany(['view-olt', 'view-onu', 'view-vlan', 'view-speed-profile'])
             <div x-data="{ open: {{ request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*') ? 'true' : 'false' }} }" class="relative">
                 <button @click="open = !open" class="sidebar-link group flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('olt-monitoring.*') || request()->routeIs('olts.*') || request()->routeIs('onus.*') || request()->routeIs('vlans.*') || request()->routeIs('speed-profiles.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
                     <div class="flex items-center gap-3">
@@ -276,7 +277,7 @@
                     @endcan
                 </div>
             </div>
-            @endcanany --}}
+            @endcanany
 
         </div>
     </nav>

@@ -75,7 +75,7 @@
                             <i class="fas fa-tag mr-2"></i>Nama
                         </th>
                         <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
-                            <i class="fas fa-plug mr-2"></i>Kapasitas Port
+                            <i class="fas fa-plug mr-2"></i>Port Terpakai
                         </th>
                         <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wider">
                             <i class="fas fa-project-diagram mr-2"></i>Jumlah ODP
@@ -106,8 +106,18 @@
                             @endif
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
-                            <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                <i class="fas fa-plug mr-1"></i>{{ $odc->kapasitas_port }} port
+                            @php
+                                $usedPorts = $odc->used_ports ?? 0;
+                                $capacity = max(0, $odc->kapasitas_port);
+                                $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
+                            @endphp
+                            <div class="space-y-1">
+                                <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    <i class="fas fa-plug mr-1"></i>{{ $usedPorts }}/{{ $capacity }} port
+                                </div>
+                                <div class="w-32 bg-indigo-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="h-1.5 rounded-full @if($usagePercent >= 100) bg-red-500 @elseif($usagePercent >= 80) bg-amber-500 @else bg-indigo-500 @endif" style="width: {{ $usagePercent }}%"></div>
+                                </div>
                             </div>
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
@@ -117,7 +127,10 @@
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             @php
-                                $statusClass = match($odc->status) {
+                                $usedPorts = $odc->used_ports ?? 0;
+                                $capacity = max(0, $odc->kapasitas_port);
+                                $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
+                                $statusClass = match($computedStatus) {
                                     'aktif' => 'bg-green-100 text-green-800 border border-green-200',
                                     'penuh' => 'bg-yellow-100 text-yellow-800 border border-yellow-200',
                                     'rusak' => 'bg-red-100 text-red-800 border border-red-200',
@@ -125,7 +138,7 @@
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] font-semibold {{ $statusClass }}">
-                                <i class="fas fa-circle mr-1 text-[9px]"></i>{{ ucfirst($odc->status) }}
+                                <i class="fas fa-circle mr-1 text-[9px]"></i>{{ ucfirst($computedStatus) }}
                             </span>
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap text-center">
@@ -180,7 +193,10 @@
                                 <p class="text-xs text-gray-500 truncate">{{ $odc->nama }}</p>
                             </div>
                             @php
-                                $statusClass = match($odc->status) {
+                                $usedPorts = $odc->used_ports ?? 0;
+                                $capacity = max(0, $odc->kapasitas_port);
+                                $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
+                                $statusClass = match($computedStatus) {
                                     'aktif' => 'bg-emerald-50 text-emerald-600 border border-emerald-200',
                                     'penuh' => 'bg-amber-50 text-amber-600 border border-amber-200',
                                     'rusak' => 'bg-rose-50 text-rose-600 border border-rose-200',
@@ -188,7 +204,7 @@
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0 {{ $statusClass }}">
-                                <i class="fas fa-circle mr-1 text-[7px]"></i>{{ ucfirst($odc->status) }}
+                                <i class="fas fa-circle mr-1 text-[7px]"></i>{{ ucfirst($computedStatus) }}
                             </span>
                         </div>
                     </div>
@@ -196,8 +212,16 @@
 
                 <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
                     <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">
-                        <p class="text-[10px] font-semibold text-indigo-600 mb-1">Kapasitas Port</p>
-                        <p class="text-xs font-semibold text-indigo-800">{{ $odc->kapasitas_port }} port</p>
+                        @php
+                            $usedPorts = $odc->used_ports ?? 0;
+                            $capacity = max(0, $odc->kapasitas_port);
+                            $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
+                        @endphp
+                        <p class="text-[10px] font-semibold text-indigo-600 mb-1">Port Terpakai</p>
+                        <p class="text-xs font-semibold text-indigo-800 mb-1">{{ $usedPorts }}/{{ $capacity }} port</p>
+                        <div class="w-full bg-indigo-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="h-1.5 rounded-full @if($usagePercent >= 100) bg-red-500 @elseif($usagePercent >= 80) bg-amber-500 @else bg-indigo-500 @endif" style="width: {{ $usagePercent }}%"></div>
+                        </div>
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-2.5">
                         <p class="text-[10px] font-semibold text-blue-600 mb-1">Jumlah ODP</p>

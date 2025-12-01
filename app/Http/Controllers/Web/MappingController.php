@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Web\BaseController;
 use App\Models\Odp;
+use App\Models\Odc;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 
@@ -14,12 +15,20 @@ class MappingController extends BaseController
      */
     public function index(Request $request)
     {
-        // Get all ODPs
-        $odps = Odp::active()->get();
+        // Get all ODCs and ODPs
+        $odcs = Odc::with('odps')->get();
+        $odps = Odp::active()->with('odc')->get();
 
         // Get all pelanggans with location
         $pelanggansQuery = Pelanggan::whereNotNull('latitude')
             ->whereNotNull('longitude');
+
+        // Filter by ODC
+        if ($request->filled('odc_id')) {
+            $pelanggansQuery->whereHas('odp', function ($q) use ($request) {
+                $q->where('odc_id', $request->odc_id);
+            });
+        }
 
         // Filter by ODP
         if ($request->filled('odp_id')) {
@@ -39,10 +48,11 @@ class MappingController extends BaseController
         $pelanggans = $pelanggansQuery->with(['paket', 'penagih', 'odp'])->get();
 
         // Get filter options
+        $allOdcs = Odc::orderBy('nama')->get();
         $allOdps = Odp::orderBy('nama')->get();
         $penagihs = \App\Models\Penagih::orderBy('nama')->get();
 
-        return view('mapping.index', compact('odps', 'pelanggans', 'allOdps', 'penagihs'));
+        return view('mapping.index', compact('odcs', 'odps', 'pelanggans', 'allOdcs', 'allOdps', 'penagihs'));
     }
 
     /**

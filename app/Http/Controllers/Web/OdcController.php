@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Web\BaseController;
 use App\Models\Odc;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OdcController extends BaseController
 {
@@ -30,7 +31,13 @@ class OdcController extends BaseController
             });
         }
 
-        $odcs = $query->withCount('odps')
+        $odcs = $query
+            ->withCount('odps')
+            ->withCount([
+                'odps as used_ports' => function ($q) {
+                    $q->select(DB::raw('COALESCE(SUM(port_terpakai), 0)'));
+                },
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(20)
             ->appends($request->query());
@@ -72,9 +79,11 @@ class OdcController extends BaseController
      */
     public function show(Odc $odc)
     {
-        $odc->load('odps.pelanggans');
+        $odc->load(['odps.pelanggans']);
 
-        return view('odcs.show', compact('odc'));
+        $usedPorts = $odc->odps->sum('port_terpakai');
+
+        return view('odcs.show', compact('odc', 'usedPorts'));
     }
 
     /**

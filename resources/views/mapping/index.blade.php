@@ -87,6 +87,19 @@
         <form method="GET" action="{{ route('mapping.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-project-diagram mr-1"></i>Filter ODC
+                </label>
+                <select name="odc_id"
+                        id="filter-odc"
+                        class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">Semua ODC</option>
+                    @foreach($allOdcs as $odc)
+                    <option value="{{ $odc->id }}" {{ request('odc_id') == $odc->id ? 'selected' : '' }}>{{ $odc->kode_odc }} - {{ $odc->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-2">
                     <i class="fas fa-filter mr-1"></i>Filter ODP
                 </label>
                 <select name="odp_id"
@@ -150,6 +163,10 @@
                     </label>
                     <div class="space-y-2">
                         <label class="flex items-center gap-2 text-xs">
+                            <input type="checkbox" id="toggle-odc" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <span>ODC</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs">
                             <input type="checkbox" id="toggle-odp" checked class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                             <span>ODP</span>
                         </label>
@@ -171,6 +188,10 @@
         <!-- Map Legend -->
         <div class="map-legend">
             <p class="text-xs font-semibold text-gray-700 mb-2">Legenda</p>
+            <div class="legend-item">
+                <div class="legend-icon" style="background: #4f46e5;"></div>
+                <span>ODC</span>
+            </div>
             <div class="legend-item">
                 <div class="legend-icon" style="background: #9333ea;"></div>
                 <span>ODP</span>
@@ -337,7 +358,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
-    let map, odpLayer, pelangganLayer, locationPickerMap, locationPickerMarker;
+    let map, odcLayer, odpLayer, pelangganLayer, locationPickerMap, locationPickerMarker;
     let selectedPelangganId = null;
     let searchTimeout = null;
     let currentTileLayer = null;
@@ -369,6 +390,7 @@
         currentTileLayer.addTo(map);
 
         // Create layer groups
+        odcLayer = L.layerGroup().addTo(map);
         odpLayer = L.layerGroup().addTo(map);
         pelangganLayer = L.markerClusterGroup({
             chunkedLoading: true,
@@ -376,10 +398,19 @@
         }).addTo(map);
 
         // Load markers
+        loadOdcMarkers();
         loadODPMarkers();
         loadPelangganMarkers();
 
         // Toggle layers
+        document.getElementById('toggle-odc').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(odcLayer);
+            } else {
+                map.removeLayer(odcLayer);
+            }
+        });
+
         document.getElementById('toggle-odp').addEventListener('change', function(e) {
             if (e.target.checked) {
                 map.addLayer(odpLayer);
@@ -403,6 +434,59 @@
             currentTileLayer = satelliteMode ? mainSatelliteLayer : mainOsmLayer;
             currentTileLayer.addTo(map);
         });
+    }
+
+    // Load ODC markers
+    function loadOdcMarkers() {
+        odcLayer.clearLayers();
+
+        @foreach($odcs as $odc)
+        @if($odc->latitude && $odc->longitude)
+        const odcIcon{{ $odc->id }} = L.divIcon({
+            className: 'odc-marker',
+            html: '<div style="background: #4f46e5; width: 34px; height: 34px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-project-diagram" style="color: white; font-size: 14px;"></i></div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+        });
+
+        const connectedOdps{{ $odc->id }} = @json($odc->odps->map(function($odp) {
+            return [
+                'kode' => $odp->kode_odp,
+                'nama' => $odp->nama,
+                'id' => $odp->id,
+            ];
+        }));
+
+        const odcMarker{{ $odc->id }} = L.marker([{{ $odc->latitude }}, {{ $odc->longitude }}], { icon: odcIcon{{ $odc->id }} })
+            .addTo(odcLayer)
+            .bindPopup(`
+                <div class="text-sm">
+                    <h3 class="font-bold text-indigo-600 mb-1">{{ $odc->kode_odc }}</h3>
+                    <p class="text-gray-700 mb-1">{{ $odc->nama }}</p>
+                    <p class="text-xs text-gray-500 mb-2">{{ $odc->alamat ?? 'Tidak ada alamat' }}</p>
+                    <p class="text-xs text-gray-600 mb-2">ODP tersambung: {{ $odc->odps->count() }}</p>
+                    ${connectedOdps{{ $odc->id }}.length ? `
+                        <div class="mb-2 max-h-24 overflow-y-auto">
+                            ${connectedOdps{{ $odc->id }}.map(odp => `
+                                <div class="flex items-center justify-between text-xs text-gray-700 mb-1">
+                                    <span>${odp.kode} - ${odp.nama}</span>
+                                    <a href="{{ url('/odps') }}/${odp.id}" class="text-blue-600 hover:underline"><i class="fas fa-eye"></i></a>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <a href="{{ route('odcs.show', $odc) }}" class="text-indigo-600 hover:underline text-xs mr-3">
+                        <i class="fas fa-eye mr-1"></i>Detail ODC
+                    </a>
+                    @if($odc->latitude && $odc->longitude)
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ $odc->latitude }},{{ $odc->longitude }}" target="_blank" class="text-green-600 hover:underline text-xs">
+                        <i class="fas fa-external-link-alt mr-1"></i>Google Maps
+                    </a>
+                    @endif
+                </div>
+            `);
+        @endif
+        @endforeach
     }
 
     // Load ODP markers

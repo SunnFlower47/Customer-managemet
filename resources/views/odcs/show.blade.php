@@ -61,6 +61,12 @@
                     <p class="text-xs uppercase tracking-wide text-indigo-500 font-semibold">Informasi ODC</p>
                     <h2 class="text-base font-semibold text-gray-900">Detail & status</h2>
                 </div>
+                @php
+                    $usedPorts = $usedPorts ?? 0;
+                    $capacity = max(0, $odc->kapasitas_port);
+                    $usagePercent = $capacity > 0 ? min(100, ($usedPorts / $capacity) * 100) : 0;
+                    $computedStatus = $capacity > 0 && $usedPorts >= $capacity ? 'penuh' : $odc->status;
+                @endphp
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
                     <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
                         <dt class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Kode ODC</dt>
@@ -70,9 +76,12 @@
                         <dt class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama</dt>
                         <dd class="text-sm font-semibold text-gray-900">{{ $odc->nama }}</dd>
                     </div>
-                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
-                        <dt class="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Kapasitas Port</dt>
-                        <dd class="text-lg font-bold text-indigo-900">{{ $odc->kapasitas_port }} Port</dd>
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 space-y-1">
+                        <dt class="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Port Terpakai</dt>
+                        <dd class="text-lg font-bold text-indigo-900">{{ $usedPorts }}/{{ $capacity }} Port</dd>
+                        <div class="w-full bg-indigo-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="h-1.5 rounded-full @if($usagePercent >= 100) bg-red-500 @elseif($usagePercent >= 80) bg-amber-500 @else bg-indigo-500 @endif" style="width: {{ $usagePercent }}%"></div>
+                        </div>
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
                         <dt class="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Jumlah ODP Tersambung</dt>
@@ -127,8 +136,8 @@
                 <p class="text-xs uppercase tracking-wide text-indigo-500 font-semibold">Ringkasan</p>
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600 flex items-center gap-2"><i class="fas fa-plug text-indigo-500"></i>Kapasitas Port</span>
-                        <span class="text-lg font-bold text-gray-900">{{ $odc->kapasitas_port }}</span>
+                        <span class="text-sm text-gray-600 flex items-center gap-2"><i class="fas fa-plug text-indigo-500"></i>Port Terpakai</span>
+                        <span class="text-lg font-bold text-gray-900">{{ $usedPorts }}/{{ $capacity }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600 flex items-center gap-2"><i class="fas fa-project-diagram text-blue-500"></i>Jumlah ODP</span>

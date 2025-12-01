@@ -107,6 +107,8 @@
                 <div class="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>
                 @endif
             </a>
+            @endcan
+            @can('view-odc')
             <!-- ODC -->
             <a href="{{ route('odcs.index') }}" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 relative {{ request()->routeIs('odcs.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
                 <i class="fas fa-project-diagram w-5 h-5 flex-shrink-0 {{ request()->routeIs('odcs.*') ? 'text-blue-600' : 'text-gray-400 group-hover:text-sky-500' }}"></i>

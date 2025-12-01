@@ -91,6 +91,10 @@ class RolePermissionSeeder extends Seeder
             'view-odp',
             'manage-odp',
 
+            // ODC Management
+            'view-odc',
+            'manage-odc',
+
             // Mapping Management
             'view-mapping',
             'manage-mapping',
@@ -149,6 +153,7 @@ class RolePermissionSeeder extends Seeder
             'view-laporan-laba-rugi',
             'export-laporan',
             'view-odp',
+            'view-odc',
             'view-mapping',
             'view-olt',
             'view-onu',

@@ -451,13 +451,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/odps/{odp}', [OdpController::class, 'show'])->name('odps.show');
     });
 
-    // ODC Management (reuse ODP permissions)
-    Route::middleware(['permission:view-odp'])->group(function () {
+    // ODC Management
+    Route::middleware(['permission:view-odc'])->group(function () {
         Route::get('/odcs', [OdcController::class, 'index'])->name('odcs.index');
         Route::get('/odcs/{odc}', [OdcController::class, 'show'])->name('odcs.show');
     });
 
-    Route::middleware(['permission:manage-odp'])->group(function () {
+    Route::middleware(['permission:manage-odc'])->group(function () {
         Route::get('/odcs/create', [OdcController::class, 'create'])->name('odcs.create');
         Route::post('/odcs', [OdcController::class, 'store'])->name('odcs.store');
         Route::get('/odcs/{odc}/edit', [OdcController::class, 'edit'])->name('odcs.edit');

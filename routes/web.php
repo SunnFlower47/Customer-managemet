@@ -452,17 +452,18 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ODC Management
-    Route::middleware(['permission:view-odc'])->group(function () {
-        Route::get('/odcs', [OdcController::class, 'index'])->name('odcs.index');
-        Route::get('/odcs/{odc}', [OdcController::class, 'show'])->name('odcs.show');
-    });
-
+    // IMPORTANT: Routes with specific paths (like /create, /edit) must come BEFORE parameterized routes (/{odc})
     Route::middleware(['permission:manage-odc'])->group(function () {
         Route::get('/odcs/create', [OdcController::class, 'create'])->name('odcs.create');
         Route::post('/odcs', [OdcController::class, 'store'])->name('odcs.store');
         Route::get('/odcs/{odc}/edit', [OdcController::class, 'edit'])->name('odcs.edit');
         Route::put('/odcs/{odc}', [OdcController::class, 'update'])->name('odcs.update');
         Route::delete('/odcs/{odc}', [OdcController::class, 'destroy'])->name('odcs.destroy');
+    });
+
+    Route::middleware(['permission:view-odc'])->group(function () {
+        Route::get('/odcs', [OdcController::class, 'index'])->name('odcs.index');
+        Route::get('/odcs/{odc}', [OdcController::class, 'show'])->name('odcs.show');
     });
 
     // OLT Monitoring Dashboard

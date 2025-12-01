@@ -247,7 +247,7 @@
                                     </span>
                                         </td>
                                 <td class="px-5 py-4 whitespace-nowrap">
-                                    <p class="text-xs text-gray-700">{{ $backup['last_modified']->format('d/m/Y H:i') }}</p>
+                                    <p class="text-xs text-gray-700">{{ $backup['last_modified']->format('d/m/Y H:i:s') }}</p>
                                         </td>
                                 <td class="px-5 py-4 whitespace-nowrap text-xs font-medium">
                                     <a href="{{ route('settings.backup.download', $backup['filename']) }}"
@@ -287,7 +287,7 @@
                                     <span class="text-xs text-gray-500">{{ $backup['size_human'] }}</span>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2">
-                                    <i class="fas fa-calendar mr-1"></i>{{ $backup['last_modified']->format('d/m/Y H:i') }}
+                                    <i class="fas fa-calendar mr-1"></i>{{ $backup['last_modified']->format('d/m/Y H:i:s') }}
                                 </p>
                             </div>
                         </div>

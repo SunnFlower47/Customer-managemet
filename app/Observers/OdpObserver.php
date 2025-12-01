@@ -16,6 +16,11 @@ class OdpObserver
             $odp->parentOdp->syncPortTerpakai();
             $odp->parentOdp->updateParentPortTerpakai();
         }
+
+        // Update ODC status if ODP is connected to ODC
+        if ($odp->odc_id) {
+            $odp->odc->syncStatusBasedOnPorts();
+        }
     }
 
     /**
@@ -47,8 +52,13 @@ class OdpObserver
             }
         }
 
-        // Sync port terpakai ODP ini
+        // Sync port terpakai ODP ini (includes auto-update status)
         $odp->syncPortTerpakai();
+
+        // Update ODC status if ODP is connected to ODC
+        if ($odp->odc_id) {
+            $odp->odc->syncStatusBasedOnPorts();
+        }
     }
 
     /**
@@ -60,6 +70,14 @@ class OdpObserver
         if ($odp->parentOdp) {
             $odp->parentOdp->syncPortTerpakai();
             $odp->parentOdp->updateParentPortTerpakai();
+        }
+
+        // Update ODC status if ODP was connected to ODC
+        if ($odp->odc_id) {
+            $odc = \App\Models\Odc::find($odp->odc_id);
+            if ($odc) {
+                $odc->syncStatusBasedOnPorts();
+            }
         }
     }
 

@@ -245,19 +245,32 @@ Route::middleware(['auth'])->group(function () {
 
     // Pembayaran create/store routes removed - payments are generated automatically
 
-    Route::middleware(['permission:edit-pembayaran'])->group(function () {
-        Route::get('/pembayarans/{pembayaran}/edit', [WebPembayaranController::class, 'edit'])->name('pembayarans.edit');
-        Route::put('/pembayarans/{pembayaran}', [WebPembayaranController::class, 'update'])->name('pembayarans.update');
+    // Update status routes - accessible by penagih with update-status-pembayaran permission
+    Route::middleware(['permission:update-status-pembayaran'])->group(function () {
         Route::patch('/pembayarans/{pembayaran}/status', [WebPembayaranController::class, 'updateStatus'])->name('pembayarans.update-status');
         Route::patch('/pembayarans/{pembayaran}/mark-paid', [WebPembayaranController::class, 'markPaid'])->name('pembayarans.mark-paid');
         Route::post('/pembayarans/bulk-update-status', [WebPembayaranController::class, 'bulkUpdateStatus'])->name('pembayarans.bulk-update-status');
         Route::post('/pembayarans/bulk-mark-paid', [WebPembayaranController::class, 'bulkMarkPaid'])->name('pembayarans.bulk-mark-paid');
     });
 
+    // Edit routes - requires edit-pembayaran permission (admin/operator only)
+    Route::middleware(['permission:edit-pembayaran'])->group(function () {
+        Route::get('/pembayarans/{pembayaran}/edit', [WebPembayaranController::class, 'edit'])->name('pembayarans.edit');
+        Route::put('/pembayarans/{pembayaran}', [WebPembayaranController::class, 'update'])->name('pembayarans.update');
+    });
+
     Route::middleware(['permission:delete-pembayaran'])->group(function () {
         Route::delete('/pembayarans/{pembayaran}', [WebPembayaranController::class, 'destroy'])->name('pembayarans.destroy');
     });
 
+    // Print invoice routes - accessible by penagih with print-invoice-pembayaran permission
+    Route::middleware(['permission:print-invoice-pembayaran'])->group(function () {
+        Route::get('/pembayarans/{pembayaran}/invoice', [WebPembayaranController::class, 'invoice'])->name('pembayarans.invoice');
+        Route::get('/pembayarans/{pembayaran}/invoice/pdf', [WebPembayaranController::class, 'invoicePdf'])->name('pembayarans.invoice.pdf');
+        Route::get('/pembayarans/{pembayaran}/print-invoice', [WebPembayaranController::class, 'printInvoice'])->name('pembayarans.print-invoice');
+    });
+
+    // Export routes - requires export-pembayaran permission (admin/operator only)
     Route::middleware(['permission:export-pembayaran'])->group(function () {
         // Specific routes first (before parameterized routes)
         Route::get('/pembayarans/export/pdf', [WebPembayaranController::class, 'export'])->name('pembayarans.export');
@@ -265,10 +278,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pembayarans/export/csv', [WebPembayaranController::class, 'exportCsv'])->name('pembayarans.export.csv');
 
         // Parameterized routes after specific routes
-        Route::get('/pembayarans/{pembayaran}/invoice', [WebPembayaranController::class, 'invoice'])->name('pembayarans.invoice');
-        Route::get('/pembayarans/{pembayaran}/invoice/pdf', [WebPembayaranController::class, 'invoicePdf'])->name('pembayarans.invoice.pdf');
         Route::get('/pembayarans/{pembayaran}/pdf', [WebPembayaranController::class, 'pdf'])->name('pembayarans.pdf');
-        Route::get('/pembayarans/{pembayaran}/print-invoice', [WebPembayaranController::class, 'printInvoice'])->name('pembayarans.print-invoice');
     });
 
     // Generate bills route

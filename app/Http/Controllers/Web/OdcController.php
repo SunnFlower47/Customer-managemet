@@ -41,6 +41,11 @@ class OdcController extends BaseController
             ->paginate(20)
             ->appends($request->query());
 
+        // Sync status for all ODCs based on port usage
+        foreach ($odcs as $odc) {
+            $odc->syncStatusBasedOnPorts();
+        }
+
         return view('odcs.index', compact('odcs'));
     }
 
@@ -83,6 +88,10 @@ class OdcController extends BaseController
         // Port terpakai ODC = jumlah ODP yang terhubung LANGSUNG (parent_odp_id IS NULL)
         // ODP yang terhubung melalui parent ODP tidak menghitung port ODC
         $usedPorts = $odc->odps()->whereNull('parent_odp_id')->count();
+
+        // Sync status based on port usage
+        $odc->syncStatusBasedOnPorts();
+        $odc->refresh();
 
         return view('odcs.show', compact('odc', 'usedPorts'));
     }

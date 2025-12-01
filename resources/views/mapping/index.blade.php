@@ -230,7 +230,7 @@
                             <input type="checkbox" id="toggle-pelanggan" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                             <span>Pelanggan</span>
                         </label>
-                        {{-- <label class="flex items-center gap-2 text-xs">
+                        <label class="flex items-center gap-2 text-xs">
                             <input type="checkbox" id="toggle-connection" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                             <span>Garis ODC-ODP</span>
                         </label>
@@ -241,7 +241,7 @@
                         <label class="flex items-center gap-2 text-xs">
                             <input type="checkbox" id="toggle-odp-connection" checked class="rounded border-gray-300 text-amber-600 focus:ring-amber-500">
                             <span>Garis ODP-ODP</span>
-                        </label> --}}
+                        </label>
                     </div>
                     <div class="mt-3 pt-3 border-t border-gray-200">
                         <label class="flex items-center gap-2 text-xs">
@@ -268,7 +268,7 @@
                 <div class="legend-icon" style="background: #10b981;"></div>
                 <span>Pelanggan</span>
             </div>
-            {{-- <div class="legend-item">
+            <div class="legend-item">
                 <div style="width: 20px; height: 3px; background: #6366f1; border-radius: 2px; margin-right: 8px; opacity: 0.7;"></div>
                 <span>Garis ODC-ODP</span>
             </div>
@@ -279,7 +279,7 @@
             <div class="legend-item">
                 <div style="width: 20px; height: 2.5px; background: #f59e0b; border-radius: 2px; margin-right: 8px; opacity: 0.7;"></div>
                 <span>Garis ODP-ODP</span>
-            </div> --}}
+            </div>
         </div>
     </div>
 
@@ -484,9 +484,9 @@
         loadOdcMarkers();
         loadODPMarkers();
         loadPelangganMarkers();
-        // loadConnectionLines();
-        // loadPelangganConnectionLines();
-        // loadOdpConnectionLines();
+        loadConnectionLines();
+        loadPelangganConnectionLines();
+        loadOdpConnectionLines();
 
         // Toggle layers
         document.getElementById('toggle-odc').addEventListener('change', function(e) {
@@ -513,29 +513,29 @@
             }
         });
 
-        // document.getElementById('toggle-connection').addEventListener('change', function(e) {
-        //     if (e.target.checked) {
-        //         map.addLayer(connectionLayer);
-        //     } else {
-        //         map.removeLayer(connectionLayer);
-        //     }
-        // });
+        document.getElementById('toggle-connection').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(connectionLayer);
+            } else {
+                map.removeLayer(connectionLayer);
+            }
+        });
 
-        // document.getElementById('toggle-pelanggan-connection').addEventListener('change', function(e) {
-        //     if (e.target.checked) {
-        //         map.addLayer(pelangganConnectionLayer);
-        //     } else {
-        //         map.removeLayer(pelangganConnectionLayer);
-        //     }
-        // });
+        document.getElementById('toggle-pelanggan-connection').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(pelangganConnectionLayer);
+            } else {
+                map.removeLayer(pelangganConnectionLayer);
+            }
+        });
 
-        // document.getElementById('toggle-odp-connection').addEventListener('change', function(e) {
-        //     if (e.target.checked) {
-        //         map.addLayer(odpConnectionLayer);
-        //     } else {
-        //         map.removeLayer(odpConnectionLayer);
-        //     }
-        // });
+        document.getElementById('toggle-odp-connection').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(odpConnectionLayer);
+            } else {
+                map.removeLayer(odpConnectionLayer);
+            }
+        });
 
         // Toggle satellite mode
         document.getElementById('toggle-satellite').addEventListener('change', function(e) {
@@ -681,120 +681,120 @@
 
     // Load connection lines (ODC to ODP)
     // Hanya untuk ODP yang terhubung langsung ke ODC (tidak punya parent_odp_id)
-    // function loadConnectionLines() {
-    //     connectionLayer.clearLayers();
+    function loadConnectionLines() {
+        connectionLayer.clearLayers();
 
-    //     @foreach($odcs as $odc)
-    //     @if($odc->latitude && $odc->longitude && $odc->odps->count() > 0)
-    //     @foreach($odc->odps as $odp)
-    //     @if($odp->latitude && $odp->longitude && !$odp->parent_odp_id)
-    //     // Hanya gambar garis jika ODP terhubung langsung (tidak punya parent ODP)
-    //     // Create polyline from ODC to ODP
-    //     const connectionLine{{ $odc->id }}_{{ $odp->id }} = L.polyline(
-    //         [
-    //             [{{ $odc->latitude }}, {{ $odc->longitude }}],
-    //             [{{ $odp->latitude }}, {{ $odp->longitude }}]
-    //         ],
-    //         {
-    //             color: '#6366f1', // Indigo color
-    //             weight: 3,
-    //             opacity: 0.7,
-    //             dashArray: '5, 5', // Dashed line
-    //             smoothFactor: 1
-    //         }
-    //     ).addTo(connectionLayer);
+        @foreach($odcs as $odc)
+        @if($odc->latitude && $odc->longitude && $odc->odps->count() > 0)
+        @foreach($odc->odps as $odp)
+        @if($odp->latitude && $odp->longitude && !$odp->parent_odp_id)
+        // Hanya gambar garis jika ODP terhubung langsung (tidak punya parent ODP)
+        // Create polyline from ODC to ODP
+        const connectionLine{{ $odc->id }}_{{ $odp->id }} = L.polyline(
+            [
+                [{{ $odc->latitude }}, {{ $odc->longitude }}],
+                [{{ $odp->latitude }}, {{ $odp->longitude }}]
+            ],
+            {
+                color: '#6366f1', // Indigo color
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '5, 5', // Dashed line
+                smoothFactor: 1
+            }
+        ).addTo(connectionLayer);
 
-    //     // Add popup to line showing connection info
-    //     connectionLine{{ $odc->id }}_{{ $odp->id }}.bindPopup(`
-    //         <div class="text-xs">
-    //             <p class="font-semibold text-indigo-600 mb-1">Koneksi ODC-ODP</p>
-    //             <p class="text-gray-700 mb-1">
-    //                 <strong>ODC:</strong> {{ $odc->kode_odc }} - {{ $odc->nama }}
-    //             </p>
-    //             <p class="text-gray-700">
-    //                 <strong>ODP:</strong> {{ $odp->kode_odp }} - {{ $odp->nama }}
-    //             </p>
-    //         </div>
-    //     `);
-    //     @endif
-    //     @endforeach
-    //     @endif
-    //     @endforeach
-    // }
+        // Add popup to line showing connection info
+        connectionLine{{ $odc->id }}_{{ $odp->id }}.bindPopup(`
+            <div class="text-xs">
+                <p class="font-semibold text-indigo-600 mb-1">Koneksi ODC-ODP</p>
+                <p class="text-gray-700 mb-1">
+                    <strong>ODC:</strong> {{ $odc->kode_odc }} - {{ $odc->nama }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>ODP:</strong> {{ $odp->kode_odp }} - {{ $odp->nama }}
+                </p>
+            </div>
+        `);
+        @endif
+        @endforeach
+        @endif
+        @endforeach
+    }
 
-    // // Load connection lines (Pelanggan to ODP)
-    // function loadPelangganConnectionLines() {
-    //     pelangganConnectionLayer.clearLayers();
+    // Load connection lines (Pelanggan to ODP)
+    function loadPelangganConnectionLines() {
+        pelangganConnectionLayer.clearLayers();
 
-    //     @foreach($pelanggans as $pelanggan)
-    //     @if($pelanggan->odp && $pelanggan->latitude && $pelanggan->longitude && $pelanggan->odp->latitude && $pelanggan->odp->longitude)
-    //     // Create polyline from Pelanggan to ODP
-    //     const pelangganConnectionLine{{ $pelanggan->id }} = L.polyline(
-    //         [
-    //             [{{ $pelanggan->latitude }}, {{ $pelanggan->longitude }}],
-    //             [{{ $pelanggan->odp->latitude }}, {{ $pelanggan->odp->longitude }}]
-    //         ],
-    //         {
-    //             color: '#10b981', // Green color for pelanggan-ODP connection
-    //             weight: 2,
-    //             opacity: 0.6,
-    //             dashArray: '3, 3', // Smaller dash for pelanggan connections
-    //             smoothFactor: 1
-    //         }
-    //     ).addTo(pelangganConnectionLayer);
+        @foreach($pelanggans as $pelanggan)
+        @if($pelanggan->odp && $pelanggan->latitude && $pelanggan->longitude && $pelanggan->odp->latitude && $pelanggan->odp->longitude)
+        // Create polyline from Pelanggan to ODP
+        const pelangganConnectionLine{{ $pelanggan->id }} = L.polyline(
+            [
+                [{{ $pelanggan->latitude }}, {{ $pelanggan->longitude }}],
+                [{{ $pelanggan->odp->latitude }}, {{ $pelanggan->odp->longitude }}]
+            ],
+            {
+                color: '#10b981', // Green color for pelanggan-ODP connection
+                weight: 2,
+                opacity: 0.6,
+                dashArray: '3, 3', // Smaller dash for pelanggan connections
+                smoothFactor: 1
+            }
+        ).addTo(pelangganConnectionLayer);
 
-    //     // Add popup to line showing connection info
-    //     pelangganConnectionLine{{ $pelanggan->id }}.bindPopup(`
-    //         <div class="text-xs">
-    //             <p class="font-semibold text-green-600 mb-1">Koneksi Pelanggan-ODP</p>
-    //             <p class="text-gray-700 mb-1">
-    //                 <strong>Pelanggan:</strong> {{ $pelanggan->nama }} ({{ $pelanggan->pppoe }})
-    //             </p>
-    //             <p class="text-gray-700">
-    //                 <strong>ODP:</strong> {{ $pelanggan->odp->kode_odp }} - {{ $pelanggan->odp->nama }}
-    //             </p>
-    //         </div>
-    //     `);
-    //     @endif
-    //     @endforeach
-    // }
+        // Add popup to line showing connection info
+        pelangganConnectionLine{{ $pelanggan->id }}.bindPopup(`
+            <div class="text-xs">
+                <p class="font-semibold text-green-600 mb-1">Koneksi Pelanggan-ODP</p>
+                <p class="text-gray-700 mb-1">
+                    <strong>Pelanggan:</strong> {{ $pelanggan->nama }} ({{ $pelanggan->pppoe }})
+                </p>
+                <p class="text-gray-700">
+                    <strong>ODP:</strong> {{ $pelanggan->odp->kode_odp }} - {{ $pelanggan->odp->nama }}
+                </p>
+            </div>
+        `);
+        @endif
+        @endforeach
+    }
 
-    // // Load connection lines (ODP to ODP parent-child)
-    // function loadOdpConnectionLines() {
-    //     odpConnectionLayer.clearLayers();
+    // Load connection lines (ODP to ODP parent-child)
+    function loadOdpConnectionLines() {
+        odpConnectionLayer.clearLayers();
 
-    //     @foreach($odps as $odp)
-    //     @if($odp->parentOdp && $odp->latitude && $odp->longitude && $odp->parentOdp->latitude && $odp->parentOdp->longitude)
-    //     // Create polyline from child ODP to parent ODP
-    //     const odpConnectionLine{{ $odp->id }} = L.polyline(
-    //         [
-    //             [{{ $odp->latitude }}, {{ $odp->longitude }}],
-    //             [{{ $odp->parentOdp->latitude }}, {{ $odp->parentOdp->longitude }}]
-    //         ],
-    //         {
-    //             color: '#f59e0b', // Amber color for ODP-ODP connection
-    //             weight: 2.5,
-    //             opacity: 0.7,
-    //             dashArray: '4, 4', // Dashed line
-    //             smoothFactor: 1
-    //         }
-    //     ).addTo(odpConnectionLayer);
+        @foreach($odps as $odp)
+        @if($odp->parentOdp && $odp->latitude && $odp->longitude && $odp->parentOdp->latitude && $odp->parentOdp->longitude)
+        // Create polyline from child ODP to parent ODP
+        const odpConnectionLine{{ $odp->id }} = L.polyline(
+            [
+                [{{ $odp->latitude }}, {{ $odp->longitude }}],
+                [{{ $odp->parentOdp->latitude }}, {{ $odp->parentOdp->longitude }}]
+            ],
+            {
+                color: '#f59e0b', // Amber color for ODP-ODP connection
+                weight: 2.5,
+                opacity: 0.7,
+                dashArray: '4, 4', // Dashed line
+                smoothFactor: 1
+            }
+        ).addTo(odpConnectionLayer);
 
-    //     // Add popup to line showing connection info
-    //     odpConnectionLine{{ $odp->id }}.bindPopup(`
-    //         <div class="text-xs">
-    //             <p class="font-semibold text-amber-600 mb-1">Koneksi ODP Parent-Child</p>
-    //             <p class="text-gray-700 mb-1">
-    //                 <strong>Child:</strong> {{ $odp->kode_odp }} - {{ $odp->nama }}
-    //             </p>
-    //             <p class="text-gray-700">
-    //                 <strong>Parent:</strong> {{ $odp->parentOdp->kode_odp }} - {{ $odp->parentOdp->nama }}
-    //             </p>
-    //         </div>
-    //     `);
-    //     @endif
-    //     @endforeach
-    // }
+        // Add popup to line showing connection info
+        odpConnectionLine{{ $odp->id }}.bindPopup(`
+            <div class="text-xs">
+                <p class="font-semibold text-amber-600 mb-1">Koneksi ODP Parent-Child</p>
+                <p class="text-gray-700 mb-1">
+                    <strong>Child:</strong> {{ $odp->kode_odp }} - {{ $odp->nama }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Parent:</strong> {{ $odp->parentOdp->kode_odp }} - {{ $odp->parentOdp->nama }}
+                </p>
+            </div>
+        `);
+        @endif
+        @endforeach
+    }
 
     // Initialize location picker map (for modal)
     let locationPickerTileLayer = null;

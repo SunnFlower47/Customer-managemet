@@ -110,7 +110,32 @@ class Odp extends Model
         if ($this->port_terpakai != $portTerpakai) {
             $this->update(['port_terpakai' => $portTerpakai]);
         }
+        // Auto-update status based on port usage
+        $this->syncStatusBasedOnPorts();
         return $portTerpakai;
+    }
+
+    /**
+     * Auto-update status based on port usage
+     * Status becomes 'penuh' when port_terpakai >= kapasitas
+     * Status becomes 'aktif' when port_terpakai < kapasitas and status is 'penuh'
+     */
+    public function syncStatusBasedOnPorts()
+    {
+        $this->refresh(); // Refresh to get latest port_terpakai
+
+        // Only update if status is 'aktif' or 'penuh' (don't change 'nonaktif')
+        if (!in_array($this->status, ['aktif', 'penuh'])) {
+            return;
+        }
+
+        $isFull = $this->port_terpakai >= $this->kapasitas;
+
+        if ($isFull && $this->status !== 'penuh') {
+            $this->update(['status' => 'penuh']);
+        } elseif (!$isFull && $this->status === 'penuh') {
+            $this->update(['status' => 'aktif']);
+        }
     }
 
     /**

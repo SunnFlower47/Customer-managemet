@@ -202,7 +202,9 @@ class SettingController extends Controller
             ->filter(fn ($path) => Str::endsWith(strtolower($path), '.zip'))
             ->map(function ($path) use ($disk) {
                 $size = $disk->size($path);
-                $lastModified = Carbon::createFromTimestamp($disk->lastModified($path));
+                // Set timezone ke Asia/Jakarta agar sesuai dengan server time
+                $lastModified = Carbon::createFromTimestamp($disk->lastModified($path))
+                    ->setTimezone('Asia/Jakarta');
 
                 return [
                     'path' => $path,

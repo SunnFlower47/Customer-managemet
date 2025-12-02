@@ -229,7 +229,8 @@ class PackageController extends Controller
             }
 
             $totalCustomers = $package->pelanggans()->count();
-            $activeCustomers = $package->pelanggans()->where('status', 'aktif')->count();
+            // Include customers with status 'aktif' or 'bayar double' (both are active)
+            $activeCustomers = $package->pelanggans()->whereIn('status', ['aktif', 'bayar double'])->count();
             $inactiveCustomers = $package->pelanggans()->where('status', 'isolir')->count();
 
             $totalRevenue = $package->pelanggans()

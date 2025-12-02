@@ -56,8 +56,8 @@ class GenerateMonthlyBillsAccurate extends Command
             }
         }
 
-        // Get all active customers
-        $activeCustomers = Pelanggan::where('status', 'aktif')
+        // Get all active customers (aktif or bayar double - both can receive bills)
+        $activeCustomers = Pelanggan::whereIn('status', ['aktif', 'bayar double'])
             ->with(['paket:id,nama_paket,harga', 'penagih:id,nama'])
             ->orderBy('tanggal_pembayaran')
             ->get();

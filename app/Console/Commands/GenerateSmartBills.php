@@ -40,8 +40,8 @@ class GenerateSmartBills extends Command
         // Only new payments will use current customer settings
         $this->info("Preserving historical data integrity - no updates to existing payments");
 
-        // Get all active customers with pagination for better performance
-        $activeCustomers = Pelanggan::where('status', 'aktif')
+        // Get all active customers (aktif or bayar double - both can receive bills) with pagination for better performance
+        $activeCustomers = Pelanggan::whereIn('status', ['aktif', 'bayar double'])
             ->with(['paket:id,nama_paket,harga', 'penagih:id,nama'])
             ->orderBy('tanggal_pembayaran')
             ->get();

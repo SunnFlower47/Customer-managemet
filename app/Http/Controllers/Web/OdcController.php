@@ -85,13 +85,13 @@ class OdcController extends BaseController
     {
         $odc->load(['odps.pelanggans']);
 
-        // Port terpakai ODC = jumlah ODP yang terhubung LANGSUNG (parent_odp_id IS NULL)
-        // ODP yang terhubung melalui parent ODP tidak menghitung port ODC
-        $usedPorts = $odc->odps()->whereNull('parent_odp_id')->count();
-
         // Sync status based on port usage
         $odc->syncStatusBasedOnPorts();
         $odc->refresh();
+
+        // Port terpakai ODC = jumlah ODP yang terhubung LANGSUNG (parent_odp_id IS NULL)
+        // Gunakan accessor untuk mendapatkan nilai yang akurat
+        $usedPorts = $odc->total_odp_ports_used;
 
         return view('odcs.show', compact('odc', 'usedPorts'));
     }

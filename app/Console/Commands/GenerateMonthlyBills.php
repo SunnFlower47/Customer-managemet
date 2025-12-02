@@ -43,7 +43,8 @@ class GenerateMonthlyBills extends Command
 
         $this->info("Generating bills for {$currentMonth}/{$currentYear}...");
 
-        $activeCustomers = Pelanggan::where('status', 'aktif')
+        // Include customers with status 'aktif' or 'bayar double' (both can receive bills)
+        $activeCustomers = Pelanggan::whereIn('status', ['aktif', 'bayar double'])
             ->with(['paket', 'penagih'])
             ->get();
 
@@ -74,3 +75,4 @@ class GenerateMonthlyBills extends Command
         $this->info("Successfully generated {$generatedCount} bills for {$currentMonth}/{$currentYear}");
     }
 }
+

@@ -133,7 +133,8 @@ class OnuController extends BaseController
         $existingServiceIds = $onu->services->pluck('service_id')->toArray();
         $availableServiceIds = array_diff([1, 2, 3, 4], $existingServiceIds);
 
-        $pelanggans = Pelanggan::where('status', 'aktif')
+        // Include pelanggans with status 'aktif' or 'bayar double' (both are active)
+        $pelanggans = Pelanggan::whereIn('status', ['aktif', 'bayar double'])
             ->select('id', 'nama', 'pppoe', 'no_hp', 'odp_id')
             ->get();
         $odps = Odp::active()->select('id', 'kode_odp', 'nama')->get();
@@ -323,4 +324,5 @@ class OnuController extends BaseController
         }
     }
 }
+
 

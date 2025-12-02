@@ -219,6 +219,15 @@ class Pelanggan extends Authenticatable
     }
 
     /**
+     * Scope for active pelanggans (aktif or bayar double - both can receive bills)
+     * Status 'bayar double' means customer pays double but is still active/operational
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', ['aktif', 'bayar double']);
+    }
+
+    /**
      * Update ODP port usage based on active pelanggans
      */
     protected static function updateOdpPortUsage($odpId)
@@ -229,11 +238,11 @@ class Pelanggan extends Authenticatable
 
         $odp = Odp::find($odpId);
         if ($odp) {
-            // Count active pelanggans connected to this ODP
+            // Count active pelanggans connected to this ODP (aktif or bayar double)
             // Use DB query to avoid triggering model events
             $activePelanggansCount = DB::table('pelanggans')
                 ->where('odp_id', $odpId)
-                ->where('status', 'aktif')
+                ->whereIn('status', ['aktif', 'bayar double'])
                 ->count();
 
             // Update without triggering events to avoid recursion
@@ -243,3 +252,4 @@ class Pelanggan extends Authenticatable
         }
     }
 }
+

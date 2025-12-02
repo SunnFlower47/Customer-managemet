@@ -98,7 +98,7 @@ class OptimizedController extends Controller
         $stats = DB::table('pelanggans')
             ->selectRaw('
                 COUNT(*) as total_customers,
-                SUM(CASE WHEN status = "aktif" THEN 1 ELSE 0 END) as active_customers,
+                SUM(CASE WHEN status IN ("aktif", "bayar double") THEN 1 ELSE 0 END) as active_customers,
                 SUM(CASE WHEN status = "isolir" THEN 1 ELSE 0 END) as inactive_customers,
                 SUM(CASE WHEN status = "bayar double" THEN 1 ELSE 0 END) as suspended_customers
             ')

@@ -205,7 +205,8 @@ class PembayaranController extends BaseController
      */
     public function edit(Pembayaran $pembayaran)
     {
-        $pelanggans = Pelanggan::where('status', 'aktif')->get();
+        // Include pelanggans with status 'aktif' or 'bayar double' (both are active)
+        $pelanggans = Pelanggan::whereIn('status', ['aktif', 'bayar double'])->get();
         $penagihs = Penagih::where('aktif', true)->get();
         return view('pembayarans.edit', compact('pembayaran', 'pelanggans', 'penagihs'));
     }
@@ -282,13 +283,13 @@ class PembayaranController extends BaseController
         ]);
 
         $ids = json_decode($request->ids, true);
-        
+
         if (!is_array($ids) || empty($ids)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
 
         $updateData = ['status' => $request->status];
-        
+
         // If changing to lunas, set tanggal_bayar
         if ($request->status === 'lunas') {
             $updateData['tanggal_bayar'] = now();
@@ -313,7 +314,7 @@ class PembayaranController extends BaseController
         ]);
 
         $ids = json_decode($request->ids, true);
-        
+
         if (!is_array($ids) || empty($ids)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
@@ -418,7 +419,8 @@ class PembayaranController extends BaseController
                 ->with('error', "Tagihan untuk bulan {$currentMonth}/{$currentYear} sudah ada.");
         }
 
-        $activeCustomers = Pelanggan::where('status', 'aktif')
+        // Include customers with status 'aktif' or 'bayar double' (both can receive bills)
+        $activeCustomers = Pelanggan::whereIn('status', ['aktif', 'bayar double'])
             ->with(['paket', 'penagih'])
             ->get();
 

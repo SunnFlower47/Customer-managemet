@@ -28,7 +28,8 @@ class OnuRegisterController extends BaseController
     {
         $olts = Olt::active()->get();
         $odps = Odp::active()->get();
-        $pelanggans = Pelanggan::where('status', 'aktif')
+        // Include pelanggans with status 'aktif' or 'bayar double' (both are active)
+        $pelanggans = Pelanggan::whereIn('status', ['aktif', 'bayar double'])
             ->select('id', 'nama', 'pppoe', 'no_hp', 'odp_id')
             ->get();
         $speedProfiles = SpeedProfile::active()->get();
@@ -130,7 +131,7 @@ class OnuRegisterController extends BaseController
 
             if (!$result['success']) {
                 $errorMessage = $result['message'] ?? 'Gagal registrasi ONU.';
-                
+
                 // Provide more helpful error messages
                 if (strpos($errorMessage, 'SNMP') !== false || strpos($errorMessage, 'community') !== false) {
                     $errorMessage .= ' Pastikan write community string benar dan OLT dapat diakses.';
@@ -139,7 +140,7 @@ class OnuRegisterController extends BaseController
                 } elseif (strpos($errorMessage, 'tidak ditemukan') !== false) {
                     $errorMessage .= ' Pastikan ONU sudah terhubung secara fisik ke OLT di Card dan Port yang benar.';
                 }
-                
+
                 return back()->withInput()->with('error', $errorMessage);
             }
 
@@ -151,8 +152,9 @@ class OnuRegisterController extends BaseController
                 'request' => $request->except(['password', 'pppoe_password']),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return back()->withInput()->with('error', 'Terjadi kesalahan saat registrasi ONU: ' . $e->getMessage());
         }
     }
 }
+

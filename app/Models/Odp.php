@@ -76,11 +76,11 @@ class Odp extends Model
     }
 
     /**
-     * Get active pelanggans count
+     * Get active pelanggans count (aktif or bayar double - both are considered active)
      */
     public function getActivePelanggansCountAttribute()
     {
-        return $this->pelanggans()->where('status', 'aktif')->count();
+        return $this->pelanggans()->whereIn('status', ['aktif', 'bayar double'])->count();
     }
 
     /**
@@ -92,11 +92,11 @@ class Odp extends Model
     }
 
     /**
-     * Calculate port terpakai: pelanggan aktif + jumlah ODP child
+     * Calculate port terpakai: pelanggan aktif (aktif or bayar double) + jumlah ODP child
      */
     public function calculatePortTerpakai()
     {
-        $activePelanggans = $this->pelanggans()->where('status', 'aktif')->count();
+        $activePelanggans = $this->pelanggans()->whereIn('status', ['aktif', 'bayar double'])->count();
         $childOdpsCount = $this->childOdps()->count();
         return $activePelanggans + $childOdpsCount;
     }
@@ -153,11 +153,12 @@ class Odp extends Model
     }
 
     /**
-     * Scope for active ODPs
+     * Scope for active ODPs (aktif or penuh - both are considered active)
+     * Status 'penuh' means capacity is full but ODP is still active/operational
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'aktif');
+        return $query->whereIn('status', ['aktif', 'penuh']);
     }
 }
 

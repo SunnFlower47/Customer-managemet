@@ -56,7 +56,8 @@ class CacheService
                 'total_paket' => Paket::where('aktif', true)->count(),
                 'total_penagih' => Penagih::where('aktif', true)->count(),
                 'total_customers' => Pelanggan::count(),
-                'active_customers' => Pelanggan::where('status', 'aktif')->count(),
+                // Include customers with status 'aktif' or 'bayar double' (both are active)
+                'active_customers' => Pelanggan::whereIn('status', ['aktif', 'bayar double'])->count(),
                 'total_payments' => Pembayaran::count(),
                 'paid_payments' => Pembayaran::where('status', 'lunas')->count(),
                 'unpaid_payments' => Pembayaran::where('status', 'belum_bayar')->count(),

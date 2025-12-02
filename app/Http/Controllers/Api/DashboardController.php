@@ -22,7 +22,8 @@ class DashboardController extends Controller
         try {
             // Basic counts
             $totalCustomers = Pelanggan::count();
-            $activeCustomers = Pelanggan::where('status', 'aktif')->count();
+            // Include customers with status 'aktif' or 'bayar double' (both are active)
+            $activeCustomers = Pelanggan::whereIn('status', ['aktif', 'bayar double'])->count();
             $totalPackages = Paket::count();
             $activePackages = Paket::where('aktif', true)->count();
             $totalCollectors = Penagih::count();

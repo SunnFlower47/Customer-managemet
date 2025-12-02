@@ -39,7 +39,7 @@
             </div>
             <div class="min-w-0 flex-1">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pelanggan Aktif</p>
-                <p class="stat-card__value">{{ \App\Models\Pelanggan::where('status', 'aktif')->count() }}</p>
+                <p class="stat-card__value">{{ \App\Models\Pelanggan::whereIn('status', ['aktif', 'bayar double'])->count() }}</p>
             </div>
         </div>
 

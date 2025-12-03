@@ -80,7 +80,8 @@
                             <dd class="mt-0.5 sm:mt-1">
                                 <span class="inline-flex items-center px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold
                                     {{ $pelanggan->status === 'aktif' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                       ($pelanggan->status === 'bayar double' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' : 'bg-red-100 text-red-800 border border-red-200') }}">
+                                       ($pelanggan->status === 'bayar double' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                                       ($pelanggan->status === 'nonaktif' ? 'bg-gray-100 text-gray-800 border border-gray-200' : 'bg-red-100 text-red-800 border border-red-200')) }}">
                                     <i class="fas fa-circle mr-1 text-xs"></i>{{ ucfirst($pelanggan->status) }}
                                 </span>
                             </dd>

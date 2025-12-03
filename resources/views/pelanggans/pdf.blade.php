@@ -65,6 +65,10 @@
             color: #d97706;
             font-weight: bold;
         }
+        .status-nonaktif {
+            color: #6b7280;
+            font-weight: bold;
+        }
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -96,7 +100,8 @@
         <strong>Total Pelanggan:</strong> {{ $pelanggans->count() }} orang<br>
         <strong>Pelanggan Aktif:</strong> {{ $pelanggans->where('status', 'aktif')->count() }} orang<br>
         <strong>Pelanggan Isolir:</strong> {{ $pelanggans->where('status', 'isolir')->count() }} orang<br>
-        <strong>Pelanggan Bayar Double:</strong> {{ $pelanggans->where('status', 'bayar double')->count() }} orang
+        <strong>Pelanggan Bayar Double:</strong> {{ $pelanggans->where('status', 'bayar double')->count() }} orang<br>
+        <strong>Pelanggan Nonaktif:</strong> {{ $pelanggans->where('status', 'nonaktif')->count() }} orang
     </div>
 
     <table>

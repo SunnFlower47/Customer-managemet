@@ -34,7 +34,7 @@ class OltSyncService
 
         // Initialize event service outside try-catch so it's available in both blocks
         $oltEventService = new \App\Services\OltEventService();
-        
+
         // Log sync started event
         $oltEventService->logEvent($olt, 'sync_started', 'info', null, 'Sinkronisasi OLT dimulai');
 
@@ -99,7 +99,7 @@ class OltSyncService
             return $syncLog;
         } catch (\Exception $e) {
             Log::error("OLT Sync Error [{$olt->kode_olt}]: " . $e->getMessage());
-            
+
             $syncLog->update([
                 'status' => 'failed',
                 'error_message' => $e->getMessage(),

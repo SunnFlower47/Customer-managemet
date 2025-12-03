@@ -114,7 +114,7 @@ class CustomerController extends Controller
             'paket_id' => 'required|exists:pakets,id',
             'penagih_id' => 'nullable|exists:penagihs,id',
             'tanggal_pembayaran' => 'nullable|integer|min:1|max:31',
-            'status' => 'required|in:aktif,isolir'
+            'status' => 'required|in:aktif,isolir,bayar double,nonaktif'
         ]);
 
         if ($validator->fails()) {
@@ -165,7 +165,7 @@ class CustomerController extends Controller
             'paket_id' => 'required|exists:pakets,id',
             'penagih_id' => 'nullable|exists:penagihs,id',
             'tanggal_pembayaran' => 'nullable|integer|min:1|max:31',
-            'status' => 'required|in:aktif,isolir'
+            'status' => 'required|in:aktif,isolir,bayar double,nonaktif'
         ]);
 
         if ($validator->fails()) {

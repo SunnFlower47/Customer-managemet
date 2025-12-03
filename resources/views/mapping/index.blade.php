@@ -191,6 +191,7 @@
                     <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="isolir" {{ request('status') === 'isolir' ? 'selected' : '' }}>Isolir</option>
                     <option value="bayar double" {{ request('status') === 'bayar double' ? 'selected' : '' }}>Bayar Double</option>
+                    <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                 </select>
             </div>
             <div class="flex items-end gap-2">
@@ -484,9 +485,10 @@
         loadOdcMarkers();
         loadODPMarkers();
         loadPelangganMarkers();
-        loadConnectionLines();
-        loadPelangganConnectionLines();
-        loadOdpConnectionLines();
+        // DISABLED: Connection lines temporarily disabled
+        // loadConnectionLines();
+        // loadPelangganConnectionLines();
+        // loadOdpConnectionLines();
 
         // Toggle layers
         document.getElementById('toggle-odc').addEventListener('change', function(e) {
@@ -563,16 +565,7 @@
             .addTo(odcLayer)
             .bindPopup(`
                 <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="font-bold text-indigo-600">{{ $odc->kode_odc }}</h3>
-                        @if($odc->status === 'penuh')
-                            <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-yellow-100 text-yellow-800">Penuh</span>
-                        @elseif($odc->status === 'aktif')
-                            <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-green-100 text-green-800">Aktif</span>
-                        @else
-                            <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-800">Rusak</span>
-                        @endif
-                    </div>
+                    <h3 class="font-bold text-indigo-600 mb-1">{{ $odc->kode_odc }}</h3>
                     <p class="text-gray-700 mb-1">{{ $odc->nama }}</p>
                     <p class="text-xs text-gray-500 mb-2">{{ $odc->alamat ?? 'Tidak ada alamat' }}</p>
                     <p class="text-xs text-gray-600 mb-2">ODP tersambung: {{ $odc->odps->count() }}</p>
@@ -580,13 +573,7 @@
                     <div class="mb-2 max-h-24 overflow-y-auto">
                         @foreach($odc->odps as $odp)
                         <div class="flex items-center justify-between text-xs text-gray-700 mb-1">
-                            <span>{{ $odp->kode_odp }} - {{ $odp->nama }}
-                                @if($odp->status === 'penuh')
-                                    <span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-yellow-100 text-yellow-800">Penuh</span>
-                                @elseif($odp->status === 'aktif')
-                                    <span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-green-100 text-green-800">Aktif</span>
-                                @endif
-                            </span>
+                            <span>{{ $odp->kode_odp }} - {{ $odp->nama }}</span>
                             <a href="{{ route('odps.show', $odp) }}" class="text-blue-600 hover:underline">
                                 <i class="fas fa-eye"></i>
                             </a>
@@ -624,16 +611,7 @@
             .addTo(odpLayer)
             .bindPopup(`
                 <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="font-bold text-purple-600">${@json($odp->kode_odp)}</h3>
-                        @if($odp->status === 'penuh')
-                            <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-yellow-100 text-yellow-800">Penuh</span>
-                        @elseif($odp->status === 'aktif')
-                            <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-green-100 text-green-800">Aktif</span>
-                        @else
-                            <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-red-100 text-red-800">Nonaktif</span>
-                        @endif
-                    </div>
+                    <h3 class="font-bold text-purple-600 mb-1">${@json($odp->kode_odp)}</h3>
                     <p class="text-gray-700 mb-1">${@json($odp->nama)}</p>
                     <p class="text-xs text-gray-500 mb-2">${@json($odp->alamat ?: 'Tidak ada alamat')}</p>
                     <p class="text-xs text-gray-600 mb-2">Port: ${@json($odp->port_terpakai)}/${@json($odp->kapasitas)}</p>
@@ -849,6 +827,8 @@
             const pos = locationPickerMarker.getLatLng();
             document.getElementById('modal-latitude').value = pos.lat.toFixed(8);
             document.getElementById('modal-longitude').value = pos.lng.toFixed(8);
+            // Ensure save button state updates when coordinates are changed via drag
+            updateSaveButton();
         });
 
         locationPickerMap.on('click', function(e) {
@@ -856,6 +836,8 @@
             locationPickerMarker.setLatLng(pos);
             document.getElementById('modal-latitude').value = pos.lat.toFixed(8);
             document.getElementById('modal-longitude').value = pos.lng.toFixed(8);
+            // Ensure save button state updates when coordinates are changed via map click
+            updateSaveButton();
         });
 
         // Force re-render so map tiles appear even inside hidden modal

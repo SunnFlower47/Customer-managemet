@@ -52,11 +52,12 @@ class CustomerAuthController extends BaseApiController
             }
 
             // Find customer by phone number or PPPoE
+            // Allow login for customers with status 'aktif' or 'bayar double' (both are considered active)
             $customer = Pelanggan::where(function($query) use ($request) {
                 $query->where('no_hp', $request->username)
                       ->orWhere('pppoe', $request->username);
             })
-            ->where('status', 'aktif')
+            ->whereIn('status', ['aktif', 'bayar double'])
             ->first();
 
             if (!$customer) {

@@ -75,6 +75,7 @@
                         <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
                         <option value="isolir" {{ request('status') === 'isolir' ? 'selected' : '' }}>Isolir</option>
                         <option value="bayar double" {{ request('status') === 'bayar double' ? 'selected' : '' }}>Bayar Double</option>
+                        <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
                 </div>
                 <div>
@@ -271,7 +272,8 @@
                         <td class="px-6 py-6 whitespace-nowrap">
                             <span class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-bold
                                 {{ $pelanggan->status === 'aktif' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                ($pelanggan->status === 'bayar double' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' : 'bg-red-100 text-red-800 border border-red-200') }}">
+                                ($pelanggan->status === 'bayar double' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                                ($pelanggan->status === 'nonaktif' ? 'bg-gray-100 text-gray-800 border border-gray-200' : 'bg-red-100 text-red-800 border border-red-200')) }}">
                                 <i class="fas fa-circle mr-1 text-xs"></i>{{ ucfirst($pelanggan->status) }}
                             </span>
                         </td>
@@ -355,6 +357,8 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold
                                             @if($pelanggan->status === 'aktif') bg-emerald-50 text-emerald-600
                                             @elseif($pelanggan->status === 'isolir') bg-rose-50 text-rose-600
+                                            @elseif($pelanggan->status === 'bayar double') bg-amber-50 text-amber-600
+                                            @elseif($pelanggan->status === 'nonaktif') bg-gray-50 text-gray-600
                                             @else bg-amber-50 text-amber-600 @endif">
                                             <i class="fas fa-circle mr-1 text-[7px]"></i>{{ ucfirst($pelanggan->status) }}
                                         </span>

@@ -135,6 +135,7 @@
                         <option value="aktif" {{ old('status', $pelanggan->status) === 'aktif' ? 'selected' : '' }}>Aktif</option>
                         <option value="isolir" {{ old('status', $pelanggan->status) === 'isolir' ? 'selected' : '' }}>Isolir</option>
                         <option value="bayar double" {{ old('status', $pelanggan->status) === 'bayar double' ? 'selected' : '' }}>Bayar Double</option>
+                        <option value="nonaktif" {{ old('status', $pelanggan->status) === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
                     @error('status')
                         <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>

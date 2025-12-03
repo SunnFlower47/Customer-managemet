@@ -118,7 +118,7 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/wifi-billing-system.git
+git clone https:github.com/SunnFlower47/Customer-managemet.git
 cd wifi-billing-system/backend
 ```
 

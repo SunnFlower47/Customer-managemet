@@ -119,7 +119,7 @@
 1. **Clone the repository**
 ```bash
 git clone https:github.com/SunnFlower47/Customer-managemet.git
-cd wifi-billing-system/backend
+cd customer-managemet
 ```
 
 2. **Install dependencies**

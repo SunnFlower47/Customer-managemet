@@ -46,3 +46,8 @@ if (env('OLT_AUTO_SYNC_ENABLED', true)) {
         ->everyTenMinutes()
         ->description('Check and auto-discover unregistered ONUs');
 }
+
+// MikroTik Sync - Sync PPPoE users every 10 minutes
+Schedule::command('mikrotik:sync')
+    ->everyTenMinutes()
+    ->description('Synchronize MikroTik PPPoE users with local database');

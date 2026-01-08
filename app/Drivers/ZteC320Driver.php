@@ -237,15 +237,33 @@ class ZteC320Driver extends BaseOltDriver
         $lines = explode("\n", $response);
         
         foreach ($lines as $line) {
-            // Parse format: "1  ZTE-F660  ZTEGC01234567  -25.5  online"
-            if (preg_match('/(\d+)\s+(\S+)\s+(\S+)\s+([-\d.]+)\s+(\w+)/', $line, $matches)) {
+            $line = trim($line);
+            if (empty($line)) continue;
+
+            // Robust regex to handle variations:
+            // "1  ZTE-F660    ZTEGC01234567   -25.5   online"
+            // "1  ZTE-F609    ZTEGC01234567   -       offline"
+            // Capture groups:
+            // 1: ID
+            // 2: Type/Model
+            // 3: SN
+            // 4: RX Power (optional, might be '-' or empty)
+            // 5: Status
+            if (preg_match('/^(\d+)\s+([^\s]+)\s+([^\s]+)\s+([-\d\.]+|N\/A|-)\s+([a-zA-Z]+)/', $line, $matches)) {
+                $rxPower = (is_numeric($matches[4])) ? (float) $matches[4] : null;
+                $status = strtolower($matches[5]);
+                
+                // Map status to standard values
+                if (stripos($status, 'working') !== false) $status = 'online';
+                if (stripos($status, 'logging') !== false) $status = 'connecting';
+
                 $onuList[] = [
                     'onu_id' => (int) $matches[1],
                     'serial_number' => $matches[3],
                     'card' => $card,
                     'port' => $port,
-                    'rx_power' => (float) $matches[4],
-                    'status' => strtolower($matches[5]),
+                    'rx_power' => $rxPower,
+                    'status' => $status,
                     'model' => $matches[2],
                 ];
             }

@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Crypt;
 
 class Mikrotik extends Model
 {
-    use HasFactory, SoftDeletes, Auditable;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'nama',
@@ -23,59 +24,39 @@ class Mikrotik extends Model
         'is_active',
         'last_connected_at',
         'connection_status',
-        'last_error',
+        'last_error'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'port' => 'integer',
-            'is_active' => 'boolean',
-            'last_connected_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'is_active' => 'boolean',
+        'port' => 'integer',
+        'last_connected_at' => 'datetime',
+    ];
 
-    /**
-     * Encrypt password before saving
-     */
+    // Encrypt password when setting
     public function setPasswordAttribute($value)
     {
-        $this->attributes['password'] = encrypt($value);
+        $this->attributes['password'] = Crypt::encryptString($value);
     }
 
-    /**
-     * Get decrypted password
-     */
+    // Decrypt password when getting (custom accessor/helper)
     public function getDecryptedPasswordAttribute()
     {
         try {
-            return decrypt($this->attributes['password']);
+            return Crypt::decryptString($this->attributes['password']);
         } catch (\Exception $e) {
             return null;
         }
     }
 
-    /**
-     * Get all pelanggans using this router
-     */
-    public function pelanggans()
+    public function pppoeUsers(): HasMany
+    {
+        return $this->hasMany(MikrotikPppoeUser::class);
+    }
+    
+    // Direct relationship to Customers linked to this router
+    public function pelanggans(): HasMany
     {
         return $this->hasMany(Pelanggan::class);
-    }
-
-    /**
-     * Scope for active routers
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for online routers
-     */
-    public function scopeOnline($query)
-    {
-        return $query->where('connection_status', 'online');
     }
 }

@@ -367,182 +367,124 @@ $pelangganSearchOptions = $pelanggans->map(function ($pelanggan) {
     </form>
 </div>
 
-<x-guide-panel key="onus-register" title="Panduan Lengkap Registrasi ONU">
-    <div class="space-y-4 text-sm text-gray-600">
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-            <p class="font-semibold text-blue-900 mb-1"><i class="fas fa-info-circle mr-2"></i>Persiapan Sebelum Registrasi</p>
-            <ul class="text-xs text-blue-800 space-y-1 ml-4 list-disc">
-                <li>Pastikan ONU sudah terhubung secara fisik ke OLT (via ODP dan splitter)</li>
-                <li>Siapkan <strong>Serial Number</strong> ONU (biasanya tercetak di stiker ONU)</li>
-                <li>Ketahui <strong>Card</strong> dan <strong>Port</strong> OLT tempat ONU terhubung</li>
-                <li>Pastikan OLT sudah terdaftar dan dapat diakses</li>
-                <li>Siapkan informasi pelanggan dan ODP jika sudah ada</li>
-            </ul>
-        </div>
+<!-- Guide Modal -->
+<div x-data="{ show: false }" 
+     x-show="show" 
+     @open-guide-onus-register.window="show = true" 
+     @keydown.escape.window="show = false"
+     class="relative z-50" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true"
+     style="display: none;">
+    
+    <div x-show="show" 
+         x-transition:enter="ease-out duration-300" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100" 
+         x-transition:leave="ease-in duration-200" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0" 
+         class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">1</span>
-                Informasi Dasar ONU
-            </p>
-            <ul class="text-xs text-gray-700 space-y-1 ml-8">
-                <li><strong>OLT:</strong> Pilih OLT tempat ONU terhubung. Pastikan OLT status "Online".</li>
-                <li><strong>Serial Number:</strong> Serial number unik ONU (wajib, tidak boleh duplikat). Format biasanya: ZTEGC12345678 atau sesuai vendor.</li>
-                <li><strong>Card & Port:</strong> Lokasi fisik ONU di OLT. Contoh: Card 1, Port 3 berarti ONU terhubung di port 1/1/3.</li>
-                <li><strong>Nama/Internal ID:</strong> Nama untuk identifikasi internal (opsional).</li>
-                <li><strong>MAC Address:</strong> MAC address ONU (opsional, untuk tracking).</li>
-                <li><strong>Tipe ONT/ONU:</strong> Model ONU (contoh: ZTE-F660, Huawei HG8245H).</li>
-                <li><strong>Pelanggan & ODP:</strong> Hubungkan dengan pelanggan dan ODP untuk tracking (opsional).</li>
-            </ul>
-            <div class="ml-8 mt-2 bg-gray-50 p-2 rounded text-xs">
-                <p class="font-semibold text-gray-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>Tips:</p>
-                <p class="text-gray-700">Gunakan tombol <strong>"Register"</strong> di tabel "Unconfigured ONU" untuk auto-fill informasi ONU yang terdeteksi otomatis oleh OLT.</p>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 @click.away="show = false"
+                 class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-book text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">Panduan Registrasi ONU</h3>
+                            
+                            <div class="mt-4 text-sm text-gray-600 space-y-6 text-left max-h-[60vh] overflow-y-auto pr-2">
+                                
+                                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                                    <p class="text-xs text-blue-800">
+                                        <strong>Pro Tip:</strong> Gunakan fitur <strong>"Auto Detect"</strong> di panel kanan untuk mendeteksi ONU yang baru dipasang secara otomatis tanpa mengetik Serial Number manual.
+                                    </p>
+                                </div>
+
+                                <!-- Step 1: Identifikasi -->
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2">1</span>
+                                        Identifikasi Perangkat
+                                    </h4>
+                                    <ul class="text-xs text-gray-700 space-y-2 ml-8 list-disc">
+                                        <li><strong>OLT:</strong> Pilih OLT tempat ONU terhubung.</li>
+                                        <li><strong>Serial Number (SN):</strong> ID unik perangkat. 
+                                            <ul class="ml-4 mt-1 text-gray-500">
+                                                <li>ZTE: Format `ZTEGCxxxxx` atau `ZTEG12345678`</li>
+                                                <li>Huawei: Format `48575443xxxxx` (HEX) atau `HWTCxxxxx`</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>Interface:</strong> Pastikan memilih Card dan Port yang benar (sesuai kabel fisik).</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Step 2: Konfigurasi Layanan -->
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2">2</span>
+                                        Konfigurasi Layanan (Service Profile)
+                                    </h4>
+                                    <div class="grid gap-3 ml-8">
+                                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                                            <p class="text-xs font-bold text-gray-800 mb-1">Mode PPPoE (Recommended)</p>
+                                            <p class="text-xs text-gray-600">ONU akan melakukan dial-up ke MikroTik/Router.</p>
+                                            <ul class="list-disc ml-4 mt-1 text-xs text-gray-500">
+                                                <li>Wajib isi <strong>VLAN ID</strong> (sesuai setting MikroTik)</li>
+                                                <li>Wajib isi <strong>Username & Password</strong> PPPoE</li>
+                                            </ul>
+                                        </div>
+                                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                                            <p class="text-xs font-bold text-gray-800 mb-1">Mode Bridge</p>
+                                            <p class="text-xs text-gray-600">ONU hanya sebagai media converter. Dial-up dilakukan di Router user.</p>
+                                            <ul class="list-disc ml-4 mt-1 text-xs text-gray-500">
+                                                <li>Cukup isi <strong>VLAN ID</strong></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3: Troubleshooting -->
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2">3</span>
+                                        Troubleshooting Gagal Registrasi
+                                    </h4>
+                                    <ul class="text-xs text-red-700 space-y-1 ml-8 list-disc">
+                                        <li><strong>Error "ONU already exists":</strong> SN sudah terdaftar. Cek menu "Data Master > ONU".</li>
+                                        <li><strong>Error "LOS":</strong> Cek redaman kabel (idealnya -18dBm s/d -25dBm).</li>
+                                        <li><strong>Status "Offline":</strong> Pastikan ONU menyala dan kabel fiber terpasang benar.</li>
+                                    </ul>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" @click="show = false" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Tutup</button>
+                    <!-- <a href="https://github.com/minaot/minaot" target="_blank" class="hidden sm:inline-flex mr-3 mt-3 w-full justify-center rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 shadow-sm ring-1 ring-inset ring-blue-200 hover:bg-blue-100 sm:mt-0 sm:w-auto items-center">
+                        <i class="fas fa-external-link-alt mr-2"></i> Ref. Hardwar
+                    </a> -->
+                </div>
             </div>
-        </div>
-
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">2</span>
-                Mode WAN & Konfigurasi
-            </p>
-            <div class="ml-8 space-y-3">
-                <div class="bg-green-50 border border-green-200 rounded p-2">
-                    <p class="text-xs font-semibold text-green-900 mb-1"><i class="fas fa-network-wired mr-1"></i>PPPoE (Point-to-Point Protocol over Ethernet)</p>
-                    <ul class="text-xs text-green-800 space-y-1 ml-4 list-disc">
-                        <li><strong>Digunakan untuk:</strong> Koneksi internet dengan autentikasi username/password</li>
-                        <li><strong>Field yang diperlukan:</strong>
-                            <ul class="ml-4 mt-1 space-y-0.5 list-circle">
-                                <li>PPPoE Username (wajib)</li>
-                                <li>PPPoE Password (wajib)</li>
-                                <li>VLAN ID (wajib)</li>
-                                <li>Speed Profile (opsional, untuk limit bandwidth)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Contoh:</strong> Username: pelanggan001@isp.com, Password: rahasia123, VLAN: 100</li>
-                    </ul>
-                </div>
-
-                <div class="bg-blue-50 border border-blue-200 rounded p-2">
-                    <p class="text-xs font-semibold text-blue-900 mb-1"><i class="fas fa-globe mr-1"></i>DHCP (Dynamic Host Configuration Protocol)</p>
-                    <ul class="text-xs text-blue-800 space-y-1 ml-4 list-disc">
-                        <li><strong>Digunakan untuk:</strong> Koneksi internet dengan IP otomatis dari DHCP server</li>
-                        <li><strong>Field yang diperlukan:</strong>
-                            <ul class="ml-4 mt-1 space-y-0.5 list-circle">
-                                <li>VLAN ID (wajib)</li>
-                                <li>Speed Profile (opsional)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Catatan:</strong> Tidak perlu username/password, IP akan diberikan otomatis</li>
-                    </ul>
-                </div>
-
-                <div class="bg-purple-50 border border-purple-200 rounded p-2">
-                    <p class="text-xs font-semibold text-purple-900 mb-1"><i class="fas fa-server mr-1"></i>Static IP</p>
-                    <ul class="text-xs text-purple-800 space-y-1 ml-4 list-disc">
-                        <li><strong>Digunakan untuk:</strong> Koneksi dengan IP address tetap</li>
-                        <li><strong>Field yang diperlukan:</strong>
-                            <ul class="ml-4 mt-1 space-y-0.5 list-circle">
-                                <li>Static IP Address (wajib, format: 192.168.1.100)</li>
-                                <li>Gateway (wajib, format: 192.168.1.1)</li>
-                                <li>Subnet Mask (wajib, format: 255.255.255.0 atau /24)</li>
-                                <li>DNS 1 (opsional)</li>
-                                <li>DNS 2 (opsional)</li>
-                                <li>VLAN ID (wajib)</li>
-                                <li>Speed Profile (opsional)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Contoh:</strong> IP: 192.168.1.100, Gateway: 192.168.1.1, Subnet: 255.255.255.0</li>
-                    </ul>
-                </div>
-
-                <div class="bg-orange-50 border border-orange-200 rounded p-2">
-                    <p class="text-xs font-semibold text-orange-900 mb-1"><i class="fas fa-bridge mr-1"></i>Bridge</p>
-                    <ul class="text-xs text-orange-800 space-y-1 ml-4 list-disc">
-                        <li><strong>Digunakan untuk:</strong> Mode bridge, traffic diteruskan langsung tanpa NAT</li>
-                        <li><strong>Field yang diperlukan:</strong>
-                            <ul class="ml-4 mt-1 space-y-0.5 list-circle">
-                                <li>VLAN ID (wajib)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Catatan:</strong> Tidak ada konfigurasi IP/PPPoE, hanya VLAN tagging</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">3</span>
-                VLAN & Speed Profile
-            </p>
-            <ul class="text-xs text-gray-700 space-y-1 ml-8">
-                <li><strong>VLAN ID:</strong>
-                    <ul class="ml-4 mt-1 space-y-1 list-disc">
-                        <li>Pilih dari <strong>Database</strong>: Gunakan VLAN yang sudah terdaftar di sistem</li>
-                        <li>Masukkan <strong>Manual</strong>: Ketik VLAN ID langsung (1-4096)</li>
-                        <li>VLAN digunakan untuk segmentasi jaringan dan routing traffic</li>
-                    </ul>
-                </li>
-                <li><strong>Speed Profile:</strong>
-                    <ul class="ml-4 mt-1 space-y-1 list-disc">
-                        <li>Pilih profile untuk membatasi bandwidth download/upload</li>
-                        <li>Contoh: 100 Mbps download, 50 Mbps upload</li>
-                        <li>Jika tidak dipilih, tidak ada limit bandwidth (unlimited)</li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">4</span>
-                Proses Registrasi
-            </p>
-            <ol class="text-xs text-gray-700 space-y-1 ml-8 list-decimal">
-                <li>Isi semua field yang diperlukan sesuai mode WAN yang dipilih</li>
-                <li>Klik tombol <strong>"Simpan & Provisioning"</strong></li>
-                <li>Sistem akan:
-                    <ul class="ml-4 mt-1 space-y-1 list-disc">
-                        <li>Validasi data yang diinput</li>
-                        <li>Mengirim perintah registrasi ke OLT</li>
-                        <li>Membuat record ONU di database</li>
-                        <li>Mengkonfigurasi service (VLAN, PPPoE, dll) di OLT</li>
-                    </ul>
-                </li>
-                <li>Jika berhasil, akan redirect ke halaman detail ONU</li>
-                <li>Jika gagal, error message akan ditampilkan dan data tetap tersimpan untuk editing</li>
-            </ol>
-        </div>
-
-        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded mt-4">
-            <p class="font-semibold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Tips & Troubleshooting</p>
-            <ul class="text-xs text-yellow-800 space-y-1 ml-4 list-disc">
-                <li><strong>Serial Number sudah terdaftar:</strong> ONU mungkin sudah diregistrasi sebelumnya. Cek di menu "All ONUs".</li>
-                <li><strong>Gagal registrasi ke OLT:</strong>
-                    <ul class="ml-4 mt-1 space-y-0.5 list-circle">
-                        <li>Pastikan OLT dapat diakses dan status "Online"</li>
-                        <li>Pastikan write community string benar (untuk SNMP) atau username/password benar (untuk Telnet/SSH)</li>
-                        <li>Pastikan Card dan Port benar sesuai instalasi fisik</li>
-                        <li>Pastikan ONU sudah terhubung secara fisik ke OLT</li>
-                    </ul>
-                </li>
-                <li><strong>ONU tidak muncul setelah registrasi:</strong> Tunggu beberapa detik, lalu refresh halaman atau klik "Sinkron" di halaman OLT.</li>
-                <li><strong>Service tidak berfungsi:</strong> Pastikan VLAN ID benar dan sesuai dengan konfigurasi jaringan ISP.</li>
-            </ul>
-        </div>
-
-        <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded mt-4">
-            <p class="font-semibold text-green-900 mb-1"><i class="fas fa-check-circle mr-2"></i>Setelah Registrasi Berhasil</p>
-            <ul class="text-xs text-green-800 space-y-1 ml-4 list-disc">
-                <li>ONU akan muncul di menu "All ONUs" dengan status sesuai kondisi aktual</li>
-                <li>Dapat menambah service tambahan (Service 2, 3, 4) di halaman detail ONU</li>
-                <li>Dapat mengkonfigurasi WiFi dan LAN ports di halaman detail ONU</li>
-                <li>Dapat melakukan remote actions: Reboot, Reset, Disable, Enable</li>
-                <li>Dapat memantau traffic real-time di halaman detail ONU</li>
-            </ul>
         </div>
     </div>
-</x-guide-panel>
+</div>
 @endsection
 
 @push('scripts')
@@ -556,11 +498,12 @@ $pelangganSearchOptions = $pelanggans->map(function ($pelanggan) {
             const hiddenInput = wrapper.querySelector('[data-select-search-value]');
             const resultsContainer = wrapper.querySelector('[data-select-search-results]');
             const optionsData = wrapper.dataset.options ? JSON.parse(wrapper.dataset.options) : [];
-        if (!input || !hiddenInput || !resultsContainer || optionsData.length === 0) {
-            return;
-        }
 
-        resultsContainer.classList.add('hidden');
+            if (!input || !hiddenInput || !resultsContainer || optionsData.length === 0) {
+                return;
+            }
+
+            resultsContainer.classList.add('hidden');
 
             const maxItems = parseInt(wrapper.dataset.maxItems || '6', 10);
             const odpSelectTarget = wrapper.dataset.odpSelect ? document.querySelector(wrapper.dataset.odpSelect) : null;
@@ -571,74 +514,74 @@ $pelangganSearchOptions = $pelanggans->map(function ($pelanggan) {
                 input.value = `${option.label}${subtitle}`;
             };
 
-        const selectOption = (option) => {
-            hiddenInput.value = option.value;
-            hiddenInput.dispatchEvent(new Event('change'));
-            setInputDisplay(option);
+            const selectOption = (option) => {
+                hiddenInput.value = option.value;
+                hiddenInput.dispatchEvent(new Event('change'));
+                setInputDisplay(option);
 
-            if (odpSelectTarget) {
-                const mappedOdp = pelangganOdpMap[option.value] ?? option.odp_id ?? '';
-                odpSelectTarget.value = mappedOdp;
-                odpSelectTarget.dispatchEvent(new Event('change'));
-            }
+                if (odpSelectTarget) {
+                    const mappedOdp = pelangganOdpMap[option.value] ?? option.odp_id ?? '';
+                    odpSelectTarget.value = mappedOdp;
+                    odpSelectTarget.dispatchEvent(new Event('change'));
+                }
 
-            resultsContainer.innerHTML = '';
-            resultsContainer.classList.add('hidden');
-        };
-
-        const renderResults = (term = '') => {
-            const normalized = (term || '').toLowerCase();
-
-            if (normalized.length < 2) {
                 resultsContainer.innerHTML = '';
                 resultsContainer.classList.add('hidden');
-                return;
-            }
+            };
 
-            const filtered = optionsData.filter(option => {
-                return [option.label, option.subtitle, option.meta]
-                    .filter(Boolean)
-                    .some(text => text.toLowerCase().includes(normalized));
-            }).slice(0, maxItems);
+            const renderResults = (term = '') => {
+                const normalized = (term || '').toLowerCase();
 
-            resultsContainer.innerHTML = '';
-            resultsContainer.classList.remove('hidden');
-
-            if (filtered.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'p-2 text-xs text-gray-400';
-                empty.textContent = 'Tidak ada hasil';
-                resultsContainer.appendChild(empty);
-                return;
-            }
-
-            filtered.forEach(option => {
-                const card = document.createElement('div');
-                card.className = 'p-2 text-xs bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition';
-
-                const title = document.createElement('p');
-                title.className = 'font-semibold text-gray-900';
-                title.textContent = option.label;
-                card.appendChild(title);
-
-                if (option.subtitle) {
-                    const subtitle = document.createElement('p');
-                    subtitle.className = 'text-gray-500';
-                    subtitle.textContent = option.subtitle;
-                    card.appendChild(subtitle);
+                if (normalized.length < 2) {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.add('hidden');
+                    return;
                 }
 
-                if (option.meta) {
-                    const meta = document.createElement('p');
-                    meta.className = 'text-gray-400 text-[11px] mt-1';
-                    meta.textContent = option.meta;
-                    card.appendChild(meta);
+                const filtered = optionsData.filter(option => {
+                    return [option.label, option.subtitle, option.meta]
+                        .filter(Boolean)
+                        .some(text => text.toLowerCase().includes(normalized));
+                }).slice(0, maxItems);
+
+                resultsContainer.innerHTML = '';
+                resultsContainer.classList.remove('hidden');
+
+                if (filtered.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-2 text-xs text-gray-400';
+                    empty.textContent = 'Tidak ada hasil';
+                    resultsContainer.appendChild(empty);
+                    return;
                 }
 
-                card.addEventListener('click', () => selectOption(option));
-                resultsContainer.appendChild(card);
-            });
-        };
+                filtered.forEach(option => {
+                    const card = document.createElement('div');
+                    card.className = 'p-2 text-xs bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition';
+
+                    const title = document.createElement('p');
+                    title.className = 'font-semibold text-gray-900';
+                    title.textContent = option.label;
+                    card.appendChild(title);
+
+                    if (option.subtitle) {
+                        const subtitle = document.createElement('p');
+                        subtitle.className = 'text-gray-500';
+                        subtitle.textContent = option.subtitle;
+                        card.appendChild(subtitle);
+                    }
+
+                    if (option.meta) {
+                        const meta = document.createElement('p');
+                        meta.className = 'text-gray-400 text-[11px] mt-1';
+                        meta.textContent = option.meta;
+                        card.appendChild(meta);
+                    }
+
+                    card.addEventListener('click', () => selectOption(option));
+                    resultsContainer.appendChild(card);
+                });
+            };
 
             const debounce = (fn, delay = 250) => {
                 let timeout;
@@ -658,8 +601,6 @@ $pelangganSearchOptions = $pelanggans->map(function ($pelanggan) {
                     setInputDisplay(selectedOption);
                 }
             }
-
-            renderResults();
         };
 
         document.querySelectorAll('[data-select-search]').forEach(initSelectSearch);

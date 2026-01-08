@@ -22,11 +22,11 @@ class ZteC300Driver extends BaseOltDriver
     const OID_ZTE_ONU_REBOOT = '1.3.6.1.4.1.3902.1015.1.1.1.1.7';
     const OID_ZTE_ONU_DISABLE = '1.3.6.1.4.1.3902.1015.1.1.1.1.8';
     const OID_ZTE_ONU_ENABLE = '1.3.6.1.4.1.3902.1015.1.1.1.1.9';
-    const OID_ZTE_TEMPERATURE = '1.3.6.1.4.1.3902.1015.1.1.1.1.16'; // Temperature OID (contoh)
-    const OID_ZTE_FAN_SPEED = '1.3.6.1.4.1.3902.1015.1.1.1.1.17'; // FAN speed OID (contoh)
-    const OID_ZTE_POWER_SUPPLY = '1.3.6.1.4.1.3902.1015.1.1.1.1.18'; // Power supply OID (contoh)
-    const OID_ZTE_CLEAR_CONFIG = '1.3.6.1.4.1.3902.1015.1.1.1.1.19'; // Clear config OID (contoh)
-    const OID_ZTE_CHANGE_SN = '1.3.6.1.4.1.3902.1015.1.1.1.1.20'; // Change SN OID (contoh) // Same as disable but with value 0
+    const OID_ZTE_TEMPERATURE = '1.3.6.1.4.1.3902.1015.2.1.3.2.0'; // Chassis Temperature (might need adjustment based on slot)
+    const OID_ZTE_FAN_SPEED = '1.3.6.1.4.1.3320.9.187.3.1.2'; // Fan Speed
+    const OID_ZTE_POWER_SUPPLY = '1.3.6.1.4.1.3902.1015.2.1.2.2.0'; // Power Supply Status
+    const OID_ZTE_CLEAR_CONFIG = '1.3.6.1.4.1.3902.1015.1.1.1.1.19'; // Placeholder - use Telnet for this
+    const OID_ZTE_CHANGE_SN = '1.3.6.1.4.1.3902.1015.1.1.1.1.20'; // Placeholder - use Telnet for this
     const OID_ZTE_ONU_BANDWIDTH = '1.3.6.1.4.1.3902.1015.1.1.1.1.10';
 
     public function getVendorName(): string
@@ -587,43 +587,72 @@ class ZteC300Driver extends BaseOltDriver
     {
         try {
             $this->connect();
+            
+            // For complex configuration like PPPoE, standard SNMP OIDs are often insufficient or proprietary.
+            // We'll use Telnet/CLI as a robust fallback if SNMP OIDs aren't available for specific WAN settings.
+            if ($this->olt->connection_type === 'telnet') {
+                return $this->configureServiceViaTelnet($onu, $service);
+            }
 
+            // Fallback to SNMP for basic VLAN if not using Telnet
             $onuData = $this->findOnuBySerial($onu->serial_number);
             if (!$onuData) {
                 throw new Exception('ONU tidak ditemukan di OLT');
             }
 
-            $writeCommunity = $this->olt->write_snmp_community ?? $this->olt->snmp_community ?? 'private';
-
-            // Configure VLAN
+            // Configure VLAN (Basic SNMP)
             if ($service->vlan_id) {
-                $vlanOid = '1.3.6.1.4.1.3902.1015.1.1.1.1.11'; // OID for VLAN config
+                $vlanOid = '1.3.6.1.4.1.3902.1015.1.1.1.1.11'; // Check this OID for your specific firmware
                 $vlanConfigOid = $vlanOid . ".{$onuData['card']}.{$onuData['port']}.{$onuData['onu_id']}";
-
                 $result = $this->snmpSet($vlanConfigOid, 'i', $service->vlan_id);
-
-                if ($result === false) {
-                    throw new Exception('Gagal configure VLAN');
-                }
+                if ($result === false) throw new Exception('Gagal configure VLAN via SNMP');
             }
 
-            // Configure PPPoE (if applicable)
-            if ($service->wan_mode === 'pppoe' && $service->pppoe_username) {
-                // PPPoE configuration OIDs
-                // This requires specific OIDs from ZTE MIB
-                // Placeholder for now
+            if ($service->wan_mode === 'pppoe') {
+                throw new Exception('Konfigurasi PPPoE via SNMP belum didukung penuh. Gunakan mode Telnet untuk fitur ini.');
             }
 
-            return [
-                'success' => true,
-                'message' => 'Service berhasil dikonfigurasi',
-            ];
+            return ['success' => true, 'message' => 'Service configured (VLAN only via SNMP)'];
         } catch (Exception $e) {
             Log::error("ZTE C300 configureService error: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ];
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    protected function configureServiceViaTelnet(\App\Models\Onu $onu, \App\Models\OnuService $service): array
+    {
+        // Implementation of Telnet commands for ZTE C300
+        // Based on: configure terminal -> interface gpon-onu -> pon-onu-mng -> wan-ip
+        try {
+            $onuData = $this->findOnuBySerial($onu->serial_number);
+            if (!$onuData) throw new Exception('ONU not found');
+
+            $cmds = [];
+            $cmds[] = "configure terminal";
+            $cmds[] = "pon-onu-mng gpon-onu_{$onuData['card']}/{$onuData['port']}:{$onuData['onu_id']}";
+            
+            // Clean up existing WAN
+            $cmds[] = "no wan-ip 1"; 
+            
+            if ($service->wan_mode === 'pppoe') {
+                $cmds[] = "wan-ip 1 mode pppoe username {$service->pppoe_username} password {$service->pppoe_password} vlan-profile {$service->vlan_id} host 1";
+            } elseif ($service->wan_mode === 'static') {
+                $cmds[] = "wan-ip 1 mode static ip-profile {$service->name} host 1"; // Simplified
+            } else {
+                 $cmds[] = "wan-ip 1 mode bridge vlan-profile {$service->vlan_id} host 1";
+            }
+            
+            $cmds[] = "exit"; // exit pon-onu-mng
+            $cmds[] = "exit"; // exit config
+            
+            // Execute commands... (This requires moving executeCommand to BaseOltDriver or duplicating logic)
+            // For now, assume we can call a helper or throw if not implemented.
+            // Since executeCommand is protected in ZteC320, we should really start using a proper TelnetClient service or trait.
+            
+            throw new Exception('Telnet logic for C300 needs `executeCommand` implementation similar to C320Driver.');
+            
+        } catch (Exception $e) {
+             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 

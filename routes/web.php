@@ -506,6 +506,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/olts/{olt}/test-connection', [\App\Http\Controllers\Web\OltController::class, 'testConnection'])->name('olts.test-connection');
     });
 
+    // MikroTik Routes
+    Route::resource('mikrotik', App\Http\Controllers\Web\MikrotikController::class);
+    Route::post('mikrotik/{mikrotik}/test-connection', [App\Http\Controllers\Web\MikrotikController::class, 'testConnection'])->name('mikrotik.test');
+    Route::post('mikrotik/{mikrotik}/sync', [App\Http\Controllers\Web\MikrotikController::class, 'sync'])->name('mikrotik.sync');
+    Route::get('mikrotik/{mikrotik}/unmapped', [App\Http\Controllers\Web\MikrotikController::class, 'unmapped'])->name('mikrotik.unmapped');
+    Route::get('mikrotik/create-customer/{pppoeUser}', [App\Http\Controllers\Web\MikrotikController::class, 'createCustomerFromPppoe'])->name('mikrotik.create-customer');
+
     // ONU Management
     Route::middleware(['permission:view-onu'])->group(function () {
         Route::get('/onus', [\App\Http\Controllers\Web\OnuController::class, 'index'])->name('onus.index');

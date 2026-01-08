@@ -60,146 +60,134 @@
     </div>
 </div>
 
-<x-guide-panel key="olt-create" title="Panduan Lengkap Registrasi OLT">
-    <div class="space-y-4 text-sm text-gray-600">
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-            <p class="font-semibold text-blue-900 mb-1"><i class="fas fa-info-circle mr-2"></i>Persiapan Sebelum Registrasi</p>
-            <ul class="text-xs text-blue-800 space-y-1 ml-4 list-disc">
-                <li>Pastikan OLT sudah terhubung ke jaringan dan dapat diakses dari server</li>
-                <li>Siapkan kredensial akses (SNMP community, username/password untuk Telnet/SSH)</li>
-                <li>Ketahui IP address manajemen OLT</li>
-                <li>Pastikan firewall mengizinkan koneksi dari server ke OLT</li>
-            </ul>
-        </div>
+<!-- Guide Modal -->
+<div x-data="{ show: false }" 
+     x-show="show" 
+     @open-guide-olt-create.window="show = true" 
+     @keydown.escape.window="show = false"
+     class="relative z-50" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true"
+     style="display: none;">
+    
+    <div x-show="show" 
+         x-transition:enter="ease-out duration-300" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100" 
+         x-transition:leave="ease-in duration-200" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0" 
+         class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">1</span>
-                Informasi Dasar OLT
-            </p>
-            <ul class="text-xs text-gray-700 space-y-1 ml-8">
-                <li><strong>Kode OLT:</strong> Kode unik untuk identifikasi (contoh: OLT-JKT-001). Harus unik dan tidak boleh duplikat.</li>
-                <li><strong>Nama:</strong> Nama deskriptif OLT (contoh: OLT Jakarta Pusat).</li>
-                <li><strong>IP Address:</strong> IP address manajemen OLT yang dapat diakses dari server. Format: IPv4 (contoh: 192.168.1.100).</li>
-                <li><strong>Port:</strong> Port untuk koneksi (default: 161 untuk SNMP, 23 untuk Telnet, 22 untuk SSH).</li>
-            </ul>
-        </div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 @click.away="show = false"
+                 class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-book text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">Panduan Konfigurasi OLT (ZTE C320/C300)</h3>
+                            
+                            <div class="mt-4 text-sm text-gray-600 space-y-6 text-left max-h-[60vh] overflow-y-auto pr-2">
+                                
+                                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                                    <p class="text-xs text-blue-800">
+                                        <strong>Info:</strong> Panduan ini berfokus pada konfigurasi CLI untuk OLT ZTE C320/C300 agar dapat dimonitor oleh aplikasi.
+                                    </p>
+                                </div>
 
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">2</span>
-                Tipe Koneksi & Kredensial
-            </p>
-            <div class="ml-8 space-y-2">
-                <div>
-                    <p class="text-xs font-semibold text-gray-800 mb-1">SNMP (Simple Network Management Protocol):</p>
-                    <ul class="text-xs text-gray-700 space-y-1 ml-4 list-disc">
-                        <li>Digunakan untuk monitoring dan konfigurasi via SNMP</li>
-                        <li><strong>SNMP Community:</strong> Community string untuk read (default: "public") atau write (default: "private")</li>
-                        <li><strong>⚠️ Security:</strong> Jangan gunakan default "public"/"private" di production! Gunakan community string yang unik dan aman.</li>
-                        <li><strong>SNMP Version:</strong> Pilih v1, v2c (recommended), atau v3 (lebih aman)</li>
-                        <li><strong>Port:</strong> Default 161 UDP (pastikan firewall mengizinkan)</li>
-                        <li>Untuk operasi write (register ONU, reboot, dll), pastikan ada write community string di OLT</li>
-                        <li>Cocok untuk: ZTE C300, ZTE C320, Huawei, Fiberhome, dan OLT modern lainnya</li>
-                    </ul>
-                    <div class="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-800">
-                        <strong>💡 Tips Testing:</strong> Sebelum menambahkan OLT, test koneksi SNMP dulu dari command line:<br>
-                        <code class="bg-blue-100 px-1 rounded">snmpwalk -v2c -c public &lt;IP_OLT&gt;</code><br>
-                        Jika berhasil, akan muncul banyak OID (Object ID) yang mewakili status OLT.
+                                <!-- Step 1: SNMP -->
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2">1</span>
+                                        Konfigurasi SNMP (Wajib)
+                                    </h4>
+                                    <p class="mb-2 text-xs">Untuk mengambil data status, trafik, dan sinyal ONU secara real-time.</p>
+                                    <div class="bg-slate-900 rounded-lg p-3 text-xs font-mono text-green-400 overflow-x-auto shadow-inner">
+                                        <div class="text-gray-500 italic mb-1"># Masuk mode konfigurasi</div>
+                                        <div class="mb-1">conf t</div>
+                                        <div class="text-gray-500 italic mb-1"># Setup Community String (Ganti 'public' dengan kata sandi rahasia Anda)</div>
+                                        <div class="mb-1">snmp-agent community public view AllView rw</div>
+                                        <div class="text-gray-500 italic mb-1"># Setup Versi & View</div>
+                                        <div class="mb-1">snmp-agent view AllView 1.3.6.1 included</div>
+                                        <div class="mb-1">snmp-agent sys-info version v2c</div>
+                                    </div>
+                                    <p class="mt-2 text-xs text-red-600">
+                                        *Penting: Pastikan community string di aplikasi SAMA dengan yang di-setting di OLT.
+                                    </p>
+                                </div>
+
+                                <!-- Step 2: Telnet -->
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2">2</span>
+                                        Konfigurasi User Telnet (Wajib)
+                                    </h4>
+                                    <p class="mb-2 text-xs">Diperlukan untuk fitur Register ONU, Reboot, dan konfigurasi lainnya.</p>
+                                    <div class="bg-slate-900 rounded-lg p-3 text-xs font-mono text-green-400 overflow-x-auto shadow-inner">
+                                        <div class="text-gray-500 italic mb-1"># Buat user baru (contoh: bcm_admin)</div>
+                                        <div class="mb-1">username bcm_admin password bcm_rahasia privilege 15 max-sessions 16</div>
+                                        <div class="text-gray-500 italic mb-1"># Aktifkan layanan Telnet</div>
+                                        <div class="mb-1">telnet server enable</div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3: IP Route -->
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2">3</span>
+                                        Pastikan Akses Jaringan
+                                    </h4>
+                                    <p class="mb-2 text-xs">Pastikan OLT memiliki rute (gateway) yang benar agar bisa diakses server aplikasi.</p>
+                                    <div class="bg-slate-900 rounded-lg p-3 text-xs font-mono text-green-400 overflow-x-auto shadow-inner">
+                                        <div class="text-gray-500 italic mb-1"># Cek IP OLT</div>
+                                        <div class="mb-1">show ip-route</div>
+                                        <div class="text-gray-500 italic mb-1"># Tambah default gateway (jika perlu)</div>
+                                        <div class="mb-1">ip route 0.0.0.0 0.0.0.0 192.168.1.1</div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                    <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                                        <h5 class="text-xs font-bold text-yellow-800 mb-1">Port Standar</h5>
+                                        <ul class="text-xs text-yellow-700 list-disc ml-4">
+                                            <li>SNMP: 161 (UDP)</li>
+                                            <li>Telnet: 23 (TCP)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-green-50 border border-green-200 p-3 rounded-lg">
+                                        <h5 class="text-xs font-bold text-green-800 mb-1">Kompatibilitas</h5>
+                                        <ul class="text-xs text-green-700 list-disc ml-4">
+                                            <li>ZTE C320 (GTGO/GTGH)</li>
+                                            <li>ZTE C300</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-800 mb-1">Telnet:</p>
-                    <ul class="text-xs text-gray-700 space-y-1 ml-4 list-disc">
-                        <li>Koneksi via command line interface</li>
-                        <li>Perlu <strong>Username</strong> dan <strong>Password</strong></li>
-                        <li>Cocok untuk: ZTE C320, devices dengan CLI access</li>
-                    </ul>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-800 mb-1">SSH:</p>
-                    <ul class="text-xs text-gray-700 space-y-1 ml-4 list-disc">
-                        <li>Koneksi secure via SSH</li>
-                        <li>Perlu <strong>Username</strong> dan <strong>Password</strong></li>
-                        <li>Lebih aman daripada Telnet</li>
-                    </ul>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-800 mb-1">API:</p>
-                    <ul class="text-xs text-gray-700 space-y-1 ml-4 list-disc">
-                        <li>Koneksi via REST API</li>
-                        <li>Perlu <strong>API Endpoint URL</strong>, <strong>Username</strong>, dan <strong>Password</strong></li>
-                        <li>Cocok untuk: Modern OLT dengan REST API support</li>
-                    </ul>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" @click="show = false" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Tutup</button>
+                    <a href="https://github.com/minaot/minaot" target="_blank" class="hidden sm:inline-flex mr-3 mt-3 w-full justify-center rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 shadow-sm ring-1 ring-inset ring-blue-200 hover:bg-blue-100 sm:mt-0 sm:w-auto items-center">
+                        <i class="fas fa-external-link-alt mr-2"></i> Ref. Hardwar
+                    </a>
                 </div>
             </div>
         </div>
-
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">3</span>
-                Vendor & Model
-            </p>
-            <ul class="text-xs text-gray-700 space-y-1 ml-8">
-                <li><strong>Vendor:</strong> Pilih vendor OLT (ZTE, Huawei, Fiberhome, dll)</li>
-                <li><strong>Model:</strong> Model spesifik OLT (contoh: C300, C320 untuk ZTE)</li>
-                <li>Sistem akan otomatis menggunakan driver yang sesuai berdasarkan vendor dan model</li>
-                <li>Jika vendor/model tidak didukung, gunakan "Generic" dengan connection type SNMP</li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">4</span>
-                Lokasi (Opsional)
-            </p>
-            <ul class="text-xs text-gray-700 space-y-1 ml-8">
-                <li><strong>Latitude:</strong> Koordinat lintang (-90 sampai 90)</li>
-                <li><strong>Longitude:</strong> Koordinat bujur (-180 sampai 180)</li>
-                <li><strong>Alamat:</strong> Alamat fisik lokasi OLT</li>
-                <li>Digunakan untuk pemetaan di halaman Mapping</li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-semibold text-gray-900 mb-2 flex items-center">
-                <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">5</span>
-                Verifikasi & Testing
-            </p>
-            <ul class="text-xs text-gray-700 space-y-1 ml-8">
-                <li>Setelah menyimpan, sistem akan otomatis melakukan <strong>Test Koneksi</strong></li>
-                <li>Jika koneksi berhasil, OLT akan muncul di daftar dengan status "Online"</li>
-                <li>Jika gagal, periksa:
-                    <ul class="ml-4 mt-1 space-y-1 list-disc">
-                        <li>IP address benar dan dapat diakses</li>
-                        <li>Port tidak terblokir firewall</li>
-                        <li>Kredensial (community/username/password) benar</li>
-                        <li>Jenis koneksi sesuai dengan konfigurasi OLT</li>
-                    </ul>
-                </li>
-                <li>Setelah berhasil, klik tombol <strong>"Sinkron"</strong> untuk mengambil data PON ports dan ONUs dari OLT</li>
-            </ul>
-        </div>
-
-        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded mt-4">
-            <p class="font-semibold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Tips Penting</p>
-            <ul class="text-xs text-yellow-800 space-y-1 ml-4 list-disc">
-                <li>Untuk testing tanpa OLT fisik, gunakan IP <strong>127.0.0.1</strong> atau <strong>localhost</strong> (akan menggunakan mock driver)</li>
-                <li>Pastikan PHP SNMP extension terinstall jika menggunakan SNMP: <code class="bg-yellow-100 px-1 rounded">php -m | grep snmp</code></li>
-                <li><strong>Security:</strong> Jangan gunakan default community string ("public"/"private") di production!</li>
-                <li>Untuk operasi write (register ONU, reboot, dll), pastikan write community string dikonfigurasi di OLT</li>
-                <li>Pastikan port 161 UDP terbuka dari server ke OLT (cek firewall)</li>
-                <li>Jangan poll terlalu cepat - gunakan rate limiting untuk menghindari overload OLT</li>
-                <li>Simpan kredensial dengan aman - password akan dienkripsi di database</li>
-            </ul>
-        </div>
-        
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded mt-4">
-            <p class="font-semibold text-blue-900 mb-1"><i class="fas fa-book mr-2"></i>Dokumentasi Lengkap</p>
-            <p class="text-xs text-blue-800">
-                Untuk panduan lengkap tentang SNMP, OID, troubleshooting, dan best practices, lihat file <strong>SNMP_GUIDE.md</strong> di root project.
-            </p>
-        </div>
     </div>
-</x-guide-panel>
+</div>
 @endsection

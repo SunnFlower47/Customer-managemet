@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mikrotik;
+use App\Models\MikrotikPppoeUser;
+use App\Models\Pelanggan;
 use App\Services\MikrotikService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class MikrotikController extends Controller
 {
@@ -18,195 +20,151 @@ class MikrotikController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * List all routers
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Mikrotik::query();
-
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('connection_status', $request->status);
-        }
-
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('ip_address', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
-            });
-        }
-
-        $mikrotiks = $query->latest()->paginate(15)->appends($request->query());
-
-        return view('mikrotiks.index', compact('mikrotiks'));
+        $routers = Mikrotik::withCount('pppoeUsers')->get();
+        return view('mikrotik.index', compact('routers'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show create form
      */
     public function create()
     {
-        return view('mikrotiks.create');
+        return view('mikrotik.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store new router
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'ip_address' => 'required|ip',
-            'port' => 'required|integer|min:1|max:65535',
-            'username' => 'required|string|max:255',
+            'port' => 'required|integer',
+            'username' => 'required|string',
             'password' => 'required|string',
-            'routeros_version' => 'required|in:v6,v7,v7.1+',
-            'location' => 'nullable|string|max:255',
+            'location' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+        $router = Mikrotik::create($validated);
 
-        $mikrotik = Mikrotik::create($request->all());
-
-        // Test connection
-        $testResult = $this->mikrotikService->testConnection($mikrotik);
-
-        if ($testResult['success']) {
-            return redirect()->route('mikrotiks.index')
-                ->with('success', 'MikroTik berhasil ditambahkan dan koneksi berhasil.');
-        } else {
-            return redirect()->route('mikrotiks.index')
-                ->with('warning', 'MikroTik berhasil ditambahkan, namun koneksi gagal: ' . $testResult['message']);
-        }
+        return redirect()->route('mikrotik.index')->with('success', 'Router MikroTik berhasil ditambahkan.');
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Mikrotik $mikrotik)
-    {
-        // Get dashboard data
-        $resourceUsage = [];
-        $activePppoeCount = 0;
-
-        try {
-            $resourceUsage = $this->mikrotikService->getResourceUsage($mikrotik);
-            $activePppoeUsers = $this->mikrotikService->getActivePppoeUsers($mikrotik);
-            $activePppoeCount = count($activePppoeUsers);
-        } catch (\Exception $e) {
-            // If connection fails, continue without data
-        }
-
-        return view('mikrotiks.show', compact('mikrotik', 'resourceUsage', 'activePppoeCount'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * Show edit form
      */
     public function edit(Mikrotik $mikrotik)
     {
-        return view('mikrotiks.edit', compact('mikrotik'));
+        return view('mikrotik.edit', compact('mikrotik'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update router
      */
     public function update(Request $request, Mikrotik $mikrotik)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'ip_address' => 'required|ip',
-            'port' => 'required|integer|min:1|max:65535',
-            'username' => 'required|string|max:255',
-            'password' => 'nullable|string', // Optional, only update if provided
-            'routeros_version' => 'required|in:v6,v7,v7.1+',
-            'location' => 'nullable|string|max:255',
+            'port' => 'required|integer',
+            'username' => 'required|string',
+            'password' => 'nullable|string', // Nullable on update
+            'location' => 'nullable|string',
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+        if (empty($validated['password'])) {
+            unset($validated['password']);
         }
 
-        $data = $request->all();
+        $mikrotik->update($validated);
 
-        // Only update password if provided
-        if (empty($data['password'])) {
-            unset($data['password']);
-        }
-
-        $mikrotik->update($data);
-
-        // Test connection if password changed or IP/port changed
-        if (isset($data['password']) || $mikrotik->wasChanged(['ip_address', 'port', 'username'])) {
-            $testResult = $this->mikrotikService->testConnection($mikrotik);
-
-            if (!$testResult['success']) {
-                return redirect()->back()
-                    ->with('warning', 'Data berhasil diupdate, namun koneksi gagal: ' . $testResult['message']);
-            }
-        }
-
-        return redirect()->route('mikrotiks.index')
-            ->with('success', 'MikroTik berhasil diupdate.');
+        return redirect()->route('mikrotik.index')->with('success', 'Router MikroTik berhasil diperbarui.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete router
      */
     public function destroy(Mikrotik $mikrotik)
     {
         $mikrotik->delete();
-
-        return redirect()->route('mikrotiks.index')
-            ->with('success', 'MikroTik berhasil dihapus.');
+        return redirect()->route('mikrotik.index')->with('success', 'Router MikroTik berhasil dihapus.');
     }
 
     /**
-     * Test connection to router
+     * Test Connection (AJAX)
      */
     public function testConnection(Mikrotik $mikrotik)
     {
         $result = $this->mikrotikService->testConnection($mikrotik);
+        return response()->json($result);
+    }
 
+    /**
+     * Sync Users from Router
+     */
+    public function sync(Mikrotik $mikrotik)
+    {
+        $result = $this->mikrotikService->syncPppoeUsers($mikrotik);
+        
         if ($result['success']) {
-            return redirect()->back()
-                ->with('success', 'Koneksi berhasil: ' . ($result['identity'] ?? 'Connected'));
+            return redirect()->back()->with('success', "Sync berhasil! Total: {$result['total']}, Baru: {$result['new']}, Updated: {$result['updated']}");
         } else {
-            return redirect()->back()
-                ->with('error', 'Koneksi gagal: ' . $result['message']);
+            return redirect()->back()->with('error', "Sync gagal: " . $result['message']);
         }
     }
 
     /**
-     * Search PPPoE in router
+     * Show detail router and its users
      */
-    public function searchPppoe(Request $request, Mikrotik $mikrotik)
+    public function show(Mikrotik $mikrotik)
     {
-        $request->validate([
-            'username' => 'required|string',
+        // Load relationship for the stats part of the view
+        $mikrotik->load('pppoeUsers');
+        
+        // Paginate users for the table
+        $users = $mikrotik->pppoeUsers()
+            ->with('pelanggan')
+            ->orderBy('username')
+            ->paginate(10);
+
+        return view('mikrotik.show', compact('mikrotik', 'users'));
+    }
+    
+    /**
+     * Show unmapped users (Belum Sinkron)
+     * "Aksi Cepat" page
+     */
+    public function unmapped(Mikrotik $mikrotik)
+    {
+        $users = $mikrotik->pppoeUsers()
+            ->whereNull('pelanggan_id')
+            ->orderBy('username')
+            ->get();
+            
+        return view('mikrotik.unmapped', compact('mikrotik', 'users'));
+    }
+
+    /**
+     * Create Customer from PPPoE User (Form)
+     */
+    public function createCustomerFromPppoe(MikrotikPppoeUser $pppoeUser)
+    {
+        // Pass PPPoE data to the customer create view
+        // You'll need to adjust your existing customer create view to accept these checks
+        // or create a dedicated one.
+        // For now, let's assume we use the standard create view with query params
+        return redirect()->route('pelanggans.create', [
+            'mikrotik_id' => $pppoeUser->mikrotik_id,
+            'pppoe_username' => $pppoeUser->username,
+            'pppoe_password' => $pppoeUser->password,
+            'packet_name' => $pppoeUser->profile, // Changed key to generic prompt for now, user can map it
         ]);
-
-        $pppoe = $this->mikrotikService->findPppoe($mikrotik, $request->username);
-
-        if ($pppoe) {
-            return redirect()->back()
-                ->with('pppoe_found', $pppoe)
-                ->with('success', 'PPPoE ditemukan di router.');
-        } else {
-            return redirect()->back()
-                ->with('error', 'PPPoE tidak ditemukan di router.');
-        }
     }
 }

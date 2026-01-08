@@ -118,8 +118,8 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/wifi-billing-system.git
-cd wifi-billing-system/backend
+git clone https:github.com/SunnFlower47/Customer-managemet.git
+cd customer-managemet
 ```
 
 2. **Install dependencies**

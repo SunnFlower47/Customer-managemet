@@ -108,13 +108,13 @@
         <thead>
             <tr>
                 <th style="width: 5%;">No</th>
-                <th style="width: 20%;">Nama Pelanggan</th>
+                <th style="width: 20%;">Nama / NIK</th>
                 <th style="width: 12%;">PPPoE</th>
                 <th style="width: 12%;">No. HP</th>
-                <th style="width: 15%;">Paket</th>
-                <th style="width: 12%;">Penagih</th>
+                <th style="width: 20%;">Paket & Harga</th>
+                <th style="width: 10%;">Penagih</th>
                 <th style="width: 8%;">Tgl Bayar</th>
-                <th style="width: 8%;">Status</th>
+                <th style="width: 5%;">Status</th>
                 <th style="width: 8%;">Alamat</th>
             </tr>
         </thead>
@@ -122,13 +122,24 @@
             @forelse($pelanggans as $index => $pelanggan)
             <tr class="{{ $index % 2 == 1 ? 'even' : '' }}">
                 <td>{{ $index + 1 }}</td>
-                <td><strong>{{ $pelanggan->nama }}</strong></td>
+                <td>
+                    <strong>{{ $pelanggan->nama }}</strong>
+                    @if($pelanggan->nik)
+                        <br><small class="text-gray-500">NIK: {{ $pelanggan->nik }}</small>
+                    @endif
+                </td>
                 <td>{{ $pelanggan->pppoe }}</td>
                 <td>{{ $pelanggan->no_hp }}</td>
                 <td>
                     @if($pelanggan->paket)
-                        {{ $pelanggan->paket->nama_paket }}<br>
-                        <small>Rp {{ number_format((float)$pelanggan->paket->harga, 0, ',', '.') }}</small>
+                        <strong>{{ $pelanggan->paket->nama_paket }}</strong><br>
+                        @if($pelanggan->paket->harga_dasar)
+                            <small>Dasar: Rp {{ number_format((float)$pelanggan->paket->harga_dasar, 0, ',', '.') }}</small><br>
+                            <small>PPN: Rp {{ number_format((float)$pelanggan->paket->ppn_nominal, 0, ',', '.') }}</small><br>
+                            <small>BHP: Rp {{ number_format((float)$pelanggan->paket->bhp_nominal, 0, ',', '.') }}</small><br>
+                            <small>USO: Rp {{ number_format((float)$pelanggan->paket->uso_nominal, 0, ',', '.') }}</small><br>
+                        @endif
+                        <strong>Total: Rp {{ number_format((float)$pelanggan->paket->harga, 0, ',', '.') }}</strong>
                     @else
                         <span class="text-gray-400 italic">Belum ada paket</span>
                     @endif

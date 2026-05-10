@@ -55,6 +55,17 @@
                         <x-form-error field="nama" />
                     </div>
 
+                    <!-- NIK -->
+                    <div>
+                        <label for="nik" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-id-card mr-2 text-blue-600"></i>NIK (Opsional)
+                        </label>
+                        <input type="text" name="nik" id="nik" value="{{ old('nik') }}"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-medium bg-gray-50 focus:bg-white @error('nik') border-red-500 @enderror"
+                            placeholder="Masukkan 16 digit NIK...">
+                        <x-form-error field="nik" />
+                    </div>
+
                     <!-- PPPoE -->
                     <div>
                         <label for="pppoe" class="block text-sm font-semibold text-gray-700 mb-2">

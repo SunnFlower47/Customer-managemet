@@ -95,6 +95,9 @@ class SettingController extends Controller
             'deskripsi' => 'nullable|string',
             'payment_code_prefix' => 'required|string|max:3|min:1',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'ppn_persen' => 'nullable|numeric|min:0|max:100',
+            'bhp_persen' => 'nullable|numeric|min:0|max:100',
+            'uso_persen' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $companyProfile = CompanyProfile::firstOrNew();
@@ -114,6 +117,9 @@ class SettingController extends Controller
             'website' => $request->website,
             'deskripsi' => $request->deskripsi,
             'payment_code_prefix' => strtoupper($request->payment_code_prefix),
+            'ppn_persen' => $request->ppn_persen ?? 11.00,
+            'bhp_persen' => $request->bhp_persen ?? 0.50,
+            'uso_persen' => $request->uso_persen ?? 1.25,
         ];
 
         // Handle logo upload

@@ -16,6 +16,7 @@ class Pelanggan extends Authenticatable
 
     protected $fillable = [
         'nama',
+        'nik',
         'pppoe',
         'serial_number_stb',
         'alamat',

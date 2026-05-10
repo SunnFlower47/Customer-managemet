@@ -16,6 +16,50 @@ use Maatwebsite\Excel\Facades\Excel;
 class PembayaranController extends BaseController
 {
     /**
+     * Apply listing filters to pembayaran query.
+     */
+    private function applyListingFilters($query, Request $request)
+    {
+        if (Auth::user()->role === 'penagih') {
+            $penagihId = Penagih::where('user_id', Auth::id())->value('id');
+            if ($penagihId) {
+                $query->where('penagih_id', $penagihId);
+            }
+        }
+
+        $filterStatus = $request->input('filter_status', $request->input('status'));
+        if (!is_null($filterStatus) && $filterStatus !== '') {
+            $query->where('status', $filterStatus);
+        }
+
+        if ($request->filled('bulan')) {
+            $query->where('bulan_tagihan', $request->bulan);
+        }
+
+        if ($request->filled('tahun')) {
+            $query->where('tahun_tagihan', $request->tahun);
+        }
+
+        if ($request->filled('penagih_id')) {
+            $query->where('penagih_id', $request->penagih_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('kode_pembayaran', 'like', "%{$search}%")
+                  ->orWhereHas('pelanggan', function($subQ) use ($search) {
+                      $subQ->where('nama', 'like', "%{$search}%")
+                           ->orWhere('pppoe', 'like', "%{$search}%")
+                           ->orWhere('no_hp', 'like', "%{$search}%")
+                           ->orWhere('alamat', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query;
+    }
+    /**
      * Generate unique payment code
      */
     private function generateKodePembayaran()
@@ -37,51 +81,16 @@ class PembayaranController extends BaseController
     public function index(Request $request)
     {
         $query = Pembayaran::with(['pelanggan', 'penagih']);
-
-        // Filter by penagih if user is penagih
-        if (Auth::user()->role === 'penagih') {
-            $penagihId = Penagih::where('user_id', Auth::id())->value('id');
-            if ($penagihId) {
-                $query->where('penagih_id', $penagihId);
-            }
-        }
-
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by month/year
-        if ($request->filled('bulan')) {
-            $query->where('bulan_tagihan', $request->bulan);
-        }
-        if ($request->filled('tahun')) {
-            $query->where('tahun_tagihan', $request->tahun);
-        }
-
-        // Filter by penagih (for all roles)
-        if ($request->filled('penagih_id')) {
-            $query->where('penagih_id', $request->penagih_id);
-        }
-
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('kode_pembayaran', 'like', "%{$search}%")
-                  ->orWhereHas('pelanggan', function($subQ) use ($search) {
-                      $subQ->where('nama', 'like', "%{$search}%")
-                           ->orWhere('pppoe', 'like', "%{$search}%")
-                           ->orWhere('no_hp', 'like', "%{$search}%")
-                           ->orWhere('alamat', 'like', "%{$search}%");
-                  });
-            });
-        }
+        $this->applyListingFilters($query, $request);
 
         $pembayarans = $query->orderBy('created_at', 'desc')->paginate(10);
         $penagihs = Penagih::where('aktif', true)->get();
 
-        return view('pembayarans.index', compact('pembayarans', 'penagihs'));
+        $unpaidFilteredQuery = Pembayaran::query();
+        $this->applyListingFilters($unpaidFilteredQuery, $request);
+        $unpaidFilteredCount = $unpaidFilteredQuery->where('status', '!=', 'lunas')->count();
+
+        return view('pembayarans.index', compact('pembayarans', 'penagihs', 'unpaidFilteredCount'));
     }
 
     /**
@@ -282,22 +291,37 @@ class PembayaranController extends BaseController
             'status' => 'required|in:belum_bayar,lunas'
         ]);
 
+        $applyAllFiltered = $request->boolean('apply_all_unpaid_filtered');
         $ids = json_decode($request->ids, true);
 
-        if (!is_array($ids) || empty($ids)) {
+        if (!$applyAllFiltered && (!is_array($ids) || empty($ids))) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
 
-        $updateData = ['status' => $request->status];
-
-        // If changing to lunas, set tanggal_bayar
-        if ($request->status === 'lunas') {
-            $updateData['tanggal_bayar'] = now();
+        $targetQuery = Pembayaran::query();
+        if ($applyAllFiltered) {
+            $this->applyListingFilters($targetQuery, $request);
+            $targetQuery->where('status', '!=', 'lunas'); // sesuai kebutuhan: semua belum lunas
         } else {
-            $updateData['tanggal_bayar'] = null;
+            $targetQuery->whereIn('id', $ids);
         }
 
-        $count = Pembayaran::whereIn('id', $ids)->update($updateData);
+        // Hanya update data yang memang berubah status (hindari overwrite tanggal_bayar)
+        if ($request->status === 'lunas') {
+            $count = (clone $targetQuery)
+                ->where('status', '!=', 'lunas')
+                ->update([
+                    'status' => 'lunas',
+                    'tanggal_bayar' => now(),
+                ]);
+        } else {
+            $count = (clone $targetQuery)
+                ->where('status', '!=', 'belum_bayar')
+                ->update([
+                    'status' => 'belum_bayar',
+                    'tanggal_bayar' => null,
+                ]);
+        }
 
         $redirectParams = $request->only(['page', 'search', 'status', 'penagih_id', 'bulan', 'tahun']);
         return redirect()->route('pembayarans.index', $redirectParams)
@@ -313,16 +337,28 @@ class PembayaranController extends BaseController
             'ids' => 'required|json'
         ]);
 
+        $applyAllFiltered = $request->boolean('apply_all_unpaid_filtered');
         $ids = json_decode($request->ids, true);
 
-        if (!is_array($ids) || empty($ids)) {
+        if (!$applyAllFiltered && (!is_array($ids) || empty($ids))) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
         }
 
-        $count = Pembayaran::whereIn('id', $ids)->update([
-            'status' => 'lunas',
-            'tanggal_bayar' => now()
-        ]);
+        $targetQuery = Pembayaran::query();
+        if ($applyAllFiltered) {
+            $this->applyListingFilters($targetQuery, $request);
+            $targetQuery->where('status', '!=', 'lunas'); // sesuai kebutuhan: semua belum lunas
+        } else {
+            $targetQuery->whereIn('id', $ids);
+        }
+
+        // Hanya tandai yang belum_bayar agar tanggal_bayar lama tidak tertimpa
+        $count = $targetQuery
+            ->where('status', '!=', 'lunas')
+            ->update([
+                'status' => 'lunas',
+                'tanggal_bayar' => now()
+            ]);
 
         $redirectParams = $request->only(['page', 'search', 'status', 'penagih_id', 'bulan', 'tahun']);
         return redirect()->route('pembayarans.index', $redirectParams)

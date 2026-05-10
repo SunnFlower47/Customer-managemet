@@ -26,7 +26,19 @@ class CompanyProfile extends Model
         'website',
         'deskripsi',
         'payment_code_prefix',
+        'ppn_persen',
+        'bhp_persen',
+        'uso_persen',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'ppn_persen' => 'decimal:2',
+            'bhp_persen' => 'decimal:2',
+            'uso_persen' => 'decimal:2',
+        ];
+    }
 
     /**
      * Get the logo URL

@@ -515,6 +515,35 @@
                             </div>
                         </div>
 
+                        <!-- Pengaturan Pajak & Komponen Harga Section -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="mb-4">
+                                <p class="text-xs uppercase tracking-wide text-indigo-500 font-semibold">Pengaturan Pajak</p>
+                                <h3 class="text-base font-semibold text-gray-900">Komponen Harga Paket (%)</h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">PPN (%)</label>
+                                    <input type="number" step="0.01" name="ppn_persen" value="{{ $companyProfile->ppn_persen ?? '11.00' }}"
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 text-sm font-medium bg-gray-50 focus:bg-white">
+                                    <p class="text-xs text-gray-500 mt-1">Pajak Pertambahan Nilai</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">BHP (%)</label>
+                                    <input type="number" step="0.01" name="bhp_persen" value="{{ $companyProfile->bhp_persen ?? '0.50' }}"
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 text-sm font-medium bg-gray-50 focus:bg-white">
+                                    <p class="text-xs text-gray-500 mt-1">Biaya Hak Penggunaan</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">USO (%)</label>
+                                    <input type="number" step="0.01" name="uso_persen" value="{{ $companyProfile->uso_persen ?? '1.25' }}"
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 text-sm font-medium bg-gray-50 focus:bg-white">
+                                    <p class="text-xs text-gray-500 mt-1">Universal Service Obligation</p>
+                                </div>
+                            </div>
+                        </div>
+
                             <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Website</label>
                                 <input type="url" name="website" value="{{ $companyProfile->website ?? '' }}"

@@ -150,18 +150,31 @@
     </div>
 
     <!-- Bulk Actions Bar -->
-    <div x-data="bulkActions()" x-show="selected.length > 0" x-cloak class="mt-8 app-card bg-green-50 border-2 border-green-200" id="bulkActionsBar" style="display: none;">
+    <div x-data="bulkActions()" x-show="selected.length > 0 || applyAllUnpaidFiltered" x-cloak class="mt-8 app-card bg-green-50 border-2 border-green-200" id="bulkActionsBar" style="display: none;">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <span class="text-sm font-semibold text-gray-700">
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-sm font-semibold text-gray-700" x-show="!applyAllUnpaidFiltered">
                     <span x-text="selected.length"></span> item dipilih
                 </span>
+                <span class="text-sm font-semibold text-green-800" x-show="applyAllUnpaidFiltered">
+                    Semua belum lunas sesuai filter terpilih ({{ number_format($unpaidFilteredCount ?? 0, 0, ',', '.') }} data)
+                </span>
+                <label class="inline-flex items-center gap-2 text-xs text-green-800 bg-green-100 border border-green-200 rounded-lg px-2 py-1 cursor-pointer">
+                    <input type="checkbox" x-model="applyAllUnpaidFiltered" @change="toggleApplyAllFromSwitch($event)" class="rounded border-green-400 text-green-600 focus:ring-green-500">
+                    Semua belum lunas (semua halaman sesuai filter)
+                </label>
             </div>
             <div class="flex flex-wrap gap-2">
                 <form method="POST" action="{{ route('pembayarans.bulk-mark-paid') }}" class="inline" id="bulkMarkPaidForm">
                     @csrf
                     <input type="hidden" name="ids" :value="JSON.stringify(selected)">
-                    <button type="button" @click="if(confirm('Yakin ingin menandai ' + selected.length + ' pembayaran sebagai lunas?')) { this.form.submit(); }" 
+                    <input type="hidden" name="apply_all_unpaid_filtered" :value="applyAllUnpaidFiltered ? 1 : 0">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="status" value="{{ request('status') }}">
+                    <input type="hidden" name="penagih_id" value="{{ request('penagih_id') }}">
+                    <input type="hidden" name="bulan" value="{{ request('bulan') }}">
+                    <input type="hidden" name="tahun" value="{{ request('tahun') }}">
+                    <button type="button" @click="confirmBulkMarkPaid($el.form)" 
                         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold transition">
                         <i class="fas fa-check-circle mr-2"></i>Tandai Lunas
                     </button>
@@ -169,7 +182,13 @@
                 <form method="POST" action="{{ route('pembayarans.bulk-update-status') }}" class="inline" id="bulkStatusForm">
                     @csrf
                     <input type="hidden" name="ids" :value="JSON.stringify(selected)">
-                    <select name="status" @change="if(confirm('Yakin ingin mengubah status ' + selected.length + ' pembayaran?')) { this.form.submit(); }" class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white">
+                    <input type="hidden" name="apply_all_unpaid_filtered" :value="applyAllUnpaidFiltered ? 1 : 0">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="filter_status" value="{{ request('status') }}">
+                    <input type="hidden" name="penagih_id" value="{{ request('penagih_id') }}">
+                    <input type="hidden" name="bulan" value="{{ request('bulan') }}">
+                    <input type="hidden" name="tahun" value="{{ request('tahun') }}">
+                    <select name="status" @change="confirmBulkStatusChange($event)" class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white">
                         <option value="">Ubah Status</option>
                         <option value="lunas">Lunas</option>
                         <option value="belum_bayar">Belum Bayar</option>
@@ -227,7 +246,9 @@
                     <tr class="hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-200 border-b border-gray-100">
                         <td class="px-5 py-4 whitespace-nowrap text-center">
                             <input type="checkbox" name="selected_ids" value="{{ $pembayaran->id }}" 
-                                class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                {{ $pembayaran->status === 'lunas' ? 'disabled' : '' }}
+                                title="{{ $pembayaran->status === 'lunas' ? 'Pembayaran lunas tidak bisa dipilih untuk bulk lunas' : '' }}"
+                                class="rounded border-gray-300 text-green-600 focus:ring-green-500 {{ $pembayaran->status === 'lunas' ? 'opacity-40 cursor-not-allowed' : '' }}">
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
                             <div class="text-xs font-mono text-blue-600 bg-blue-50 px-3 py-2 rounded-lg font-semibold">
@@ -308,7 +329,7 @@
                                         <i class="fas fa-clock mr-1 text-gray-400"></i>
                                         <span class="text-gray-500 font-medium">-</span>
                                     </div>
-++ End Patch
+
                                 @endif
                             </div>
                         </td>
@@ -386,7 +407,9 @@
             <div class="mobile-card bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-lg transition-all duration-200">
                 <div class="flex items-center gap-3 mb-3">
                     <input type="checkbox" name="selected_ids" value="{{ $pembayaran->id }}" 
-                        class="mt-1 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        {{ $pembayaran->status === 'lunas' ? 'disabled' : '' }}
+                        title="{{ $pembayaran->status === 'lunas' ? 'Pembayaran lunas tidak bisa dipilih untuk bulk lunas' : '' }}"
+                        class="mt-1 rounded border-gray-300 text-green-600 focus:ring-green-500 {{ $pembayaran->status === 'lunas' ? 'opacity-40 cursor-not-allowed' : '' }}">
                     <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md text-sm font-bold text-white">
                         {{ substr($pembayaran->pelanggan->nama, 0, 1) }}
                     </div>
@@ -957,7 +980,16 @@ function bulkActions() {
     return {
         selected: [],
         selectAll: false,
+        applyAllUnpaidFiltered: false,
+        unpaidFilteredCount: {{ (int)($unpaidFilteredCount ?? 0) }},
+        storageKey: 'pembayarans_bulk_selected_ids',
+        storageApplyAllKey: 'pembayarans_bulk_apply_all_unpaid_filtered',
         init() {
+            this.loadSelection();
+            this.loadApplyAllFlag();
+            this.syncCheckboxes();
+            this.updateBulkBar();
+
             // Listen for checkbox changes
             document.addEventListener('change', (e) => {
                 if (e.target.matches('input[type=checkbox][name=selected_ids]')) {
@@ -969,33 +1001,165 @@ function bulkActions() {
                     } else {
                         this.selected = this.selected.filter(selectedId => selectedId !== id);
                     }
+                    this.saveSelection();
+                    if (!e.target.checked) {
+                        this.applyAllUnpaidFiltered = false;
+                        this.saveApplyAllFlag();
+                    }
+                    this.syncSelectAllState();
                     this.updateBulkBar();
                 }
                 if (e.target.matches('input[type=checkbox][name=select_all]')) {
                     this.selectAll = e.target.checked;
+                    const pageIds = Array.from(document.querySelectorAll('input[type=checkbox][name=selected_ids]:not(:disabled)')).map(cb => parseInt(cb.value));
+
                     if (this.selectAll) {
-                        this.selected = Array.from(document.querySelectorAll('input[type=checkbox][name=selected_ids]')).map(cb => parseInt(cb.value));
+                        pageIds.forEach(id => {
+                            if (!this.selected.includes(id)) this.selected.push(id);
+                        });
+                        this.applyAllUnpaidFiltered = true;
                     } else {
-                        this.selected = [];
+                        this.selected = this.selected.filter(id => !pageIds.includes(id));
+                        this.applyAllUnpaidFiltered = false;
                     }
-                    document.querySelectorAll('input[type=checkbox][name=selected_ids]').forEach(cb => {
+                    this.saveApplyAllFlag();
+
+                    document.querySelectorAll('input[type=checkbox][name=selected_ids]:not(:disabled)').forEach(cb => {
                         cb.checked = this.selectAll;
                     });
+
+                    this.saveSelection();
                     this.updateBulkBar();
                 }
             });
         },
+        loadSelection() {
+            try {
+                const raw = localStorage.getItem(this.storageKey);
+                this.selected = raw ? JSON.parse(raw).map(Number).filter(Number.isFinite) : [];
+            } catch (_) {
+                this.selected = [];
+            }
+        },
+        saveSelection() {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.selected));
+        },
+        loadApplyAllFlag() {
+            try {
+                this.applyAllUnpaidFiltered = localStorage.getItem(this.storageApplyAllKey) === '1';
+            } catch (_) {
+                this.applyAllUnpaidFiltered = false;
+            }
+        },
+        saveApplyAllFlag() {
+            localStorage.setItem(this.storageApplyAllKey, this.applyAllUnpaidFiltered ? '1' : '0');
+        },
+        syncCheckboxes() {
+            const enabled = Array.from(document.querySelectorAll('input[type=checkbox][name=selected_ids]:not(:disabled)'));
+
+            if (this.applyAllUnpaidFiltered) {
+                enabled.forEach(cb => {
+                    const id = parseInt(cb.value);
+                    cb.checked = true;
+                    if (!this.selected.includes(id)) this.selected.push(id);
+                });
+                this.saveSelection();
+            } else {
+                enabled.forEach(cb => {
+                    cb.checked = this.selected.includes(parseInt(cb.value));
+                });
+            }
+
+            this.syncSelectAllState();
+        },
+        syncSelectAllState() {
+            const pageCheckboxes = Array.from(document.querySelectorAll('input[type=checkbox][name=selected_ids]:not(:disabled)'));
+            const selectAllCheckbox = document.querySelector('input[type=checkbox][name=select_all]');
+            if (!selectAllCheckbox) return;
+            this.selectAll = pageCheckboxes.length > 0 && pageCheckboxes.every(cb => this.selected.includes(parseInt(cb.value)));
+            selectAllCheckbox.checked = this.selectAll;
+        },
         updateBulkBar() {
             const bar = document.getElementById('bulkActionsBar');
-            if (this.selected.length > 0) {
+            if (this.selected.length > 0 || this.applyAllUnpaidFiltered) {
                 bar.style.display = 'block';
             } else {
                 bar.style.display = 'none';
             }
         },
+        toggleApplyAllFromSwitch(event) {
+            this.applyAllUnpaidFiltered = event.target.checked;
+            if (this.applyAllUnpaidFiltered) {
+                this.selectAllAcrossPages();
+            } else {
+                this.saveApplyAllFlag();
+                this.syncSelectAllState();
+                this.updateBulkBar();
+            }
+        },
+        selectAllAcrossPages() {
+            const enabled = Array.from(document.querySelectorAll('input[type=checkbox][name=selected_ids]:not(:disabled)'));
+            enabled.forEach(cb => {
+                cb.checked = true;
+                const id = parseInt(cb.value);
+                if (!this.selected.includes(id)) this.selected.push(id);
+            });
+            this.selectAll = true;
+            this.applyAllUnpaidFiltered = true;
+            this.saveSelection();
+            this.saveApplyAllFlag();
+            this.syncSelectAllState();
+            this.updateBulkBar();
+        },
+        confirmBulkMarkPaid(formEl) {
+            const totalTarget = this.applyAllUnpaidFiltered ? this.unpaidFilteredCount : this.selected.length;
+            if (!totalTarget) return;
+
+            Swal.fire({
+                title: 'Konfirmasi Bulk Lunas',
+                text: `Yakin ingin menandai ${totalTarget} pembayaran sebagai lunas?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16A34A',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    formEl.submit();
+                }
+            });
+        },
+        confirmBulkStatusChange(event) {
+            const selectedStatus = event.target.value;
+            const totalTarget = this.applyAllUnpaidFiltered ? this.unpaidFilteredCount : this.selected.length;
+            if (!selectedStatus || !totalTarget) return;
+
+            const statusLabel = selectedStatus === 'lunas' ? 'Lunas' : 'Belum Bayar';
+
+            Swal.fire({
+                title: 'Konfirmasi Bulk Update',
+                text: `Yakin ingin mengubah ${totalTarget} pembayaran menjadi ${statusLabel}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16A34A',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, Update',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.form.submit();
+                } else {
+                    event.target.value = '';
+                }
+            });
+        },
         clearSelection() {
             this.selected = [];
             this.selectAll = false;
+            this.applyAllUnpaidFiltered = false;
+            localStorage.removeItem(this.storageKey);
+            localStorage.removeItem(this.storageApplyAllKey);
             document.querySelectorAll('input[type=checkbox][name=selected_ids]').forEach(cb => {
                 cb.checked = false;
             });

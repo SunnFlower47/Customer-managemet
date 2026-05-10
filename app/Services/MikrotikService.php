@@ -95,6 +95,15 @@ class MikrotikService
                 }
             }
 
+            // Get PPP Profiles (for users that inherit remote-address from profile)
+            $profiles = $this->comm('/ppp/profile/print');
+            $profileMap = [];
+            foreach ($profiles as $profile) {
+                if (!empty($profile['name'])) {
+                    $profileMap[$profile['name']] = $profile;
+                }
+            }
+
             $syncedCount = 0;
             $newCount = 0;
             $updatedCount = 0;
@@ -110,7 +119,15 @@ class MikrotikService
                 $isActive = isset($activeMap[$username]);
                 $lastSeen = $isActive ? now() : null;
                 $macAddress = $isActive ? ($activeMap[$username]['caller-id'] ?? null) : null;
-                $remoteAddress = $secret['remote-address'] ?? ($activeMap[$username]['address'] ?? null);
+                $profileName = $secret['profile'] ?? 'default';
+                $profileRemoteAddress = $profileMap[$profileName]['remote-address'] ?? null;
+
+                // Priority:
+                // 1) Active session IP (actual current assigned IP)
+                // 2) Secret remote-address (user static)
+                // 3) Profile remote-address (can be static IP or pool name)
+                $remoteAddress = $activeMap[$username]['address']
+                    ?? ($secret['remote-address'] ?? $profileRemoteAddress);
                 $status = ($secret['disabled'] ?? 'false') === 'true' ? 'disabled' : 'enabled';
                 
                 // Find or Create PPPoE User Record
@@ -122,7 +139,7 @@ class MikrotikService
                     [
                         'password' => $secret['password'] ?? null, // Note: active/print doesn't show pw, secret/print might
                         'service' => $secret['service'] ?? 'pppoe',
-                        'profile' => $secret['profile'] ?? 'default',
+                        'profile' => $profileName,
                         'local_address' => $secret['local-address'] ?? null,
                         'remote_address' => $remoteAddress,
                         'mac_address' => $macAddress,
@@ -191,44 +208,55 @@ class MikrotikService
 
     protected function login($username, $password)
     {
-        $this->write('/login');
+        // RouterOS 6.43+ / v7: plain login
+        $this->write('/login', [
+            'name' => $username,
+            'password' => $password,
+        ]);
         $response = $this->read();
 
-        if (isset($response[0]['!done-token'])) {
-             // For RouterOS 6.43+ and v7 (New Login Method)
-             // But usually API uses the challenge method for older or standard
-             // Let's try standard challenge response first if '!trap' or 'ret'
-             // Actually, v6.43+ uses a different flow.
-             // Standard socket API usually returns connection info.
+        $hasTrap = false;
+        foreach ($response as $row) {
+            if (isset($row['!trap'])) {
+                $hasTrap = true;
+                break;
+            }
         }
 
-        if (isset($response[0]['!trap'])) {
+        if (!$hasTrap) {
+            return true;
+        }
+
+        // Fallback for old RouterOS challenge flow
+        $this->write('/login');
+        $challenge = $this->read();
+        $token = null;
+
+        foreach ($challenge as $row) {
+            if (isset($row['ret'])) {
+                $token = $row['ret'];
+                break;
+            }
+        }
+
+        if (!$token) {
             return false;
         }
 
-        if (isset($response[0]['ret'])) {
-            // Challenge method (Pre-6.43)
-            $token = $response[0]['ret'];
-            $passwordHash = md5(chr(0) . $password . pack('H*', $token));
-            $this->write('/login', false);
-            $this->write('=name=' . $username, false);
-            $this->write('=response=00' . $passwordHash);
-            $response = $this->read();
-        } 
-        
-        // Post 6.43 logic often sends !done immediately if no pass, or handles differently.
-        // If we received !done with no ret, maybe we are logged in (no pass) or it's v6.43+ text auth?
-        // Let's assume standard library behavior or simple MD5 challenge for now. 
-        // If MikroTik is v7, it might just work if we send plaintext or different algo if SSL.
-        // A robust library usually handles both. 
-        // Implementing a FULL robust client in one file is risky.
-        // I will use a simplified flow that works for most:
-        
-        if (isset($response[0]['!done'])) {
-            return true;
+        $passwordHash = md5(chr(0) . $password . pack('H*', $token));
+        $this->write('/login', [
+            'name' => $username,
+            'response' => '00' . $passwordHash,
+        ]);
+
+        $response = $this->read();
+        foreach ($response as $row) {
+            if (isset($row['!trap'])) {
+                return false;
+            }
         }
-        
-        return false;
+
+        return true;
     }
     
     // Simplistic write
@@ -250,96 +278,118 @@ class MikrotikService
     protected function sendWord($word)
     {
         $len = strlen($word);
+
         if ($len < 0x80) {
-            fputc($this->socket, chr($len));
+            $prefix = chr($len);
         } elseif ($len < 0x4000) {
-            fputc($this->socket, chr($len >> 8 | 0x80) . chr($len & 0xFF));
+            $prefix = chr(($len >> 8) | 0x80) . chr($len & 0xFF);
         } elseif ($len < 0x200000) {
-            fputc($this->socket, chr($len >> 16 | 0xC0) . chr($len >> 8 & 0xFF) . chr($len & 0xFF));
+            $prefix = chr(($len >> 16) | 0xC0) . chr(($len >> 8) & 0xFF) . chr($len & 0xFF);
         } elseif ($len < 0x10000000) {
-            fputc($this->socket, chr($len >> 24 | 0xE0) . chr($len >> 16 & 0xFF) . chr($len >> 8 & 0xFF) . chr($len & 0xFF));
-        } elseif ($len < 0x100000000) {
-            fputc($this->socket, chr(0xF0) . chr((int)($len >> 24)) . chr((int)($len >> 16)) . chr((int)($len >> 8)) . chr((int)$len));
+            $prefix = chr(($len >> 24) | 0xE0) . chr(($len >> 16) & 0xFF) . chr(($len >> 8) & 0xFF) . chr($len & 0xFF);
+        } else {
+            $prefix = chr(0xF0) . chr(($len >> 24) & 0xFF) . chr(($len >> 16) & 0xFF) . chr(($len >> 8) & 0xFF) . chr($len & 0xFF);
         }
+
+        fwrite($this->socket, $prefix);
         fwrite($this->socket, $word);
     }
 
     protected function read()
     {
         $response = [];
-        $i = 0;
+        $current = null;
+
         while (true) {
             $line = $this->readWord();
-            if ($line === null) break; 
-            
+            if ($line === null) {
+                break;
+            }
+
+            if ($line === '!re') {
+                if (is_array($current) && !empty($current)) {
+                    $response[] = $current;
+                }
+                $current = [];
+                continue;
+            }
+
             if ($line === '!done') {
-                // End of command response
-                if (isset($response[$i])) {
-                     // If we were parsing an item, finish it? 
-                     // Actually !done can come with attributes
-                     $response[$i]['!done'] = true;
-                } else {
-                     $response[$i] = ['!done' => true];
+                if (is_array($current) && !empty($current)) {
+                    $response[] = $current;
                 }
                 break;
-            } elseif ($line === '!trap') {
-                $response[$i]['!trap'] = true;
-            } elseif ($line === '!re') {
-                // Start of a new row of data
-                $i++; 
-            } else {
-                // Attribute
-                if (preg_match('/^=([^=]+)=(.*)$/', $line, $matches)) {
-                    $response[$i][$matches[1]] = $matches[2];
-                }
+            }
+
+            if ($line === '!trap') {
+                $current = $current ?? [];
+                $current['!trap'] = true;
+                continue;
+            }
+
+            if (preg_match('/^=([^=]+)=(.*)$/', $line, $matches)) {
+                $current = $current ?? [];
+                $current[$matches[1]] = $matches[2];
             }
         }
-        return array_values($response); // Reindex
+
+        return $response;
     }
 
     protected function readWord()
     {
-        if (feof($this->socket)) return null;
-        $byte = ord(fread($this->socket, 1));
+        if (feof($this->socket)) {
+            return null;
+        }
+
+        $first = fread($this->socket, 1);
+        if ($first === '' || $first === false) {
+            return null;
+        }
+
+        $byte = ord($first);
         $length = 0;
-        
-        // Helper to read bytes safely
-        $readBytes = function($num) {
+
+        $readBytes = function ($num) {
             $data = '';
             while (strlen($data) < $num) {
-                if (feof($this->socket)) break;
+                if (feof($this->socket)) {
+                    break;
+                }
                 $chunk = fread($this->socket, $num - strlen($data));
+                if ($chunk === false || $chunk === '') {
+                    break;
+                }
                 $data .= $chunk;
             }
             return $data;
         };
 
-        if (($byte & 0x80) == 0) {
+        if (($byte & 0x80) === 0x00) {
             $length = $byte;
-        } elseif (($byte & 0xC0) == 0x80) {
-            $length = (($byte & 0x3F) << 8) + ord($readBytes(1));
-        } elseif (($byte & 0xE0) == 0xC0) {
-            $length = (($byte & 0x1F) << 16) + ord($readBytes(2)); // Need simple conversion here if > 2 bytes
-            // Actually standard PHP int shift is fine for this range
-             $next = $readBytes(2);
-             $length = (($byte & 0x1F) << 16) + (ord($next[0]) << 8) + ord($next[1]);
-        } elseif (($byte & 0xF0) == 0xE0) {
-             $next = $readBytes(3);
-             $length = (($byte & 0x0F) << 24) + (ord($next[0]) << 16) + (ord($next[1]) << 8) + ord($next[2]);
-        } elseif (($byte & 0xF8) == 0xF0) {
-             // 5 bytes length? rare for simple API words but possible for big data
-             $next = $readBytes(4);
-             // 64-bit PHP supports this large int
-             // Just reading raw for now
-             // For strict implementation check RouterOS wiki
-             // Assuming < 0x10000000 for logical word size in this context
-             $length = ord($next[0]) << 24 | ord($next[1]) << 16 | ord($next[2]) << 8 | ord($next[3]); 
+        } elseif (($byte & 0xC0) === 0x80) {
+            $next = $readBytes(1);
+            if (strlen($next) < 1) return null;
+            $length = (($byte & 0x3F) << 8) + ord($next[0]);
+        } elseif (($byte & 0xE0) === 0xC0) {
+            $next = $readBytes(2);
+            if (strlen($next) < 2) return null;
+            $length = (($byte & 0x1F) << 16) + (ord($next[0]) << 8) + ord($next[1]);
+        } elseif (($byte & 0xF0) === 0xE0) {
+            $next = $readBytes(3);
+            if (strlen($next) < 3) return null;
+            $length = (($byte & 0x0F) << 24) + (ord($next[0]) << 16) + (ord($next[1]) << 8) + ord($next[2]);
+        } elseif (($byte & 0xF8) === 0xF0) {
+            $next = $readBytes(4);
+            if (strlen($next) < 4) return null;
+            $length = (ord($next[0]) << 24) + (ord($next[1]) << 16) + (ord($next[2]) << 8) + ord($next[3]);
         }
 
-        if ($length > 0) {
-            return $readBytes($length);
+        if ($length === 0) {
+            return '';
         }
-        return "";
+
+        return $readBytes($length);
     }
     
     public function comm($comm, $arr = [])

@@ -39,6 +39,16 @@
                 </div>
 
                 <div>
+                    <label for="nik" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-id-card mr-2 text-indigo-600"></i>NIK (Opsional)
+                    </label>
+                    <input type="text" name="nik" id="nik" value="{{ old('nik', $pelanggan->nik) }}"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm font-medium bg-gray-50 focus:bg-white @error('nik') border-red-500 @enderror"
+                        placeholder="Masukkan 16 digit NIK...">
+                    <x-form-error field="nik" />
+                </div>
+
+                <div>
                     <label for="pppoe" class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-wifi mr-2 text-indigo-600"></i>PPPoE
                     </label>

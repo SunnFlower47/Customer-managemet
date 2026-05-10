@@ -107,6 +107,7 @@ class PelangganController extends BaseController
     {
         $request->validate([
             'nama' => 'required|string|max:255',
+            'nik' => 'nullable|string|max:20',
             'pppoe' => 'required|string|max:255|unique:pelanggans,pppoe',
             'serial_number_stb' => 'nullable|string|max:255',
             'alamat' => 'required|string',
@@ -240,6 +241,7 @@ class PelangganController extends BaseController
     {
         $request->validate([
             'nama' => 'required|string|max:255',
+            'nik' => 'nullable|string|max:20',
             'pppoe' => 'required|string|max:255|unique:pelanggans,pppoe,' . $pelanggan->id,
             'serial_number_stb' => 'nullable|string|max:255',
             'alamat' => 'required|string',

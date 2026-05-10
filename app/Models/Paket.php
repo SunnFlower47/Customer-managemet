@@ -12,6 +12,10 @@ class Paket extends Model
 
     protected $fillable = [
         'nama_paket',
+        'harga_dasar',
+        'ppn_nominal',
+        'bhp_nominal',
+        'uso_nominal',
         'harga',
         'deskripsi',
         'aktif',
@@ -20,6 +24,10 @@ class Paket extends Model
     protected function casts(): array
     {
         return [
+            'harga_dasar' => 'decimal:2',
+            'ppn_nominal' => 'decimal:2',
+            'bhp_nominal' => 'decimal:2',
+            'uso_nominal' => 'decimal:2',
             'harga' => 'decimal:2',
             'aktif' => 'boolean',
         ];

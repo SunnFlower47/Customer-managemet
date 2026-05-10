@@ -412,7 +412,7 @@ class PelangganController extends BaseController
      */
     public function exportExcel(Request $request)
     {
-        $query = Pelanggan::with(['paket', 'penagih']);
+        $query = Pelanggan::with(['paket', 'penagih'])->orderBy('nama');
 
         if (Auth::user()->role === 'penagih') {
             $penagihId = Penagih::where('user_id', Auth::id())->value('id');
@@ -441,11 +441,10 @@ class PelangganController extends BaseController
             $query->where('penagih_id', $request->penagih_id);
         }
 
-        $pelanggans = $query->orderBy('nama')->get();
-
         $filename = 'daftar_pelanggan_' . date('Y-m-d_H-i-s') . '.xlsx';
 
-        return Excel::download(new PelangganExport($pelanggans), $filename);
+        // Pass query builder (bukan ->get()) agar proses chunked & hemat memori
+        return Excel::download(new PelangganExport($query), $filename);
     }
 
     /**

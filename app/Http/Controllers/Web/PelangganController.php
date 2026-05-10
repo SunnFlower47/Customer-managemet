@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Services\MikrotikService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PelangganExport;
 
 class PelangganController extends BaseController
 {
@@ -386,15 +388,64 @@ class PelangganController extends BaseController
             $query->where('penagih_id', $request->penagih_id);
         }
 
-        $pelanggans = $query->orderBy('created_at', 'desc')->get();
+        // Limit to prevent OOM on shared hosting (max 500 records)
+        $pelanggans = $query->orderBy('nama')->limit(500)->get();
 
-        // Generate PDF using DomPDF
-        $pdf = Pdf::loadView('pelanggans.pdf', compact('pelanggans'));
-        $pdf->setPaper('A4', 'landscape');
+        // Set memory limit temporarily for PDF generation
+        $pdf = Pdf::loadView('pelanggans.pdf', compact('pelanggans'))
+            ->setPaper('A4', 'landscape')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => false,
+                'defaultFont' => 'sans-serif',
+                'isFontSubsettingEnabled' => true,
+                'dpi' => 96,
+            ]);
 
         $filename = 'pelanggans_' . date('Y-m-d_H-i-s') . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    /**
+     * Export pelanggans to Excel
+     */
+    public function exportExcel(Request $request)
+    {
+        $query = Pelanggan::with(['paket', 'penagih']);
+
+        if (Auth::user()->role === 'penagih') {
+            $penagihId = Penagih::where('user_id', Auth::id())->value('id');
+            if ($penagihId) {
+                $query->where('penagih_id', $penagihId);
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('pppoe', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%")
+                  ->orWhere('alamat', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('paket_id')) {
+            $query->where('paket_id', $request->paket_id);
+        }
+        if ($request->filled('penagih_id') && in_array(Auth::user()->role, ['admin', 'operator'])) {
+            $query->where('penagih_id', $request->penagih_id);
+        }
+
+        $pelanggans = $query->orderBy('nama')->get();
+
+        $filename = 'daftar_pelanggan_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(new PelangganExport($pelanggans), $filename);
     }
 
     /**

@@ -177,9 +177,14 @@
                 <a href="{{ route('pelanggans.index') }}" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 px-5 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
                     <i class="fas fa-redo mr-2"></i>Reset Filter
                 </a>
-                <a href="{{ route('pelanggans.export.pdf', request()->query()) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
-                    <i class="fas fa-download mr-2"></i>Export PDF
+                @can('export-pelanggan')
+                <a href="{{ route('pelanggans.export.pdf', request()->query()) }}" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
+                    <i class="fas fa-file-pdf mr-2"></i>Export PDF
                 </a>
+                <a href="{{ route('pelanggans.export.excel', request()->query()) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
+                    <i class="fas fa-file-excel mr-2"></i>Export Excel
+                </a>
+                @endcan
             </div>
         </form>
     </div>
@@ -192,6 +197,9 @@
                     <tr>
                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                             <i class="fas fa-user mr-2"></i>Nama
+                        </th>
+                        <th scope="col" class="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-id-card mr-2"></i>NIK
                         </th>
                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
                             <i class="fas fa-wifi mr-2"></i>PPPoE
@@ -234,6 +242,13 @@
                                     </div>
                                 </div>
                             </div>
+                        </td>
+                        <td class="px-4 py-5 sm:px-5 whitespace-nowrap">
+                            @if($pelanggan->nik)
+                                <div class="text-xs font-mono bg-gray-100 px-2 py-1 rounded-lg text-gray-700">{{ $pelanggan->nik }}</div>
+                            @else
+                                <span class="text-gray-400 text-xs italic">-</span>
+                            @endif
                         </td>
                         <td class="px-4 py-5 sm:px-5 whitespace-nowrap">
                             <div class="text-sm text-gray-900 font-mono bg-gray-100 px-3 py-2 rounded-lg">{{ $pelanggan->pppoe }}</div>
@@ -323,7 +338,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-16 text-center">
+                                    <td colspan="9" class="px-6 py-16 text-center">
                                         <x-empty-state
                                             icon="fas fa-users"
                                             title="Tidak ada pelanggan"
@@ -370,6 +385,10 @@
                                 <div class="bg-gray-50 border border-gray-100 rounded-lg p-2.5">
                                     <p class="text-[10px] font-semibold text-gray-500 mb-1">PPPoE</p>
                                     <p class="font-mono text-xs break-all">{{ \Illuminate\Support\Str::limit($pelanggan->pppoe, 24) }}</p>
+                                </div>
+                                <div class="bg-gray-50 border border-gray-100 rounded-lg p-2.5">
+                                    <p class="text-[10px] font-semibold text-gray-500 mb-1">NIK</p>
+                                    <p class="font-mono text-xs">{{ $pelanggan->nik ?: '-' }}</p>
                                 </div>
                                 <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5">
                                     <p class="text-[10px] font-semibold text-emerald-600 mb-1">Paket</p>

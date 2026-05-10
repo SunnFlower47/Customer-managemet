@@ -234,6 +234,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:export-pelanggan'])->group(function () {
         Route::get('/pelanggans/export/pdf', [WebPelangganController::class, 'exportPdf'])->name('pelanggans.export.pdf');
+        Route::get('/pelanggans/export/excel', [WebPelangganController::class, 'exportExcel'])->name('pelanggans.export.excel');
     });
 
     // Pembayarans

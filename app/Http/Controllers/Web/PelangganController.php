@@ -389,18 +389,23 @@ class PelangganController extends BaseController
         }
 
         // Limit to prevent OOM on shared hosting (max 500 records)
-        $pelanggans = $query->orderBy('nama')->limit(500)->get();
+        $pelanggans = $query->orderBy('paket_id')->orderBy('nama')->limit(500)->get();
 
-        // Set memory limit temporarily for PDF generation
+        // Temporarily increase memory limit for PDF generation
+        $prevMemory = ini_get('memory_limit');
+        ini_set('memory_limit', '256M');
+
         $pdf = Pdf::loadView('pelanggans.pdf', compact('pelanggans'))
             ->setPaper('A4', 'landscape')
             ->setOptions([
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => false,
-                'defaultFont' => 'sans-serif',
-                'isFontSubsettingEnabled' => true,
-                'dpi' => 96,
+                'isRemoteEnabled'        => false,
+                'isHtml5ParserEnabled'   => false,
+                'isFontSubsettingEnabled'=> true,
+                'dpi'                    => 72,
+                'defaultFont'            => 'Arial',
             ]);
+
+        ini_set('memory_limit', $prevMemory);
 
         $filename = 'pelanggans_' . date('Y-m-d_H-i-s') . '.pdf';
 
@@ -412,7 +417,7 @@ class PelangganController extends BaseController
      */
     public function exportExcel(Request $request)
     {
-        $query = Pelanggan::with(['paket', 'penagih'])->orderBy('nama');
+        $query = Pelanggan::with(['paket', 'penagih'])->orderBy('paket_id')->orderBy('nama');
 
         if (Auth::user()->role === 'penagih') {
             $penagihId = Penagih::where('user_id', Auth::id())->value('id');

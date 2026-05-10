@@ -1,176 +1,75 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Pelanggan - WiFi Billing Management</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #2563eb;
-            padding-bottom: 20px;
-        }
-        .header h1 {
-            color: #2563eb;
-            margin: 0;
-            font-size: 24px;
-        }
-        .header p {
-            margin: 5px 0 0 0;
-            color: #666;
-        }
-        .info {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f8fafc;
-            border-left: 4px solid #2563eb;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background-color: #2563eb;
-            color: white;
-            font-weight: bold;
-        }
-        tr.even {
-            background-color: #f9f9f9;
-        }
-        .status-aktif {
-            color: #059669;
-            font-weight: bold;
-        }
-        .status-isolir {
-            color: #dc2626;
-            font-weight: bold;
-        }
-        .status-bayar-double {
-            color: #d97706;
-            font-weight: bold;
-        }
-        .status-nonaktif {
-            color: #6b7280;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 10px;
-            color: #666;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-        }
-        .page-break {
-            page-break-before: always;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Data Pelanggan</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; font-size: 9px; color: #000; }
+.hdr { text-align: center; margin-bottom: 8px; }
+.hdr h1 { font-size: 13px; font-weight: bold; }
+.hdr p { font-size: 9px; }
+.info { margin-bottom: 6px; font-size: 9px; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #1e40af; color: #fff; font-size: 8px; font-weight: bold; padding: 4px 3px; border: 1px solid #000; text-align: center; }
+td { border: 1px solid #ccc; padding: 3px; font-size: 8px; vertical-align: top; }
+tr:nth-child(even) td { background: #f5f5f5; }
+.foot { margin-top: 8px; font-size: 8px; text-align: center; color: #555; }
+</style>
 </head>
 <body>
-    <div class="header">
-        @php
-            $companyProfile = \App\Models\CompanyProfile::first();
-        @endphp
-        <h1>{{ $companyProfile->official_name ?? 'BCM' }}</h1>
-        <p>Data Pelanggan</p>
-        <p>Dicetak pada: {{ date('d M Y H:i:s') }}</p>
-        @if($companyProfile)
-            <p>{{ $companyProfile->alamat ?? '' }}</p>
-            <p>Telp: {{ $companyProfile->nomor_kontak ?? '' }} | Email: {{ $companyProfile->email_support ?? '' }}</p>
-        @endif
-    </div>
+@php
+    $cp = \App\Models\CompanyProfile::first();
+@endphp
+<div class="hdr">
+    <h1>{{ $cp->official_name ?? $cp->nama_perusahaan ?? 'WIFI BILLING' }}</h1>
+    <p>Laporan Daftar Pelanggan &mdash; Dicetak: {{ date('d/m/Y H:i') }}</p>
+</div>
 
-    <div class="info">
-        <strong>Total Pelanggan:</strong> {{ $pelanggans->count() }} orang<br>
-        <strong>Pelanggan Aktif:</strong> {{ $pelanggans->where('status', 'aktif')->count() }} orang<br>
-        <strong>Pelanggan Isolir:</strong> {{ $pelanggans->where('status', 'isolir')->count() }} orang<br>
-        <strong>Pelanggan Bayar Double:</strong> {{ $pelanggans->where('status', 'bayar double')->count() }} orang<br>
-        <strong>Pelanggan Nonaktif:</strong> {{ $pelanggans->where('status', 'nonaktif')->count() }} orang
-    </div>
+<div class="info">
+    Total: <b>{{ $pelanggans->count() }}</b> pelanggan &nbsp;|&nbsp;
+    Aktif: <b>{{ $pelanggans->where('status','aktif')->count() }}</b> &nbsp;|&nbsp;
+    Isolir: <b>{{ $pelanggans->where('status','isolir')->count() }}</b> &nbsp;|&nbsp;
+    Nonaktif: <b>{{ $pelanggans->where('status','nonaktif')->count() }}</b>
+</div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%;">No</th>
-                <th style="width: 20%;">Nama / NIK</th>
-                <th style="width: 12%;">PPPoE</th>
-                <th style="width: 12%;">No. HP</th>
-                <th style="width: 20%;">Paket & Harga</th>
-                <th style="width: 10%;">Penagih</th>
-                <th style="width: 8%;">Tgl Bayar</th>
-                <th style="width: 5%;">Status</th>
-                <th style="width: 8%;">Alamat</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($pelanggans as $index => $pelanggan)
-            <tr class="{{ $index % 2 == 1 ? 'even' : '' }}">
-                <td>{{ $index + 1 }}</td>
-                <td>
-                    <strong>{{ $pelanggan->nama }}</strong>
-                    @if($pelanggan->nik)
-                        <br><small class="text-gray-500">NIK: {{ $pelanggan->nik }}</small>
-                    @endif
-                </td>
-                <td>{{ $pelanggan->pppoe }}</td>
-                <td>{{ $pelanggan->no_hp }}</td>
-                <td>
-                    @if($pelanggan->paket)
-                        <strong>{{ $pelanggan->paket->nama_paket }}</strong><br>
-                        @if($pelanggan->paket->harga_dasar)
-                            <small>Dasar: Rp {{ number_format((float)$pelanggan->paket->harga_dasar, 0, ',', '.') }}</small><br>
-                            <small>PPN: Rp {{ number_format((float)$pelanggan->paket->ppn_nominal, 0, ',', '.') }}</small><br>
-                            <small>BHP: Rp {{ number_format((float)$pelanggan->paket->bhp_nominal, 0, ',', '.') }}</small><br>
-                            <small>USO: Rp {{ number_format((float)$pelanggan->paket->uso_nominal, 0, ',', '.') }}</small><br>
-                        @endif
-                        <strong>Total: Rp {{ number_format((float)$pelanggan->paket->harga, 0, ',', '.') }}</strong>
-                    @else
-                        <span class="text-gray-400 italic">Belum ada paket</span>
-                    @endif
-                </td>
-                <td>
-                    @if($pelanggan->penagih)
-                        {{ $pelanggan->penagih->nama }}
-                    @else
-                        <span class="text-gray-400 italic">Belum ada penagih</span>
-                    @endif
-                </td>
-                <td>Tanggal {{ $pelanggan->tanggal_pembayaran }}</td>
-                <td class="status-{{ str_replace(' ', '-', $pelanggan->status) }}">
-                    {{ ucfirst($pelanggan->status) }}
-                </td>
-                <td>{{ \Illuminate\Support\Str::limit($pelanggan->alamat, 50) }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="9" style="text-align: center; padding: 20px;">
-                    Tidak ada data pelanggan
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+<table>
+    <thead>
+        <tr>
+            <th style="width:3%">No</th>
+            <th style="width:16%">Nama</th>
+            <th style="width:10%">NIK</th>
+            <th style="width:10%">PPPoE</th>
+            <th style="width:9%">No HP</th>
+            <th style="width:14%">Paket</th>
+            <th style="width:10%">Harga Dasar</th>
+            <th style="width:8%">Total</th>
+            <th style="width:9%">Penagih</th>
+            <th style="width:5%">Tgl</th>
+            <th style="width:6%">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($pelanggans as $i => $p)
+        <tr>
+            <td style="text-align:center">{{ $i + 1 }}</td>
+            <td>{{ $p->nama }}</td>
+            <td>{{ $p->nik ?: '-' }}</td>
+            <td>{{ $p->pppoe }}</td>
+            <td>{{ $p->no_hp }}</td>
+            <td>{{ $p->paket ? $p->paket->nama_paket : '-' }}</td>
+            <td style="text-align:right">{{ $p->paket && $p->paket->harga_dasar ? number_format((float)$p->paket->harga_dasar,0,',','.') : '-' }}</td>
+            <td style="text-align:right">{{ $p->paket ? number_format((float)$p->paket->harga,0,',','.') : '-' }}</td>
+            <td>{{ $p->penagih ? $p->penagih->nama : '-' }}</td>
+            <td style="text-align:center">{{ $p->tanggal_pembayaran }}</td>
+            <td style="text-align:center">{{ ucfirst($p->status) }}</td>
+        </tr>
+        @empty
+        <tr><td colspan="11" style="text-align:center;padding:10px">Tidak ada data</td></tr>
+        @endforelse
+    </tbody>
+</table>
 
-    <div class="footer">
-        <p>Dokumen ini dibuat secara otomatis oleh sistem WiFi Customer Management</p>
-        <p>Untuk informasi lebih lanjut, hubungi administrator sistem</p>
-    </div>
-
+<div class="foot">Dicetak otomatis oleh sistem &mdash; {{ date('d M Y H:i:s') }}</div>
 </body>
 </html>

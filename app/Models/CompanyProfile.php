@@ -29,6 +29,7 @@ class CompanyProfile extends Model
         'ppn_persen',
         'bhp_persen',
         'uso_persen',
+        'adm_persen',
     ];
 
     protected function casts(): array
@@ -37,6 +38,7 @@ class CompanyProfile extends Model
             'ppn_persen' => 'decimal:2',
             'bhp_persen' => 'decimal:2',
             'uso_persen' => 'decimal:2',
+            'adm_persen' => 'decimal:2',
         ];
     }
 

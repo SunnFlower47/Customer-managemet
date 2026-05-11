@@ -24,6 +24,89 @@
             </a>
         </div>
     </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-8">
+        <!-- PPN Card -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                    <i class="fas fa-file-invoice-dollar text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total PPN</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xs font-bold text-blue-500">Rp</span>
+                        <h3 class="text-xl font-bold text-slate-900">{{ number_format($stats['total_ppn'], 0, ',', '.') }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BHP Card -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                    <i class="fas fa-broadcast-tower text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total BHP</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xs font-bold text-indigo-500">Rp</span>
+                        <h3 class="text-xl font-bold text-slate-900">{{ number_format($stats['total_bhp'], 0, ',', '.') }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- USO Card -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                    <i class="fas fa-globe text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total USO</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xs font-bold text-purple-500">Rp</span>
+                        <h3 class="text-xl font-bold text-slate-900">{{ number_format($stats['total_uso'], 0, ',', '.') }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADM Card -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
+                    <i class="fas fa-receipt text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total ADM</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xs font-bold text-orange-500">Rp</span>
+                        <h3 class="text-xl font-bold text-slate-900">{{ number_format($stats['total_adm'], 0, ',', '.') }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grand Total Card -->
+        <div class="bg-blue-600 rounded-2xl p-5 shadow-lg shadow-blue-100 transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white">
+                    <i class="fas fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-blue-100 uppercase tracking-wider mb-1">Total Semua Pajak</p>
+                    <div class="flex items-baseline gap-1 text-white">
+                        <span class="text-xs font-bold opacity-70">Rp</span>
+                        <h3 class="text-xl font-bold">{{ number_format($stats['grand_total_pajak'], 0, ',', '.') }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="app-card app-card--soft overflow-hidden">
         <div class="hidden lg:block overflow-x-auto">

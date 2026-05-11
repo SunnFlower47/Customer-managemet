@@ -16,6 +16,7 @@ class Paket extends Model
         'ppn_nominal',
         'bhp_nominal',
         'uso_nominal',
+        'adm_nominal',
         'harga',
         'deskripsi',
         'aktif',
@@ -28,6 +29,7 @@ class Paket extends Model
             'ppn_nominal' => 'decimal:2',
             'bhp_nominal' => 'decimal:2',
             'uso_nominal' => 'decimal:2',
+            'adm_nominal' => 'decimal:2',
             'harga' => 'decimal:2',
             'aktif' => 'boolean',
         ];

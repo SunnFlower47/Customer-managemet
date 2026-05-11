@@ -178,10 +178,14 @@
                     <i class="fas fa-redo mr-2"></i>Reset Filter
                 </a>
                 @can('export-pelanggan')
-                <a href="{{ route('pelanggans.export.pdf', request()->query()) }}" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
+                <a href="{{ route('pelanggans.export.pdf', request()->query()) }}" 
+                   onclick="showExportLoading('PDF')"
+                   class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
                     <i class="fas fa-file-pdf mr-2"></i>Export PDF
                 </a>
-                <a href="{{ route('pelanggans.export.excel', request()->query()) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
+                <a href="{{ route('pelanggans.export.excel', request()->query()) }}" 
+                   onclick="showExportLoading('Excel')"
+                   class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-center text-sm font-semibold transition-all duration-200 min-w-[140px]">
                     <i class="fas fa-file-excel mr-2"></i>Export Excel
                 </a>
                 @endcan
@@ -719,8 +723,26 @@
                                 console.log('User cancelled deletion');
                             }
                         });
-                    });
                 });
+
+                // Loading handler for export buttons
+                window.showExportLoading = function(type) {
+                    Swal.fire({
+                        title: 'Menyiapkan ' + type + '...',
+                        text: 'Mohon tunggu sebentar, data sedang diproses.',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // We close the swal after 8 seconds because browser doesn't signal 
+                    // when download starts. This is a safe threshold for shared hosting.
+                    setTimeout(() => {
+                        Swal.close();
+                    }, 8000);
+                }
 
             });
             </script>

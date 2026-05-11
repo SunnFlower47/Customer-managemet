@@ -14,7 +14,27 @@ class PaketController extends BaseController
     public function index()
     {
         $pakets = Paket::orderBy('created_at', 'desc')->paginate(20);
-        return view('pakets.index', compact('pakets'));
+
+        // Hitung ringkasan pajak dari seluruh pelanggan dengan status Aktif dan Bayar Double
+        $taxSummary = \App\Models\Pelanggan::whereIn('status', ['aktif', 'bayar double'])
+            ->join('pakets', 'pelanggans.paket_id', '=', 'pakets.id')
+            ->selectRaw('
+                SUM(pakets.ppn_nominal) as total_ppn,
+                SUM(pakets.bhp_nominal) as total_bhp,
+                SUM(pakets.uso_nominal) as total_uso,
+                SUM(pakets.adm_nominal) as total_adm
+            ')
+            ->first();
+
+        $stats = [
+            'total_ppn' => $taxSummary->total_ppn ?? 0,
+            'total_bhp' => $taxSummary->total_bhp ?? 0,
+            'total_uso' => $taxSummary->total_uso ?? 0,
+            'total_adm' => $taxSummary->total_adm ?? 0,
+            'grand_total_pajak' => ($taxSummary->total_ppn ?? 0) + ($taxSummary->total_bhp ?? 0) + ($taxSummary->total_uso ?? 0) + ($taxSummary->total_adm ?? 0)
+        ];
+
+        return view('pakets.index', compact('pakets', 'stats'));
     }
 
     /**
@@ -94,18 +114,21 @@ class PaketController extends BaseController
             $ppn = $companyProfile->ppn_persen ?? 11.0;
             $bhp = $companyProfile->bhp_persen ?? 0.5;
             $uso = $companyProfile->uso_persen ?? 1.25;
+            $adm = $companyProfile->adm_persen ?? 2.5;
 
             $data['ppn_nominal'] = $data['harga_dasar'] * ($ppn / 100);
             $data['bhp_nominal'] = $data['harga_dasar'] * ($bhp / 100);
             $data['uso_nominal'] = $data['harga_dasar'] * ($uso / 100);
+            $data['adm_nominal'] = $data['harga_dasar'] * ($adm / 100);
             
             // Total harga (dibulatkan untuk menghindari masalah desimal di UI)
-            $data['harga'] = round($data['harga_dasar'] + $data['ppn_nominal'] + $data['bhp_nominal'] + $data['uso_nominal']);
+            $data['harga'] = round($data['harga_dasar'] + $data['ppn_nominal'] + $data['bhp_nominal'] + $data['uso_nominal'] + $data['adm_nominal']);
         } else {
             $data['harga_dasar'] = 0;
             $data['ppn_nominal'] = 0;
             $data['bhp_nominal'] = 0;
             $data['uso_nominal'] = 0;
+            $data['adm_nominal'] = 0;
             $data['harga'] = 0;
         }
 

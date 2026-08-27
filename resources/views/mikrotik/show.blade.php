@@ -47,17 +47,25 @@
                class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-sm">
                 <i class="fas fa-edit mr-2"></i>Edit
             </a>
+            <form action="{{ route('mikrotik.destroy', $mikrotik->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus router MikroTik ini? Semua data PPPoE terkait akan dihapus.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" 
+                        class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition shadow-sm">
+                    <i class="fas fa-trash mr-2"></i>Hapus
+                </button>
+            </form>
         </div>
     </div>
 
     <!-- Stats Review -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="app-card p-6 flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <div class="app-card p-6 flex items-center justify-between">
             <div>
-                <p class="text-blue-100 font-medium text-sm">Total User PPPoE</p>
-                <h3 class="text-3xl font-bold mt-1">{{ $mikrotik->pppoeUsers->count() }}</h3>
+                <p class="text-gray-500 font-medium text-sm">Total User PPPoE</p>
+                <h3 class="text-3xl font-bold text-gray-900 mt-1">{{ $mikrotik->pppoeUsers->count() }}</h3>
             </div>
-            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center text-white text-xl">
+            <div class="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 text-xl">
                 <i class="fas fa-users"></i>
             </div>
         </div>

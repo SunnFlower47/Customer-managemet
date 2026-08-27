@@ -583,13 +583,11 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 text-center sm:text-left">
                             @php
                                 $companyProfile = \App\Models\CompanyProfile::first();
+                                $companyName = $companyProfile->nama_perusahaan ?? 'WiFi Management';
                             @endphp
-                            {{-- <span>© {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM.net' }}</span> --}}
-                            <span class="whitespace-nowrap">© 2025 andrin.net. All rights reserved.</span>
+                            <span class="whitespace-nowrap">© {{ date('Y') }} {{ $companyName }}. All rights reserved.</span>
                             <span class="hidden sm:inline">|</span>
-                            {{-- <span>WiFi Customer Management System</span>
-                            <span class="hidden md:inline">|</span> --}}
-                            <span class="whitespace-nowrap"><a href="https://andrin.net" target="_blank">Powered by andrin.net</a></span>
+                            <span class="whitespace-nowrap">WiFi Customer Management System</span>
                         </div>
                         <div class="mt-0 md:mt-0 text-center sm:text-right">
                             <span class="whitespace-nowrap">Internal System v1.0</span>

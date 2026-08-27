@@ -151,25 +151,29 @@ class MikrotikService
 
                 // Auto-Match with Pelanggan
                 if (!$pppoeUser->pelanggan_id) {
-                    $pelanggan = Pelanggan::where(function($q) use ($username) {
-                         // Try exact match on specific fields or logic
-                         // Assuming 'username' column exists or we check existing pppoe fields
-                         // Based on migration `add_mikrotik_fields_to_pelanggans`:
-                         // There isn't a dedicated 'pppoe_username' column on pelanggans, 
-                         // but typically systems verify via 'id_pelanggan' or a custom field.
-                         // Let's assume we match against `nama` or verify if user has a standard format.
-                         // OR, check if `pelanggans` table has `pppoe_username`? 
-                         // Checking migration... Migration `add_mikrotik_fields` added `mikrotik_id`.
-                         // It didn't strictly add `pppoe_username`. 
-                         // Usually systems rely on a specific column. 
-                         // FOR NOW: We will NOT auto-link blindly to 'nama' to avoid errors.
-                         // We will only link if we find a direct match if you have a field for it, 
-                         // otherwise we leave it unmapped for manual linking in UI "Aksi Cepat".
-                    })->first();
-
-                    // NOTE: If you have a 'pppoe_username' field on Pelanggan, use it here.
-                    // Since I don't see it explicitly in the `add_mikrotik_fields` migration (it had status, ip, etc),
-                    // I will leave auto-linking logic minimal or based on manual action for now.
+                    $pelanggan = Pelanggan::where('pppoe', $username)->first();
+                    if ($pelanggan) {
+                        $pppoeUser->update(['pelanggan_id' => $pelanggan->id]);
+                        $pelanggan->update([
+                            'mikrotik_id' => $router->id,
+                            'exists_in_mikrotik' => true,
+                            'mikrotik_last_checked' => now(),
+                            'mikrotik_router_name' => $router->nama,
+                            'mikrotik_status' => $status,
+                            'mikrotik_ip' => $remoteAddress,
+                            'mikrotik_profile' => $profileName,
+                        ]);
+                    }
+                } else {
+                    $pppoeUser->pelanggan?->update([
+                        'mikrotik_id' => $router->id,
+                        'exists_in_mikrotik' => true,
+                        'mikrotik_last_checked' => now(),
+                        'mikrotik_router_name' => $router->nama,
+                        'mikrotik_status' => $status,
+                        'mikrotik_ip' => $remoteAddress,
+                        'mikrotik_profile' => $profileName,
+                    ]);
                 }
 
                 if ($pppoeUser->wasRecentlyCreated) {
@@ -193,6 +197,117 @@ class MikrotikService
                 'message' => $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Isolate / Disable PPPoE User on MikroTik
+     */
+    public function isolateUser(Mikrotik $router, string $username, ?string $isolateProfile = null): array
+    {
+        try {
+            if (!$this->connected) {
+                $this->connect($router);
+            }
+
+            // Find secret
+            $secrets = $this->comm('/ppp/secret/print', ['?name' => $username]);
+            if (empty($secrets)) {
+                return ['success' => false, 'message' => "User PPPoE '{$username}' tidak ditemukan di MikroTik"];
+            }
+
+            $secretId = $secrets[0]['.id'];
+
+            if ($isolateProfile) {
+                // Change profile to isolate profile
+                $this->comm('/ppp/secret/set', [
+                    '.id' => $secretId,
+                    'profile' => $isolateProfile,
+                    'disabled' => 'no'
+                ]);
+            } else {
+                // Or disable secret
+                $this->comm('/ppp/secret/set', [
+                    '.id' => $secretId,
+                    'disabled' => 'yes'
+                ]);
+            }
+
+            // Kick active session so new policy applies immediately
+            $this->kickActiveSession($router, $username);
+
+            // Update local records
+            MikrotikPppoeUser::where('mikrotik_id', $router->id)
+                ->where('username', $username)
+                ->update([
+                    'status' => $isolateProfile ? 'isolated' : 'disabled',
+                    'is_active' => false
+                ]);
+
+            return ['success' => true, 'message' => "Pelanggan '{$username}' berhasil diisolir pada MikroTik."];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Unisolate / Enable PPPoE User on MikroTik
+     */
+    public function unisolateUser(Mikrotik $router, string $username, ?string $normalProfile = null): array
+    {
+        try {
+            if (!$this->connected) {
+                $this->connect($router);
+            }
+
+            $secrets = $this->comm('/ppp/secret/print', ['?name' => $username]);
+            if (empty($secrets)) {
+                return ['success' => false, 'message' => "User PPPoE '{$username}' tidak ditemukan di MikroTik"];
+            }
+
+            $secretId = $secrets[0]['.id'];
+            $params = [
+                '.id' => $secretId,
+                'disabled' => 'no'
+            ];
+
+            if ($normalProfile) {
+                $params['profile'] = $normalProfile;
+            }
+
+            $this->comm('/ppp/secret/set', $params);
+
+            // Update local records
+            MikrotikPppoeUser::where('mikrotik_id', $router->id)
+                ->where('username', $username)
+                ->update(['status' => 'enabled']);
+
+            return ['success' => true, 'message' => "Pelanggan '{$username}' berhasil diaktifkan kembali pada MikroTik."];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Kick active PPPoE session
+     */
+    public function kickActiveSession(Mikrotik $router, string $username): bool
+    {
+        try {
+            if (!$this->connected) {
+                $this->connect($router);
+            }
+
+            $actives = $this->comm('/ppp/active/print', ['?name' => $username]);
+            foreach ($actives as $active) {
+                if (isset($active['.id'])) {
+                    $this->comm('/ppp/active/remove', ['.id' => $active['.id']]);
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
     }
 
     public function disconnect()

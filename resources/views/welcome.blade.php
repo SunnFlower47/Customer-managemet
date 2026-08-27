@@ -151,18 +151,13 @@
                     </div>
                 </div>
 
-                <!-- Right: Floating dashboard card -->
+                <!-- Right: Static visual card (no DB query - public page) -->
                 <div class="hidden lg:flex justify-center items-center">
                     <div class="float-anim relative">
-                        @php
-                            $totalPelanggan = \App\Models\Pelanggan::count();
-                            $aktif = \App\Models\Pelanggan::where('status','aktif')->count();
-                            $totalPendapatan = \App\Models\Pembayaran::whereMonth('tanggal_bayar', now()->month)->whereYear('tanggal_bayar', now()->year)->sum('total_bayar');
-                        @endphp
                         <div class="glass-card rounded-3xl p-6 w-80 shadow-2xl">
                             <div class="flex items-center justify-between mb-5">
                                 <div>
-                                    <p class="text-xs text-blue-300">Dashboard</p>
+                                    <p class="text-xs text-blue-300">WiFi Management</p>
                                     <p class="text-white font-bold text-sm">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</p>
                                 </div>
                                 <div class="h-9 w-9 bg-blue-500 rounded-xl flex items-center justify-center">
@@ -170,32 +165,32 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div class="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="h-7 w-7 bg-blue-500/30 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-users text-blue-300 text-xs"></i>
-                                        </div>
-                                        <span class="text-blue-200 text-xs">Total Pelanggan</span>
+                                <div class="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
+                                    <div class="h-7 w-7 bg-blue-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-users text-blue-300 text-xs"></i>
                                     </div>
-                                    <span class="text-white font-bold text-sm">{{ number_format($totalPelanggan) }}</span>
+                                    <div class="flex-1">
+                                        <div class="h-2 bg-white/30 rounded-full w-3/4"></div>
+                                        <div class="h-1.5 bg-white/15 rounded-full w-1/2 mt-1.5"></div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="h-7 w-7 bg-green-500/30 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-check-circle text-green-300 text-xs"></i>
-                                        </div>
-                                        <span class="text-blue-200 text-xs">Pelanggan Aktif</span>
+                                <div class="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
+                                    <div class="h-7 w-7 bg-green-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check-circle text-green-300 text-xs"></i>
                                     </div>
-                                    <span class="text-white font-bold text-sm">{{ number_format($aktif) }}</span>
+                                    <div class="flex-1">
+                                        <div class="h-2 bg-white/30 rounded-full w-2/3"></div>
+                                        <div class="h-1.5 bg-white/15 rounded-full w-2/5 mt-1.5"></div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="h-7 w-7 bg-yellow-500/30 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-wallet text-yellow-300 text-xs"></i>
-                                        </div>
-                                        <span class="text-blue-200 text-xs">Pendapatan Bulan Ini</span>
+                                <div class="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
+                                    <div class="h-7 w-7 bg-yellow-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-chart-line text-yellow-300 text-xs"></i>
                                     </div>
-                                    <span class="text-white font-bold text-sm">Rp {{ number_format($totalPendapatan/1000000,1) }}jt</span>
+                                    <div class="flex-1">
+                                        <div class="h-2 bg-white/30 rounded-full w-4/5"></div>
+                                        <div class="h-1.5 bg-white/15 rounded-full w-1/3 mt-1.5"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mt-4">

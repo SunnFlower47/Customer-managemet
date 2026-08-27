@@ -5,6 +5,7 @@
     $ppn = $companyProfile->ppn_persen ?? 11.0;
     $bhp = $companyProfile->bhp_persen ?? 0.5;
     $uso = $companyProfile->uso_persen ?? 1.25;
+    $adm = $companyProfile->adm_persen ?? 2.5;
 @endphp
 
 @section('title', 'Edit Paket - WiFi Billing Management')
@@ -81,7 +82,7 @@
 
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
                 <p class="text-xs uppercase tracking-wide text-indigo-500 font-semibold mb-2">Rincian Pajak & Harga Total (Otomatis)</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 mb-1">PPN ({{ $ppn }}%)</label>
                         <input type="text" id="display_ppn" class="w-full px-3 py-2 border-none bg-gray-100 rounded-lg text-sm text-gray-700 font-medium" readonly>
@@ -93,6 +94,10 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 mb-1">USO ({{ $uso }}%)</label>
                         <input type="text" id="display_uso" class="w-full px-3 py-2 border-none bg-gray-100 rounded-lg text-sm text-gray-700 font-medium" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">ADM ({{ $adm }}%)</label>
+                        <input type="text" id="display_adm" class="w-full px-3 py-2 border-none bg-gray-100 rounded-lg text-sm text-gray-700 font-medium" readonly>
                     </div>
                 </div>
                 <div class="pt-3 border-t border-gray-200 mt-3">
@@ -151,11 +156,13 @@
         const displayPpn = document.getElementById('display_ppn');
         const displayBhp = document.getElementById('display_bhp');
         const displayUso = document.getElementById('display_uso');
+        const displayAdm = document.getElementById('display_adm');
         const displayTotal = document.getElementById('display_total');
 
         const ppnRate = {{ $ppn }} / 100;
         const bhpRate = {{ $bhp }} / 100;
         const usoRate = {{ $uso }} / 100;
+        const admRate = {{ $adm }} / 100;
 
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(angka);
@@ -167,11 +174,13 @@
             let ppn = base * ppnRate;
             let bhp = base * bhpRate;
             let uso = base * usoRate;
-            let total = Math.round(base + ppn + bhp + uso);
+            let adm = base * admRate;
+            let total = Math.round(base + ppn + bhp + uso + adm);
 
             displayPpn.value = formatRupiah(ppn);
             displayBhp.value = formatRupiah(bhp);
             displayUso.value = formatRupiah(uso);
+            displayAdm.value = formatRupiah(adm);
             displayTotal.value = formatRupiah(total);
         }
 

@@ -126,8 +126,21 @@
                             </div>
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
-                            <div class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                                <i class="fas fa-users mr-1"></i>{{ $odp->pelanggans_count }} pelanggan
+                            <div class="flex flex-col gap-1">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <span class="text-xl font-extrabold {{ $odp->pelanggans_count > 0 ? 'text-green-700' : 'text-gray-400' }}">
+                                        {{ $odp->pelanggans_count }}
+                                    </span>
+                                    <span class="text-xs text-gray-500 font-medium">pelanggan</span>
+                                </div>
+                                @if($odp->pelanggans_count > 0)
+                                <div class="text-[10px] text-gray-400">
+                                    <span class="text-green-600 font-semibold">{{ $odp->aktif_pelanggans_count }} aktif</span>
+                                    @if($odp->pelanggans_count - $odp->aktif_pelanggans_count > 0)
+                                    · <span class="text-red-500 font-semibold">{{ $odp->pelanggans_count - $odp->aktif_pelanggans_count }} isolir/nonaktif</span>
+                                    @endif
+                                </div>
+                                @endif
                             </div>
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap">
@@ -208,7 +221,12 @@
                     </div>
                     <div class="bg-green-50 border border-green-100 rounded-lg p-2.5">
                         <p class="text-[10px] font-semibold text-green-600 mb-1">Pelanggan</p>
-                        <p class="text-xs font-semibold text-green-800">{{ $odp->pelanggans_count }} pelanggan aktif</p>
+                        <p class="text-xl font-extrabold {{ $odp->pelanggans_count > 0 ? 'text-green-800' : 'text-gray-400' }}">{{ $odp->pelanggans_count }}</p>
+                        @if($odp->pelanggans_count > 0)
+                        <p class="text-[10px] text-green-600">{{ $odp->aktif_pelanggans_count }} aktif</p>
+                        @else
+                        <p class="text-[10px] text-gray-400 italic">belum ada</p>
+                        @endif
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-2.5">
                         <p class="text-[10px] font-semibold text-blue-600 mb-1">Koordinat</p>

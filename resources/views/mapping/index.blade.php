@@ -485,10 +485,9 @@
         loadOdcMarkers();
         loadODPMarkers();
         loadPelangganMarkers();
-        // DISABLED: Connection lines temporarily disabled
-        // loadConnectionLines();
-        // loadPelangganConnectionLines();
-        // loadOdpConnectionLines();
+        loadConnectionLines();           // ODC → ODP
+        loadPelangganConnectionLines();  // Pelanggan → ODP
+        loadOdpConnectionLines();        // ODP child → ODP parent
 
         // Toggle layers
         document.getElementById('toggle-odc').addEventListener('change', function(e) {

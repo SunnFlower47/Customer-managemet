@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\BaseController;
 use App\Models\Pembayaran;
 use App\Models\Pelanggan;
 use App\Models\Penagih;
+use App\Models\Paket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -42,6 +43,20 @@ class PembayaranController extends BaseController
 
         if ($request->filled('penagih_id')) {
             $query->where('penagih_id', $request->penagih_id);
+        }
+
+        // Filter by paket — handle both:
+        // (a) new records with paket_id stored directly on pembayarans
+        // (b) old records where paket_id is NULL, fall back to pelanggan's current paket
+        if ($request->filled('paket_id')) {
+            $paketId = $request->paket_id;
+            $query->where(function ($q) use ($paketId) {
+                $q->where('paket_id', $paketId)
+                  ->orWhere(function ($q2) use ($paketId) {
+                      $q2->whereNull('paket_id')
+                         ->whereHas('pelanggan', fn ($p) => $p->where('paket_id', $paketId));
+                  });
+            });
         }
 
         if ($request->filled('search')) {
@@ -85,12 +100,23 @@ class PembayaranController extends BaseController
 
         $pembayarans = $query->orderBy('created_at', 'desc')->paginate(10);
         $penagihs = Penagih::where('aktif', true)->get();
+        $pakets   = Paket::where('aktif', true)->orderBy('nama_paket')->get();
+
+        // Summary stats after filters
+        $statsQuery = Pembayaran::query();
+        $this->applyListingFilters($statsQuery, $request);
+        $statsAll      = (clone $statsQuery);
+        $lunasCount    = (clone $statsAll)->where('status', 'lunas')->count();
+        $belumBayarCount = (clone $statsAll)->where('status', '!=', 'lunas')->count();
 
         $unpaidFilteredQuery = Pembayaran::query();
         $this->applyListingFilters($unpaidFilteredQuery, $request);
         $unpaidFilteredCount = $unpaidFilteredQuery->where('status', '!=', 'lunas')->count();
 
-        return view('pembayarans.index', compact('pembayarans', 'penagihs', 'unpaidFilteredCount'));
+        return view('pembayarans.index', compact(
+            'pembayarans', 'penagihs', 'pakets',
+            'unpaidFilteredCount', 'lunasCount', 'belumBayarCount'
+        ));
     }
 
     /**

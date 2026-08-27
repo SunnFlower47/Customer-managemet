@@ -73,7 +73,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div>
                     <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-info-circle mr-2 text-green-600"></i>Status
@@ -113,6 +113,20 @@
                         </div>
                     </div>
                 </div>
+                {{-- Filter Paket --}}
+                <div>
+                    <label for="paket_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-box mr-2 text-green-600"></i>Paket
+                    </label>
+                    <select name="paket_id" id="paket_id" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-gray-50 focus:bg-white">
+                        <option value="">Semua Paket</option>
+                        @foreach($pakets as $paket)
+                            <option value="{{ $paket->id }}" {{ request('paket_id') == $paket->id ? 'selected' : '' }}>
+                                {{ $paket->nama_paket }} – Rp {{ number_format($paket->harga, 0, ',', '.') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div>
                     <label for="bulan" class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-calendar-alt mr-2 text-green-600"></i>Bulan
@@ -149,6 +163,34 @@
         </form>
     </div>
 
+    {{-- Summary Cards --}}
+    @if(request()->hasAny(['bulan','tahun','paket_id','status','penagih_id','search']))
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {{-- Lunas Card --}}
+        <div class="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+            <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow">
+                <i class="fas fa-check-circle text-white text-base"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-semibold text-green-600 uppercase tracking-wide leading-none mb-0.5">Lunas</p>
+                <p class="text-2xl font-extrabold text-green-800 leading-none">{{ number_format($lunasCount, 0, ',', '.') }}</p>
+                <p class="text-[10px] text-green-600 mt-0.5">pelanggan sudah bayar</p>
+            </div>
+        </div>
+        {{-- Belum Bayar Card --}}
+        <div class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center shadow">
+                <i class="fas fa-times-circle text-white text-base"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-semibold text-red-600 uppercase tracking-wide leading-none mb-0.5">Belum Bayar</p>
+                <p class="text-2xl font-extrabold text-red-800 leading-none">{{ number_format($belumBayarCount, 0, ',', '.') }}</p>
+                <p class="text-[10px] text-red-600 mt-0.5">pelanggan belum lunas</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Bulk Actions Bar -->
     <div x-data="bulkActions()" x-show="selected.length > 0 || applyAllUnpaidFiltered" x-cloak class="mt-8 app-card bg-green-50 border-2 border-green-200" id="bulkActionsBar" style="display: none;">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -172,6 +214,7 @@
                     <input type="hidden" name="search" value="{{ request('search') }}">
                     <input type="hidden" name="status" value="{{ request('status') }}">
                     <input type="hidden" name="penagih_id" value="{{ request('penagih_id') }}">
+                    <input type="hidden" name="paket_id" value="{{ request('paket_id') }}">
                     <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                     <input type="hidden" name="tahun" value="{{ request('tahun') }}">
                     <button type="button" @click="confirmBulkMarkPaid($el.form)" 
@@ -186,6 +229,7 @@
                     <input type="hidden" name="search" value="{{ request('search') }}">
                     <input type="hidden" name="filter_status" value="{{ request('status') }}">
                     <input type="hidden" name="penagih_id" value="{{ request('penagih_id') }}">
+                    <input type="hidden" name="paket_id" value="{{ request('paket_id') }}">
                     <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                     <input type="hidden" name="tahun" value="{{ request('tahun') }}">
                     <select name="status" @change="confirmBulkStatusChange($event)" class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white">

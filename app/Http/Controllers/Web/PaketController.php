@@ -16,22 +16,34 @@ class PaketController extends BaseController
         $pakets = Paket::orderBy('created_at', 'desc')->paginate(20);
 
         // Hitung ringkasan pajak dari seluruh pelanggan dengan status Aktif dan Bayar Double
-        $taxSummary = \App\Models\Pelanggan::whereIn('status', ['aktif', 'bayar double'])
-            ->join('pakets', 'pelanggans.paket_id', '=', 'pakets.id')
-            ->selectRaw('
-                SUM(pakets.ppn_nominal) as total_ppn,
-                SUM(pakets.bhp_nominal) as total_bhp,
-                SUM(pakets.uso_nominal) as total_uso,
-                SUM(pakets.adm_nominal) as total_adm
-            ')
-            ->first();
+        try {
+            $taxSummary = \App\Models\Pelanggan::whereIn('status', ['aktif', 'bayar double'])
+                ->join('pakets', 'pelanggans.paket_id', '=', 'pakets.id')
+                ->selectRaw('
+                    SUM(pakets.ppn_nominal) as total_ppn,
+                    SUM(pakets.bhp_nominal) as total_bhp,
+                    SUM(pakets.uso_nominal) as total_uso,
+                    SUM(pakets.adm_nominal) as total_adm
+                ')
+                ->first();
+        } catch (\Exception $e) {
+            // Fallback jika kolom adm_nominal belum ada (migration belum dijalankan)
+            $taxSummary = \App\Models\Pelanggan::whereIn('status', ['aktif', 'bayar double'])
+                ->join('pakets', 'pelanggans.paket_id', '=', 'pakets.id')
+                ->selectRaw('
+                    SUM(pakets.ppn_nominal) as total_ppn,
+                    SUM(pakets.bhp_nominal) as total_bhp,
+                    SUM(pakets.uso_nominal) as total_uso
+                ')
+                ->first();
+        }
 
         $stats = [
-            'total_ppn' => $taxSummary->total_ppn ?? 0,
-            'total_bhp' => $taxSummary->total_bhp ?? 0,
-            'total_uso' => $taxSummary->total_uso ?? 0,
-            'total_adm' => $taxSummary->total_adm ?? 0,
-            'grand_total_pajak' => ($taxSummary->total_ppn ?? 0) + ($taxSummary->total_bhp ?? 0) + ($taxSummary->total_uso ?? 0) + ($taxSummary->total_adm ?? 0)
+            'total_ppn'        => $taxSummary->total_ppn ?? 0,
+            'total_bhp'        => $taxSummary->total_bhp ?? 0,
+            'total_uso'        => $taxSummary->total_uso ?? 0,
+            'total_adm'        => $taxSummary->total_adm ?? 0,
+            'grand_total_pajak' => ($taxSummary->total_ppn ?? 0) + ($taxSummary->total_bhp ?? 0) + ($taxSummary->total_uso ?? 0) + ($taxSummary->total_adm ?? 0),
         ];
 
         return view('pakets.index', compact('pakets', 'stats'));

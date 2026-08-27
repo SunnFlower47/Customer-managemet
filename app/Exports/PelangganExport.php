@@ -54,7 +54,8 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
         $ppnNominal = $pelanggan->paket ? (float)$pelanggan->paket->ppn_nominal : 0;
         $bhpNominal = $pelanggan->paket ? (float)$pelanggan->paket->bhp_nominal : 0;
         $usoNominal = $pelanggan->paket ? (float)$pelanggan->paket->uso_nominal : 0;
-        $total      = $hargaDasar + $ppnNominal + $bhpNominal + $usoNominal;
+        $admNominal = $pelanggan->paket ? (float)($pelanggan->paket->adm_nominal ?? 0) : 0;
+        $total      = $hargaDasar + $ppnNominal + $bhpNominal + $usoNominal + $admNominal;
 
         return [
             $this->rowNumber,
@@ -65,6 +66,7 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
             $ppnNominal  > 0 ? $ppnNominal  : '-',
             $bhpNominal  > 0 ? $bhpNominal  : '-',
             $usoNominal  > 0 ? $usoNominal  : '-',
+            $admNominal  > 0 ? $admNominal  : '-',
             $total       > 0 ? $total        : '-',
         ];
     }
@@ -75,10 +77,11 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
         $ppnLabel   = 'PPN ' . ($company->ppn_persen ?? 11) . '%';
         $bhpLabel   = 'BHP ' . ($company->bhp_persen ?? 0.5) . '%';
         $usoLabel   = 'USO ' . ($company->uso_persen ?? 1.25) . '%';
+        $admLabel   = 'ADM ' . ($company->adm_persen ?? 2.5) . '%';
         $offset     = self::HEADER_OFFSET;
 
         return [
-            BeforeSheet::class => function (BeforeSheet $event) use ($company, $ppnLabel, $bhpLabel, $usoLabel, $offset) {
+            BeforeSheet::class => function (BeforeSheet $event) use ($company, $ppnLabel, $bhpLabel, $usoLabel, $admLabel, $offset) {
                 $sheet = $event->sheet->getDelegate();
 
                 // ── Baris 1-7: Header perusahaan ──────────────────────────
@@ -94,8 +97,8 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
                 // Row 7: kosong
 
                 // ── Baris 8: Header kolom (kuning) ────────────────────────
-                $headers = ['NO', 'NAMA PELANGGAN', 'ALAMAT', 'NIK', 'HARGA PAKET', $ppnLabel, $bhpLabel, $usoLabel, 'TOTAL'];
-                $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+                $headers = ['NO', 'NAMA PELANGGAN', 'ALAMAT', 'NIK', 'HARGA PAKET', $ppnLabel, $bhpLabel, $usoLabel, $admLabel, 'TOTAL'];
+                $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
                 foreach ($cols as $i => $col) {
                     $sheet->setCellValue("{$col}{$offset}", $headers[$i]);
@@ -111,16 +114,16 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
                 }
 
                 // Style header kolom (baris 8): kuning, bold, border
-                $sheet->getStyle("A{$offset}:I{$offset}")
+                $sheet->getStyle("A{$offset}:J{$offset}")
                     ->getFont()->setBold(true)->setSize(10);
-                $sheet->getStyle("A{$offset}:I{$offset}")
+                $sheet->getStyle("A{$offset}:J{$offset}")
                     ->getFill()->setFillType(Fill::FILL_SOLID)
                     ->getStartColor()->setRGB('FFFF00');
-                $sheet->getStyle("A{$offset}:I{$offset}")
+                $sheet->getStyle("A{$offset}:J{$offset}")
                     ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
-                $sheet->getStyle("A{$offset}:I{$offset}")
+                $sheet->getStyle("A{$offset}:J{$offset}")
                     ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                 $sheet->getRowDimension($offset)->setRowHeight(22);
 
@@ -133,7 +136,8 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
                 $sheet->getColumnDimension('F')->setWidth(13);
                 $sheet->getColumnDimension('G')->setWidth(12);
                 $sheet->getColumnDimension('H')->setWidth(12);
-                $sheet->getColumnDimension('I')->setWidth(15);
+                $sheet->getColumnDimension('I')->setWidth(12);
+                $sheet->getColumnDimension('J')->setWidth(15);
             },
 
             AfterSheet::class => function (AfterSheet $event) use ($offset) {
@@ -146,11 +150,11 @@ class PelangganExport implements FromQuery, WithMapping, WithTitle, WithChunkRea
                 }
 
                 // Border pada baris data
-                $sheet->getStyle("A{$dataStart}:I{$lastRow}")
+                $sheet->getStyle("A{$dataStart}:J{$lastRow}")
                     ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
                 // Kolom angka rata kanan + format ribuan
-                foreach (['E', 'F', 'G', 'H', 'I'] as $col) {
+                foreach (['E', 'F', 'G', 'H', 'I', 'J'] as $col) {
                     $sheet->getStyle("{$col}{$dataStart}:{$col}{$lastRow}")
                         ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                     $sheet->getStyle("{$col}{$dataStart}:{$col}{$lastRow}")

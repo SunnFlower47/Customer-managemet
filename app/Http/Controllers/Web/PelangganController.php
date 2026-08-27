@@ -359,6 +359,9 @@ class PelangganController extends BaseController
     {
         $query = Pelanggan::with(['paket', 'penagih']);
 
+        // Jangan masukkan pelanggan yang isolir
+        $query->where('status', '!=', 'isolir');
+
         // Filter by penagih if user is penagih
         if (Auth::user()->role === 'penagih') {
             $penagihId = Penagih::where('user_id', Auth::id())->value('id');
@@ -378,7 +381,7 @@ class PelangganController extends BaseController
             });
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->status !== 'isolir') {
             $query->where('status', $request->status);
         }
         if ($request->filled('paket_id')) {
@@ -419,6 +422,9 @@ class PelangganController extends BaseController
     {
         $query = Pelanggan::with(['paket', 'penagih'])->orderBy('paket_id')->orderBy('nama');
 
+        // Jangan masukkan pelanggan yang isolir
+        $query->where('status', '!=', 'isolir');
+
         if (Auth::user()->role === 'penagih') {
             $penagihId = Penagih::where('user_id', Auth::id())->value('id');
             if ($penagihId) {
@@ -436,7 +442,7 @@ class PelangganController extends BaseController
             });
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->status !== 'isolir') {
             $query->where('status', $request->status);
         }
         if ($request->filled('paket_id')) {

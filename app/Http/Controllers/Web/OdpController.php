@@ -32,9 +32,12 @@ class OdpController extends BaseController
             });
         }
 
-        $odps = $query->withCount(['pelanggans' => function($q) {
-                $q->where('status', 'aktif');
-            }])
+        $odps = $query->withCount([
+                'pelanggans as pelanggans_count',                             // semua pelanggan
+                'pelanggans as aktif_pelanggans_count' => function($q) {
+                    $q->whereIn('status', ['aktif', 'bayar double']);
+                },                                                             // hanya aktif
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(20)
             ->appends($request->query());

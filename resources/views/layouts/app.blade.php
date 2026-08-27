@@ -361,22 +361,12 @@
                     <i class="fas fa-bars h-5 w-5"></i>
                 </button>
 
-                <!-- Separator -->
-                <div class="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true"></div>
-
-                <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-                    <div class="flex flex-1 items-center">
-                        @php
-                            $companyProfile = \App\Models\CompanyProfile::first();
-                            $companyName = $companyProfile->display_name ?? 'snflr.net';
-                        @endphp
-                        <h1 class="text-lg font-bold text-gray-900 lg:hidden">{{ $companyName }}</h1>
-                    </div>
+                <div class="flex flex-1 gap-x-4 self-stretch justify-end lg:gap-x-6">
                     <div class="flex items-center gap-x-3 lg:gap-x-4">
                         <!-- Notifications -->
                         <div class="relative" x-data="notificationMenu()" x-init="init()" @click.outside="open = false">
                             <button type="button"
-                                    class="relative p-2.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-200"
+                                    class="relative p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200"
                                     @click="toggle">
                                 <span class="sr-only">Lihat notifikasi</span>
                                 <i class="fas fa-bell h-5 w-5"></i>
@@ -395,7 +385,7 @@
                                  x-transition:leave-start="transform opacity-100 scale-100 translate-y-0"
                                  x-transition:leave-end="transform opacity-0 scale-95 translate-y-2"
                                  class="absolute right-0 z-40 mt-3 w-[calc(100vw-2rem)] max-w-[280px] sm:w-72 md:w-80 origin-top-right rounded-2xl border border-gray-100 bg-white shadow-xl backdrop-blur-sm">
-                                <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50">
+                                <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3 bg-gradient-to-r from-blue-50 to-slate-50">
                                     <div>
                                         <p class="text-sm font-bold text-gray-900">Notifikasi</p>
                                         <p class="text-xs text-gray-600 mt-0.5" x-text="total > 0 ? total + ' item pending' : 'Tidak ada notifikasi baru'"></p>
@@ -509,10 +499,10 @@
                                  class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-2xl bg-white py-2 shadow-xl border border-gray-100 backdrop-blur-sm">
 
                                 <!-- Profile Info -->
-                                <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+                                <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-slate-50">
                                     <p class="text-sm font-semibold text-gray-900">{{ auth()->user()?->name ?? 'Guest' }}</p>
                                     <p class="text-xs text-gray-600 mt-0.5">{{ auth()->user()?->email ?? 'guest@example.com' }}</p>
-                                    <span class="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700">
+                                    <span class="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">
                                         {{ ucfirst(auth()->user()?->role ?? 'guest') }}
                                     </span>
                                 </div>

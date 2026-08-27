@@ -308,7 +308,6 @@ class MikrotikService
             return false;
         }
     }
-    }
 
     public function disconnect()
     {

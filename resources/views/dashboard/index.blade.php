@@ -3,122 +3,146 @@
 @section('title', 'Dashboard - WiFi Billing Management')
 
 @section('content')
-<div class="space-y-6 lg:space-y-8">
-    <!-- Welcome Section -->
-    <div class="app-card app-card--soft">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+@php
+    $hour = now()->hour;
+    $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
+    $companyProfile = \App\Models\CompanyProfile::first();
+    $companyName = $companyProfile->display_name ?? $companyProfile->nama_perusahaan ?? 'BCM';
+@endphp
+
+<div class="space-y-6 lg:space-y-7">
+    <!-- Welcome Header Banner -->
+    <div class="relative overflow-hidden rounded-2xl p-5 sm:p-7 shadow-sm text-white"
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #1e40af 100%);">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.35em] text-gray-400 mb-2">Dashboard Overview</p>
-                <h1 class="page-header__title text-slate-900 mb-3">
-                    Selamat Datang, {{ auth()->user()?->name ?? 'Guest' }}!
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-xs font-medium text-blue-200 mb-3">
+                    <i class="far fa-calendar-alt text-[11px]"></i>
+                    <span>{{ $greeting }}</span>
+                    <span class="w-1 h-1 rounded-full bg-blue-300"></span>
+                    <span>{{ now()->isoFormat('dddd, D MMMM Y') }}</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-1.5">
+                    Selamat Datang, {{ auth()->user()?->name ?? 'Admin' }}
                 </h1>
-                <p class="text-sm sm:text-base text-gray-600">
-                    {{ \App\Models\CompanyProfile::first()->display_name ?? 'BCM' }} WiFi Customer Management System
+                <p class="text-sm text-blue-200/90 font-normal">
+                    {{ $companyName }} &bull; WiFi Customer & Billing Management System
                 </p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <div class="flex-1 sm:flex-[1.2] bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+
+            <!-- Server Time & Clear Cache Widget -->
+            <div class="flex flex-col sm:flex-row gap-2.5 w-full lg:w-auto">
+                <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-4 py-3 min-w-[200px]">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                                <i class="fas fa-clock text-blue-600"></i>
+                        <div class="w-9 h-9 rounded-lg bg-blue-500/30 text-blue-200 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-clock text-sm"></i>
                         </div>
                         <div>
-                            <p class="text-xs font-semibold text-gray-500 tracking-wide uppercase">Server Time</p>
-                            <p class="text-lg font-semibold text-gray-900" id="server-time">
+                            <p class="text-[10px] font-semibold uppercase tracking-wider text-blue-200">Server Time (WIB)</p>
+                            <p class="text-base font-bold text-white font-mono tracking-tight" id="server-time">
                                 {{ now()->setTimezone('Asia/Jakarta')->format('d M Y H:i:s') }}
                             </p>
-                            <p class="text-[11px] text-gray-400">WIB (GMT+7)</p>
                         </div>
                     </div>
                 </div>
-                <form action="{{ route('dashboard.clear-cache') }}" method="POST" class="flex-1">
+
+                <form action="{{ route('dashboard.clear-cache') }}" method="POST" class="flex-1 sm:flex-none">
                     @csrf
                     <button type="submit"
-                            class="w-full h-full bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 text-left">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                                <i class="fas fa-sync-alt text-amber-500"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-semibold text-gray-900">Clear Cache</p>
-                                <p class="text-xs text-gray-500">Segarkan data dashboard</p>
-                            </div>
+                            title="Segarkan cache dashboard"
+                            class="w-full h-full bg-white/10 hover:bg-white/20 active:scale-[0.98] backdrop-blur-md border border-white/15 rounded-xl px-4 py-3 transition-all duration-200 text-left flex items-center gap-3 group">
+                        <div class="w-9 h-9 rounded-lg bg-amber-500/30 text-amber-300 flex items-center justify-center flex-shrink-0 group-hover:rotate-180 transition-transform duration-500">
+                            <i class="fas fa-sync-alt text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">Clear Cache</p>
+                            <p class="text-[11px] text-blue-200">Segarkan data</p>
                         </div>
                     </button>
                 </form>
             </div>
         </div>
+
+        <!-- Decorative background elements -->
+        <div class="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 right-32 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 lg:gap-4">
         @php
             $statCards = [
                 [
                     'label' => 'Total Pelanggan',
                     'value' => number_format($stats['total_pelanggan']),
                     'trend' => $stats['customer_growth'],
-                    'suffix' => $stats['last_month_customers'] ?? 0 > 0 ? 'vs bulan lalu' : 'Data baru bulan ini',
+                    'suffix' => ($stats['last_month_customers'] ?? 0) > 0 ? 'vs bulan lalu' : 'Bulan ini',
                     'icon' => 'fas fa-users',
-                    'accent' => 'blue'
+                    'accent' => 'blue',
+                    'bg_icon' => 'bg-blue-50',
+                    'text_icon' => 'text-blue-600',
                 ],
                 [
                     'label' => 'Pendapatan Bulan Ini',
                     'value' => 'Rp ' . number_format($stats['pendapatan_bulan_ini'], 0, ',', '.'),
                     'trend' => $stats['revenue_growth'],
-                    'suffix' => $stats['last_month_revenue'] ?? 0 > 0 ? 'vs bulan lalu' : 'Data baru bulan ini',
-                    'icon' => 'fas fa-dollar-sign',
-                    'accent' => 'green'
+                    'suffix' => ($stats['last_month_revenue'] ?? 0) > 0 ? 'vs bulan lalu' : 'Bulan ini',
+                    'icon' => 'fas fa-wallet',
+                    'accent' => 'green',
+                    'bg_icon' => 'bg-emerald-50',
+                    'text_icon' => 'text-emerald-600',
                 ],
                 [
                     'label' => 'Tagihan Belum Lunas',
                     'value' => 'Rp ' . number_format($stats['tagihan_belum_bayar'], 0, ',', '.'),
                     'trend' => null,
-                    'suffix' => 'Perlu perhatian',
-                    'icon' => 'fas fa-exclamation-triangle',
-                    'accent' => 'orange'
+                    'suffix' => 'Outstanding tagihan',
+                    'icon' => 'fas fa-exclamation-circle',
+                    'accent' => 'orange',
+                    'bg_icon' => 'bg-amber-50',
+                    'text_icon' => 'text-amber-600',
                 ],
                 [
                     'label' => 'Paket Aktif',
                     'value' => number_format($stats['total_paket']),
                     'trend' => null,
-                    'suffix' => 'Paket tersedia',
-                    'icon' => 'fas fa-box',
-                    'accent' => 'purple'
+                    'suffix' => 'Paket layanan WiFi',
+                    'icon' => 'fas fa-box-open',
+                    'accent' => 'purple',
+                    'bg_icon' => 'bg-purple-50',
+                    'text_icon' => 'text-purple-600',
                 ],
             ];
         @endphp
 
         @foreach($statCards as $card)
-            <div class="app-card stat-card bg-white border border-gray-100 shadow-sm">
-                <div class="flex items-start justify-between gap-2.5">
+            <div class="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200">
+                <div class="flex items-start justify-between gap-3">
                     <div class="flex-1 min-w-0">
-                        <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-2">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
                             {{ $card['label'] }}
                         </p>
-                        <p class="stat-card__value mb-1.5 leading-tight">{{ $card['value'] }}</p>
+                        <p class="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight mb-2">
+                            {{ $card['value'] }}
+                        </p>
                         <div class="flex items-center gap-1.5 flex-wrap">
                             @if($card['trend'] === 'new')
-                                <span class="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold">Baru</span>
+                                <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold">Baru</span>
                             @elseif(is_numeric($card['trend']) && $card['trend'] > 0)
-                                <span class="px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 text-[10px] font-semibold">
-                                    <i class="fas fa-arrow-up mr-0.5"></i>+{{ $card['trend'] }}%
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold inline-flex items-center gap-0.5">
+                                    <i class="fas fa-arrow-up text-[8px]"></i>+{{ $card['trend'] }}%
                                 </span>
                             @elseif(is_numeric($card['trend']) && $card['trend'] < 0)
-                                <span class="px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-semibold">
-                                    <i class="fas fa-arrow-down mr-0.5"></i>{{ $card['trend'] }}%
+                                <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-bold inline-flex items-center gap-0.5">
+                                    <i class="fas fa-arrow-down text-[8px]"></i>{{ $card['trend'] }}%
                                 </span>
                             @elseif($card['trend'] !== null)
-                                <span class="px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-semibold">0%</span>
+                                <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-semibold">0%</span>
                             @endif
-                            <span class="text-[10px] text-gray-500 truncate">{{ $card['suffix'] }}</span>
+                            <span class="text-[11px] text-gray-400 truncate">{{ $card['suffix'] }}</span>
                         </div>
                     </div>
-                    <div class="stat-card__icon shadow-sm flex-shrink-0
-                        @if($card['accent'] === 'blue') bg-blue-50 text-blue-600
-                        @elseif($card['accent'] === 'green') bg-emerald-50 text-emerald-600
-                        @elseif($card['accent'] === 'orange') bg-orange-50 text-orange-500
-                        @else bg-purple-50 text-purple-600 @endif">
+                    <div class="w-11 h-11 rounded-xl {{ $card['bg_icon'] }} {{ $card['text_icon'] }} flex items-center justify-center flex-shrink-0 shadow-sm text-base">
                         <i class="{{ $card['icon'] }}"></i>
                     </div>
                 </div>
@@ -129,171 +153,179 @@
     <!-- Recent Pembayarans & Status Per Penagih -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <!-- Recent Pembayarans -->
-        <div class="app-card">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-receipt text-blue-500"></i>
-                        Pembayaran Terbaru
-                </h3>
-                    <p class="text-xs text-gray-500 mt-1">5 transaksi terakhir</p>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i class="fas fa-receipt text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-900">Pembayaran Terbaru</h3>
+                        <p class="text-[11px] text-gray-400">Transaksi pembayaran terkini</p>
+                    </div>
                 </div>
-                <a href="{{ route('pembayarans.index') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-500">Lihat semua →</a>
+                <a href="{{ route('pembayarans.index') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-700 transition">
+                    Lihat semua &rarr;
+                </a>
             </div>
-            <div class="space-y-3">
-                        @forelse($recentPembayarans as $pembayaran)
-                    <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3 hover:border-blue-200 transition">
-                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-sm font-semibold">
-                                            {{ substr($pembayaran->pelanggan->nama, 0, 1) }}
+
+            <div class="divide-y divide-gray-50 flex-1 p-2">
+                @forelse($recentPembayarans as $pembayaran)
+                    <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50/80 transition-colors">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm">
+                            {{ strtoupper(substr($pembayaran->pelanggan->nama ?? 'P', 0, 1)) }}
                         </div>
-                        <div class="flex-1">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-slate-900 truncate">{{ $pembayaran->pelanggan->nama }}</p>
-                                    <p class="text-xs text-gray-500 flex items-center gap-2">
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-calendar"></i>{{ $pembayaran->bulan_tagihan }}/{{ $pembayaran->tahun_tagihan }}
-                                        </span>
-                                        <span class="hidden sm:inline">•</span>
-                                        <span class="flex items-center gap-1">
-                                        @if($pembayaran->penagih)
-                                                <i class="fas fa-user"></i>{{ $pembayaran->penagih->nama }}
-                                        @else
-                                                <i class="fas fa-user-slash text-gray-400"></i>
-                                                <span class="italic text-gray-400">Belum ada penagih</span>
-                                        @endif
-                                        </span>
-                                    </p>
-                                </div>
-                                <div class="text-right sm:flex-shrink-0">
-                                    <p class="text-sm font-semibold text-slate-900">Rp {{ number_format($pembayaran->jumlah, 0, ',', '.') }}</p>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
-                                        {{ $pembayaran->status === 'lunas' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }}">
-                                        <i class="fas {{ $pembayaran->status === 'lunas' ? 'fa-check' : 'fa-clock' }} mr-1"></i>
-                                        {{ $pembayaran->status === 'lunas' ? 'Lunas' : 'Belum bayar' }}
-                                    </span>
-                                </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-sm font-bold text-gray-900 truncate">{{ $pembayaran->pelanggan->nama ?? '-' }}</p>
+                                <p class="text-sm font-bold text-gray-900">Rp {{ number_format($pembayaran->jumlah, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 mt-0.5">
+                                <p class="text-xs text-gray-400 truncate flex items-center gap-1.5">
+                                    <span><i class="far fa-calendar-alt text-[10px] mr-1"></i>{{ $pembayaran->bulan_tagihan }}/{{ $pembayaran->tahun_tagihan }}</span>
+                                    <span>&bull;</span>
+                                    <span><i class="far fa-user text-[10px] mr-1"></i>{{ $pembayaran->penagih->nama ?? 'Tanpa Penagih' }}</span>
+                                </p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0
+                                    {{ $pembayaran->status === 'lunas' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+                                    <i class="fas {{ $pembayaran->status === 'lunas' ? 'fa-check-circle' : 'fa-clock' }} mr-1 text-[9px]"></i>
+                                    {{ $pembayaran->status === 'lunas' ? 'Lunas' : 'Belum Bayar' }}
+                                </span>
                             </div>
                         </div>
                     </div>
-                        @empty
-                    <div class="text-center py-10 text-sm text-gray-500">
-                        Belum ada transaksi terbaru.
-                            </div>
-                        @endforelse
+                @empty
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
+                            <i class="fas fa-receipt text-lg"></i>
+                        </div>
+                        <p class="text-sm text-gray-500 font-medium">Belum ada transaksi pembayaran</p>
+                    </div>
+                @endforelse
             </div>
         </div>
 
         <!-- Status Per Penagih -->
-        <div class="app-card">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-user-tie text-emerald-500"></i>
-                        Status Per Penagih
-                </h3>
-                    <p class="text-xs text-gray-500 mt-1">Outstanding & performa kolektor</p>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fas fa-user-tie text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-900">Status Per Penagih</h3>
+                        <p class="text-[11px] text-gray-400">Performa & tagihan kolektor</p>
+                    </div>
                 </div>
             </div>
-            <div class="space-y-3">
-                        @forelse($statusPerPenagih as $penagih)
-                    <div class="border border-gray-100 rounded-xl p-3">
-                        <div class="flex items-center justify-between gap-3">
+
+            <div class="divide-y divide-gray-50 flex-1 p-2 space-y-1">
+                @forelse($statusPerPenagih as $penagih)
+                    <div class="p-3 rounded-xl hover:bg-gray-50/80 transition-colors">
+                        <div class="flex items-center justify-between gap-3 mb-2">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-semibold">
-                                                {{ substr($penagih['nama'], 0, 1) }}
+                                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                    {{ strtoupper(substr($penagih['nama'], 0, 1)) }}
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-900">{{ $penagih['nama'] }}</p>
-                                    <p class="text-xs text-gray-500 flex items-center gap-1">
-                                        <i class="fas fa-users"></i>{{ $penagih['total_pelanggan'] }} pelanggan
+                                    <p class="text-sm font-bold text-gray-900">{{ $penagih['nama'] }}</p>
+                                    <p class="text-[11px] text-gray-400">
+                                        <i class="fas fa-users text-[10px] mr-1"></i>{{ $penagih['total_pelanggan'] }} Pelanggan
                                     </p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-semibold text-rose-600">Rp {{ number_format($penagih['tagihan_belum_bayar'], 0, ',', '.') }}</p>
-                                <p class="text-[11px] text-gray-500">Belum dibayar</p>
+                                <p class="text-xs font-bold text-rose-600">Rp {{ number_format($penagih['tagihan_belum_bayar'], 0, ',', '.') }}</p>
+                                <p class="text-[10px] text-gray-400">Belum dibayar</p>
                             </div>
                         </div>
+
                         @php
                             $paid = max(0, $penagih['total_tagihan'] - $penagih['tagihan_belum_bayar']);
                             $percent = $penagih['total_tagihan'] > 0 ? round(($paid / $penagih['total_tagihan']) * 100) : 0;
                         @endphp
-                        <div class="mt-3">
+                        <div>
                             <div class="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                                <div class="h-full rounded-full {{ $percent >= 70 ? 'bg-emerald-400' : 'bg-amber-400' }}" style="width: {{ $percent }}%"></div>
-                                </div>
-                            <div class="flex justify-between text-[11px] text-gray-500 mt-1">
-                                <span>{{ $percent }}% lunas</span>
+                                <div class="h-full rounded-full transition-all duration-500 {{ $percent >= 70 ? 'bg-emerald-500' : ($percent >= 40 ? 'bg-amber-500' : 'bg-rose-500') }}"
+                                     style="width: {{ $percent }}%"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[11px] text-gray-400 mt-1">
+                                <span class="font-semibold {{ $percent >= 70 ? 'text-emerald-600' : ($percent >= 40 ? 'text-amber-600' : 'text-rose-600') }}">
+                                    {{ $percent }}% Lunas
+                                </span>
                                 <span>Total: Rp {{ number_format($penagih['total_tagihan'], 0, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>
                 @empty
-                    <div class="text-center py-10 text-sm text-gray-500">Data penagih belum tersedia.</div>
-                        @endforelse
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
+                            <i class="fas fa-user-tie text-lg"></i>
+                        </div>
+                        <p class="text-sm text-gray-500 font-medium">Data penagih belum tersedia</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
 
     <!-- Admin Actions -->
     @if((auth()->user()?->role ?? 'guest') === 'admin')
-        <div class="app-card">
-            <div class="flex items-center justify-between mb-3">
-                <div>
-                    <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-cogs text-purple-500"></i>
-                        Admin Actions
-            </h3>
-                    <p class="text-xs text-gray-500 mt-1">Shortcut utilitas utama</p>
-                </div>
-        </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <a href="{{ route('backup.database') }}" class="border border-gray-100 rounded-xl p-4 hover:border-blue-200 transition">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div class="mb-4">
+                <p class="text-[11px] uppercase tracking-widest text-purple-600 font-bold mb-0.5">Admin Utilities</p>
+                <h3 class="text-sm font-bold text-gray-900">Aksi & Shortcut Billing</h3>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <a href="{{ route('backup.database') }}"
+                   class="border border-gray-100 bg-gray-50/50 rounded-xl p-4 hover:bg-blue-50/60 hover:border-blue-200 transition-all group">
                     <div class="flex items-start gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-200 transition-colors flex-shrink-0">
                             <i class="fas fa-database"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-semibold text-slate-900">Backup Database</p>
-                            <p class="text-xs text-gray-500 mt-1">Download cadangan terkini</p>
-                            <span class="text-[11px] text-blue-600 font-semibold">Keamanan data</span>
+                            <p class="text-sm font-bold text-gray-900">Backup Database</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Download cadangan data terkini</p>
+                            <span class="inline-block mt-1 text-[10px] font-bold text-blue-600 uppercase tracking-wider">Keamanan Data</span>
                         </div>
                     </div>
                 </a>
-                <form method="POST" action="{{ route('pembayarans.generate-bills') }}" class="border border-gray-100 rounded-xl p-4 hover:border-emerald-200 transition generate-bills-form">
+
+                <form method="POST" action="{{ route('pembayarans.generate-bills') }}" class="generate-bills-form">
                     @csrf
-                    <button type="submit" class="w-full text-left generate-bills-btn">
+                    <button type="submit"
+                            class="w-full text-left border border-gray-100 bg-gray-50/50 rounded-xl p-4 hover:bg-emerald-50/60 hover:border-emerald-200 transition-all group generate-bills-btn">
                         <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 transition-colors flex-shrink-0">
                                 <i class="fas fa-file-invoice"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold text-slate-900">Generate Tagihan</p>
-                                <p class="text-xs text-gray-500 mt-1">Buat tagihan bulanan (1x per periode)</p>
-                                <span class="text-[11px] text-emerald-600 font-semibold">Sekali jalan tiap bulan</span>
+                                <p class="text-sm font-bold text-gray-900">Generate Tagihan</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Buat tagihan bulanan pelanggan</p>
+                                <span class="inline-block mt-1 text-[10px] font-bold text-emerald-600 uppercase tracking-wider">1x Per Bulan</span>
                             </div>
                         </div>
                     </button>
                 </form>
-                <form method="POST" action="{{ route('run.smart.bills') }}" class="border border-gray-100 rounded-xl p-4 hover:border-purple-200 transition smart-bills-btn">
+
+                <form method="POST" action="{{ route('run.smart.bills') }}">
                     @csrf
-                    <button type="submit" class="w-full text-left">
+                    <button type="submit"
+                            class="w-full text-left border border-gray-100 bg-gray-50/50 rounded-xl p-4 hover:bg-purple-50/60 hover:border-purple-200 transition-all group smart-bills-btn">
                         <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-purple-200 transition-colors flex-shrink-0">
                                 <i class="fas fa-bolt"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold text-slate-900">Run Smart Bills</p>
-                                <p class="text-xs text-gray-500 mt-1">Generate khusus pelanggan baru/belum masuk</p>
-                                <span class="text-[11px] text-purple-600 font-semibold">Tambahan pascadistribusi</span>
+                                <p class="text-sm font-bold text-gray-900">Run Smart Bills</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Generate khusus pelanggan baru</p>
+                                <span class="inline-block mt-1 text-[10px] font-bold text-purple-600 uppercase tracking-wider">Otomatis Tambahan</span>
                             </div>
                         </div>
                     </button>
                 </form>
             </div>
         </div>
-
     @endif
 </div>
 
@@ -318,7 +350,6 @@
         timeElement.textContent = timeString;
     }
 
-    // Start clock immediately
     updateTime();
     setInterval(updateTime, 1000);
 
@@ -327,10 +358,9 @@
     if (smartBillsBtn) {
         smartBillsBtn.addEventListener('click', function(e) {
             e.preventDefault();
-
             Swal.fire({
                 title: 'Jalankan Smart Bills?',
-                text: 'Apakah Anda yakin ingin menjalankan Smart Bills Check?',
+                text: 'Apakah Anda yakin ingin menjalankan Smart Bills Check untuk pelanggan baru?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#8B5CF6',
@@ -349,7 +379,6 @@
     if (generateBillsBtn) {
         generateBillsBtn.addEventListener('click', function(e) {
             e.preventDefault();
-
             Swal.fire({
                 title: 'Generate Tagihan Bulanan?',
                 text: 'Tindakan ini hanya bisa dilakukan satu kali per bulan. Lanjutkan?',
@@ -366,8 +395,6 @@
             });
         });
     }
-
-    // Show SweetAlert for session messages
 </script>
 
 @if(session('success'))
@@ -396,3 +423,4 @@ Swal.fire({
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endpush
 @endsection
+

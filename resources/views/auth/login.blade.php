@@ -117,7 +117,7 @@
                     <h1 class="text-4xl font-extrabold text-white leading-tight mb-3">
                         Selamat Datang<br>
                         <span class="text-transparent bg-clip-text" style="background:linear-gradient(90deg,#60a5fa,#a78bfa);">
-                            Kembali! 👋
+                            Kembali
                         </span>
                     </h1>
                     <p class="text-blue-200 text-sm leading-relaxed max-w-xs">

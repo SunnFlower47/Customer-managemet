@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dashboard')
 
@@ -6,7 +6,6 @@
 @php
     $hour = now()->hour;
     $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
-    $greetIcon = $hour < 12 ? ':sunny:' : ($hour < 15 ? ':sun:' : ($hour < 18 ? ':city_sunset:' : ':moon:'));
     $totalPelanggan = \App\Models\Pelanggan::count();
     $aktifPelanggan = \App\Models\Pelanggan::whereIn('status', ['aktif', 'bayar double'])->count();
     $tiketPending   = \App\Models\Ticket::where('status', 'pending')->count();
@@ -17,7 +16,7 @@
     <div class="relative overflow-hidden rounded-2xl p-5 sm:p-6" style="background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);">
         <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <p class="text-blue-200 text-sm font-medium mb-1">{{ $greetIcon }} {{ $greeting }}, {{ Auth::user()->name ?? 'Admin' }}!</p>
+                <p class="text-blue-200 text-sm font-medium mb-1"><i class="far fa-calendar-alt mr-1"></i> {{ $greeting }}, {{ Auth::user()->name ?? 'Admin' }}</p>
                 <h1 class="text-xl sm:text-2xl font-bold text-white">Dashboard Customer Portal</h1>
                 <p class="text-blue-300 text-xs sm:text-sm mt-1">{{ now()->isoFormat('dddd, D MMMM Y') }}</p>
             </div>

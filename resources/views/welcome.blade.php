@@ -110,10 +110,6 @@
 
                 <!-- Left: Text -->
                 <div class="text-center lg:text-left">
-                    <div class="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full mb-6">
-                        <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
-                        <span class="text-xs font-medium text-blue-200">Sistem Aktif & Berjalan</span>
-                    </div>
                     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5">
                         Kelola WiFi<br>
                         <span class="text-sky-300">
@@ -134,20 +130,28 @@
                         </a>
                     </div>
                     <!-- Stats -->
+                    @php
+                        $totalPelanggan = \Illuminate\Support\Facades\Cache::remember('welcome_total_pelanggan', 3600, function () {
+                            return \App\Models\Pelanggan::count();
+                        });
+                        $totalPaket = \Illuminate\Support\Facades\Cache::remember('welcome_total_paket', 3600, function () {
+                            return \App\Models\Paket::count();
+                        });
+                    @endphp
                     <div class="flex flex-wrap gap-6 mt-10 justify-center lg:justify-start">
                         <div class="text-center">
-                            <div class="text-2xl font-bold text-white">∞</div>
-                            <div class="text-xs text-blue-300 mt-0.5">Pelanggan</div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ number_format($totalPelanggan) }}</div>
+                            <div class="text-xs text-blue-300 mt-0.5 font-medium">Pelanggan Terdaftar</div>
                         </div>
                         <div class="w-px bg-white/20 self-stretch"></div>
                         <div class="text-center">
-                            <div class="text-2xl font-bold text-white">24/7</div>
-                            <div class="text-xs text-blue-300 mt-0.5">Online</div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ number_format($totalPaket) }}</div>
+                            <div class="text-xs text-blue-300 mt-0.5 font-medium">Pilihan Paket</div>
                         </div>
                         <div class="w-px bg-white/20 self-stretch"></div>
                         <div class="text-center">
-                            <div class="text-2xl font-bold text-white">v2.0</div>
-                            <div class="text-xs text-blue-300 mt-0.5">Versi Sistem</div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-white">24/7</div>
+                            <div class="text-xs text-blue-300 mt-0.5 font-medium">Online & Cepat</div>
                         </div>
                     </div>
                 </div>

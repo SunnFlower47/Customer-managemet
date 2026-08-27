@@ -111,11 +111,6 @@
             <!-- Middle: Floating card + text -->
             <div class="flex-1 flex flex-col justify-center py-12 relative z-10">
                 <div class="mb-8">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5"
-                         style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);">
-                        <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
-                        <span class="text-xs font-semibold text-blue-100">Sistem Aktif & Terlindungi</span>
-                    </div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3">
                         Selamat Datang<br>
                         <span class="text-sky-300">Kembali</span>

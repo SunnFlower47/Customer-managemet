@@ -79,8 +79,9 @@
             {{-- 
             ======================================================================================
             [UI RINCIAN PAJAK & HARGA TOTAL (PPN, BHP, USO) - SEMENTARA DI-HIDE]
-            Petunjuk: Jika ingin mengaktifkan kembali kalkulasi otomatis rincian pajak di form ini,
-            silakan hapus komentar pembuka {{-- di atas baris ini dan penutup --}} di bawah blok ini.
+            Petunjuk: Jika ingin mengaktifkan kembali, hapus DUA BARIS komentar Blade
+            di bawah ini yaitu baris yang berisi tanda KURUNG KURAWAL DUA STRIP
+            (baris 86 ini dan baris penutup di akhir blok).
             ======================================================================================
             --}}
             {{--

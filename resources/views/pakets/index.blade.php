@@ -28,8 +28,8 @@
     {{-- 
     ======================================================================================
     [UI STATISTIK / RINCIAN PAJAK DI MENU PAKET - SEMENTARA DI-HIDE]
-    Petunjuk: Jika ingin mengaktifkan kembali tampilan kartu statistik pajak (PPN, BHP, USO, ADM),
-    silakan hapus komentar pembuka {{-- di atas baris ini dan penutup --}} di bawah blok ini.
+    Petunjuk: Jika ingin mengaktifkan kembali, hapus DUA BARIS komentar Blade di bawah ini
+    yaitu baris yang dimulai dengan tanda KURUNG KURAWAL DUA STRIP (baris 35 dan baris terakhir blok).
     ======================================================================================
     --}}
     {{--

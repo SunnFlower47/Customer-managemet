@@ -89,75 +89,68 @@
     <div class="min-h-screen flex">
 
         <!-- ====== LEFT PANEL (hidden on mobile) ====== -->
-        <div class="hidden lg:flex lg:w-1/2 left-panel grid-pattern flex-col justify-between p-12 relative overflow-hidden">
+        <div class="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden text-white"
+             style="background: linear-gradient(135deg, #0b1329 0%, #1e3a8a 55%, #172554 100%);">
             <!-- Top: Brand -->
-            <div>
+            <div class="relative z-10">
                 <a href="{{ route('welcome') }}" class="inline-flex items-center gap-3 text-white hover:opacity-90 transition-opacity">
                     @if($companyProfile && $companyProfile->logo_path)
                         <img src="{{ $companyProfile->logo_url }}" alt="" class="h-10 w-10 object-contain rounded-xl">
                     @else
-                        <div class="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <div class="h-10 w-10 bg-blue-500/30 border border-blue-400/30 rounded-xl flex items-center justify-center">
                             <i class="fas fa-wifi text-white"></i>
                         </div>
                     @endif
                     <div>
-                        <p class="font-bold text-base leading-tight">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</p>
-                        <p class="text-blue-300 text-xs">WiFi Management System</p>
+                        <p class="font-bold text-base text-white leading-tight">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</p>
+                        <p class="text-blue-200 text-xs">WiFi Management System</p>
                     </div>
                 </a>
             </div>
 
             <!-- Middle: Floating card + text -->
-            <div class="flex-1 flex flex-col justify-center py-12">
+            <div class="flex-1 flex flex-col justify-center py-12 relative z-10">
                 <div class="mb-8">
-                    <div class="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full mb-5">
-                        <span class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></span>
-                        <span class="text-xs font-medium text-blue-200">Sistem Aktif & Berjalan</span>
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5"
+                         style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
+                        <span class="text-xs font-semibold text-blue-100">Sistem Aktif & Terlindungi</span>
                     </div>
-                    <h1 class="text-4xl font-extrabold text-white leading-tight mb-3">
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3">
                         Selamat Datang<br>
-                        <span class="text-transparent bg-clip-text" style="background:linear-gradient(90deg,#60a5fa,#a78bfa);">
-                            Kembali
-                        </span>
+                        <span class="text-sky-300">Kembali</span>
                     </h1>
-                    <p class="text-blue-200 text-sm leading-relaxed max-w-xs">
-                        Masuk ke dashboard untuk mengelola pelanggan, pembayaran, dan monitoring jaringan WiFi Anda.
+                    <p class="text-blue-100 text-sm leading-relaxed max-w-sm">
+                        Masuk ke dashboard untuk mengelola pelanggan, tagihan, dan monitoring jaringan WiFi Anda secara efisien.
                     </p>
                 </div>
 
-                <!-- Stats card -->
-                <div class="float-anim glass-card rounded-2xl p-5 max-w-xs">
-                    @php
-                        $totalP = \App\Models\Pelanggan::count();
-                        $aktifP = \App\Models\Pelanggan::where('status','aktif')->count();
-                    @endphp
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="h-8 w-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-chart-line text-white text-xs"></i>
+                <!-- Info card -->
+                <div class="rounded-2xl p-5 max-w-sm shadow-xl"
+                     style="background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18);">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="h-8 w-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-shield-alt text-white text-xs"></i>
                         </div>
-                        <p class="text-white text-sm font-semibold">Ringkasan Sistem</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white/10 rounded-xl p-3">
-                            <p class="text-2xl font-bold text-white">{{ number_format($totalP) }}</p>
-                            <p class="text-xs text-blue-300 mt-0.5">Total Pelanggan</p>
-                        </div>
-                        <div class="bg-white/10 rounded-xl p-3">
-                            <p class="text-2xl font-bold text-green-400">{{ number_format($aktifP) }}</p>
-                            <p class="text-xs text-blue-300 mt-0.5">Pelanggan Aktif</p>
+                        <div>
+                            <p class="text-white text-sm font-bold">Portal Manajemen Resmi</p>
+                            <p class="text-blue-200 text-xs">Autentikasi Terenkripsi</p>
                         </div>
                     </div>
+                    <p class="text-blue-200/90 text-xs leading-relaxed">
+                        Akses khusus administrator dan petugas penagih resmi. Pastikan kredensial login Anda terjaga dengan aman.
+                    </p>
                 </div>
             </div>
 
             <!-- Bottom: version -->
-            <div>
-                <p class="text-blue-400 text-xs">© {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM' }} &bull; v2.0</p>
+            <div class="relative z-10">
+                <p class="text-blue-300 text-xs">© {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM' }} &bull; v2.0</p>
             </div>
 
-            <!-- Decorative circles -->
-            <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute top-20 -right-10 w-40 h-40 bg-purple-600/20 rounded-full blur-2xl pointer-events-none"></div>
+            <!-- Decorative blue circles (no purple) -->
+            <div class="absolute -bottom-20 -right-20 w-72 h-72 bg-blue-600/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-10 -right-10 w-52 h-52 bg-sky-500/20 rounded-full blur-2xl pointer-events-none"></div>
         </div>
 
         <!-- ====== RIGHT PANEL: Login Form ====== -->

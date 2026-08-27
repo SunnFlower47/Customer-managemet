@@ -103,19 +103,20 @@
     </nav>
 
     <!-- HERO -->
-    <section class="hero-bg grid-pattern relative min-h-screen flex items-center pt-16">
+    <section class="grid-pattern relative min-h-screen flex items-center pt-16"
+             style="background: linear-gradient(135deg, #0b1329 0%, #1e3a8a 55%, #172554 100%);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
                 <!-- Left: Text -->
                 <div class="text-center lg:text-left">
                     <div class="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full mb-6">
-                        <span class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></span>
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
                         <span class="text-xs font-medium text-blue-200">Sistem Aktif & Berjalan</span>
                     </div>
                     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5">
                         Kelola WiFi<br>
-                        <span class="text-transparent bg-clip-text" style="background:linear-gradient(90deg,#60a5fa,#a78bfa);">
+                        <span class="text-sky-300">
                             Lebih Mudah
                         </span>
                     </h1>

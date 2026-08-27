@@ -590,7 +590,7 @@
                             <span class="whitespace-nowrap">WiFi Customer Management System</span>
                         </div>
                         <div class="mt-0 md:mt-0 text-center sm:text-right">
-                            <span class="whitespace-nowrap">Internal System v1.0</span>
+                            <span class="whitespace-nowrap">Internal System v2.0</span>
                         </div>
                     </div>
                 </div>

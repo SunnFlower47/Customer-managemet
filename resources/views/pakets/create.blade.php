@@ -76,6 +76,14 @@
                 </div>
             </div>
 
+            {{-- 
+            ======================================================================================
+            [UI RINCIAN PAJAK & HARGA TOTAL (PPN, BHP, USO) - SEMENTARA DI-HIDE]
+            Petunjuk: Jika ingin mengaktifkan kembali kalkulasi otomatis rincian pajak di form ini,
+            silakan hapus komentar pembuka {{-- di atas baris ini dan penutup --}} di bawah blok ini.
+            ======================================================================================
+            --}}
+            {{--
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
                 <p class="text-xs uppercase tracking-wide text-indigo-500 font-semibold mb-2">Rincian Pajak & Harga Total (Otomatis)</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -97,6 +105,7 @@
                     <input type="text" id="display_total" class="w-full px-4 py-3 border-none bg-indigo-50 rounded-lg text-lg text-indigo-700 font-bold" readonly>
                 </div>
             </div>
+            --}}
 
             <div>
                 <label for="deskripsi" class="block text-sm font-semibold text-gray-700 mb-2">

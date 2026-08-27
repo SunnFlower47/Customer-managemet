@@ -25,6 +25,14 @@
         </div>
     </div>
     
+    {{-- 
+    ======================================================================================
+    [UI STATISTIK / RINCIAN PAJAK DI MENU PAKET - SEMENTARA DI-HIDE]
+    Petunjuk: Jika ingin mengaktifkan kembali tampilan kartu statistik pajak (PPN, BHP, USO, ADM),
+    silakan hapus komentar pembuka {{-- di atas baris ini dan penutup --}} di bawah blok ini.
+    ======================================================================================
+    --}}
+    {{--
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-8">
         <!-- PPN Card -->
@@ -107,6 +115,7 @@
             </div>
         </div>
     </div>
+    --}}
 
     <div class="app-card app-card--soft overflow-hidden">
         <div class="hidden lg:block overflow-x-auto">

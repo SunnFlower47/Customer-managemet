@@ -116,13 +116,13 @@
                             <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
                                 <i class="fas fa-circle text-[6px] mr-1"></i>Online
                             </span>
-                            @elseif($mikrotik->connection_status === 'offline')
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
-                                <i class="fas fa-circle text-[6px] mr-1"></i>Offline
+                            @elseif($mikrotik->connection_status === 'error' || $mikrotik->connection_status === 'offline')
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-800 border border-red-200" title="{{ $mikrotik->last_error ?? 'Koneksi gagal' }}">
+                                <i class="fas fa-circle text-[6px] mr-1"></i>Offline / Error
                             </span>
                             @else
-                            <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
-                                <i class="fas fa-circle text-[6px] mr-1"></i>Error
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Belum pernah di-test koneksi">
+                                <i class="fas fa-circle text-[6px] mr-1"></i>Belum Dites
                             </span>
                             @endif
                         </td>
@@ -198,13 +198,13 @@
                         <span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold bg-green-100 text-green-800 border border-green-200">
                             <i class="fas fa-circle text-[4px] mr-1"></i>Online
                         </span>
-                        @elseif($mikrotik->connection_status === 'offline')
-                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold bg-gray-100 text-gray-800 border border-gray-200">
+                        @elseif($mikrotik->connection_status === 'error' || $mikrotik->connection_status === 'offline')
+                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold bg-red-100 text-red-800 border border-red-200">
                             <i class="fas fa-circle text-[4px] mr-1"></i>Offline
                         </span>
                         @else
-                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold bg-red-100 text-red-800 border border-red-200">
-                            <i class="fas fa-circle text-[4px] mr-1"></i>Error
+                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <i class="fas fa-circle text-[4px] mr-1"></i>Belum Dites
                         </span>
                         @endif
                     </div>

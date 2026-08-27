@@ -78,13 +78,14 @@
                                     Online
                                 </span>
                             @elseif($router->connection_status == 'error')
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-100 text-red-800 border border-red-200" title="{{ $router->last_error }}">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-100 text-red-800 border border-red-200" title="{{ $router->last_error ?? 'Koneksi gagal' }}">
                                     <span class="w-1.5 h-1.5 mr-1.5 bg-red-500 rounded-full"></span>
-                                    Error
+                                    Offline / Error
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-800 border border-gray-200">
-                                    Unknown
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Klik tombol Test Koneksi untuk menguji status">
+                                    <span class="w-1.5 h-1.5 mr-1.5 bg-amber-500 rounded-full"></span>
+                                    Belum Dites
                                 </span>
                             @endif
                         </td>
@@ -145,8 +146,10 @@
                     <div class="ml-auto">
                         @if($router->connection_status == 'online')
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-800">Online</span>
+                        @elseif($router->connection_status == 'error')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-800" title="{{ $router->last_error ?? 'Koneksi gagal' }}">Offline</span>
                         @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-800">Error</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">Belum Dites</span>
                         @endif
                     </div>
                 </div>
@@ -216,11 +219,11 @@
             if(data.success) {
                 Swal.fire('Berhasil', data.message, 'success').then(() => location.reload());
             } else {
-                Swal.fire('Gagal', data.message, 'error');
+                Swal.fire('Gagal', data.message, 'error').then(() => location.reload());
             }
         })
         .catch(error => {
-            Swal.fire('Error', 'Request failed', 'error');
+            Swal.fire('Error', 'Gagal menghubungi server', 'error').then(() => location.reload());
         });
     }
 </script>

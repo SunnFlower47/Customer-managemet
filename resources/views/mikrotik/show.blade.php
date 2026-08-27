@@ -18,9 +18,13 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-800">
                             <span class="w-1.5 h-1.5 mr-1.5 bg-green-500 rounded-full"></span>Online
                         </span>
+                    @elseif($mikrotik->connection_status == 'error')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-800" title="{{ $mikrotik->last_error ?? 'Koneksi gagal' }}">
+                            <span class="w-1.5 h-1.5 mr-1.5 bg-red-500 rounded-full"></span>Offline / Error
+                        </span>
                     @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-800">
-                            <span class="w-1.5 h-1.5 mr-1.5 bg-red-500 rounded-full"></span>Error
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">
+                            <span class="w-1.5 h-1.5 mr-1.5 bg-amber-500 rounded-full"></span>Belum Dites
                         </span>
                     @endif
                 </div>

@@ -41,23 +41,27 @@ if (!empty($detectedLanPorts)) {
     <div>
         <label class="{{ $labelClass }}">Mode WAN <span class="text-red-500">*</span></label>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all {{ old('wan_mode', $service->wan_mode ?? 'pppoe') === 'pppoe' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300' }}">
-                <input type="radio" name="wan_mode" value="pppoe" x-model="wanMode" {{ old('wan_mode', $service->wan_mode ?? 'pppoe') === 'pppoe' ? 'checked' : '' }} class="sr-only">
+            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all"
+                   :class="wanMode === 'pppoe' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300'">
+                <input type="radio" name="wan_mode" value="pppoe" x-model="wanMode" class="sr-only">
                 <i class="fas fa-network-wired"></i>
                 <span class="text-sm font-semibold">PPPoE</span>
             </label>
-            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all {{ old('wan_mode', $service->wan_mode ?? '') === 'dhcp' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300' }}">
-                <input type="radio" name="wan_mode" value="dhcp" x-model="wanMode" {{ old('wan_mode', $service->wan_mode ?? '') === 'dhcp' ? 'checked' : '' }} class="sr-only">
+            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all"
+                   :class="wanMode === 'dhcp' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300'">
+                <input type="radio" name="wan_mode" value="dhcp" x-model="wanMode" class="sr-only">
                 <i class="fas fa-globe"></i>
                 <span class="text-sm font-semibold">DHCP</span>
             </label>
-            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all {{ old('wan_mode', $service->wan_mode ?? '') === 'static' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300' }}">
-                <input type="radio" name="wan_mode" value="static" x-model="wanMode" {{ old('wan_mode', $service->wan_mode ?? '') === 'static' ? 'checked' : '' }} class="sr-only">
+            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all"
+                   :class="wanMode === 'static' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300'">
+                <input type="radio" name="wan_mode" value="static" x-model="wanMode" class="sr-only">
                 <i class="fas fa-server"></i>
                 <span class="text-sm font-semibold">Static IP</span>
             </label>
-            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all {{ old('wan_mode', $service->wan_mode ?? '') === 'bridge' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300' }}">
-                <input type="radio" name="wan_mode" value="bridge" x-model="wanMode" {{ old('wan_mode', $service->wan_mode ?? '') === 'bridge' ? 'checked' : '' }} class="sr-only">
+            <label class="inline-flex items-center gap-2 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all"
+                   :class="wanMode === 'bridge' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-600 hover:border-gray-300'">
+                <input type="radio" name="wan_mode" value="bridge" x-model="wanMode" class="sr-only">
                 <i class="fas fa-bridge"></i>
                 <span class="text-sm font-semibold">Bridge</span>
             </label>

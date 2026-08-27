@@ -78,6 +78,15 @@
                     </div>
 
                     <!-- Serial Number STB -->
+                    <div>
+                        <label for="serial_number_stb" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-tv mr-2 text-blue-600"></i>No. Serial STB <span class="text-gray-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input type="text" name="serial_number_stb" id="serial_number_stb" value="{{ old('serial_number_stb') }}"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-medium bg-gray-50 focus:bg-white font-mono @error('serial_number_stb') border-red-500 @enderror"
+                            placeholder="Masukkan serial number STB...">
+                        <x-form-error field="serial_number_stb" />
+                    </div>
 
                     <!-- No HP -->
                     <div>

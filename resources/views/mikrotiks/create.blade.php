@@ -26,70 +26,128 @@
     </div>
 
     <!-- Panduan Koneksi -->
-    <div class="app-card bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200" x-data="{ open: false }">
-        <button @click="open = !open" class="w-full flex items-center justify-between gap-2 sm:gap-4 text-left hover:opacity-80 transition py-3 sm:py-2.5">
-            <div class="flex items-center gap-2.5 sm:gap-4 flex-1 min-w-0">
-                <div class="flex-shrink-0">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-info-circle text-white text-base sm:text-xl"></i>
-                    </div>
+    <div class="app-card bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200" x-data="{ open: false, activeTab: 'quick' }">
+        <button @click="open = !open" class="w-full flex items-center justify-between gap-2 sm:gap-4 text-left hover:opacity-90 transition py-2">
+            <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-md flex-shrink-0">
+                    <i class="fas fa-book-open text-base sm:text-xl"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                    <h3 class="text-sm sm:text-base font-bold text-gray-900 leading-tight">Panduan</h3>
-                    <p class="text-xs sm:text-sm text-gray-700 mt-0.5 leading-tight">Menyambungkan ke MikroTik</p>
-                    <p class="text-[10px] sm:text-xs text-gray-500 mt-1 leading-tight">Klik untuk melihat panduan lengkap</p>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm sm:text-base font-bold text-gray-900 leading-tight">Panduan Koneksi & Pengamanan MikroTik</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">IP Public / Local</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-0.5">Petunjuk integrasi API, konfigurasi firewall, dan pengamanan akses</p>
                 </div>
             </div>
             <div class="flex-shrink-0 ml-2">
-                <i class="fas fa-chevron-down text-gray-400 text-sm sm:text-base transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                <i class="fas fa-chevron-down text-blue-600 text-sm sm:text-base transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
             </div>
         </button>
 
-        <div x-show="open" x-cloak x-transition class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-blue-200">
-            <div class="space-y-3 sm:space-y-4 text-xs sm:text-sm text-gray-700">
-                <div>
-                    <p class="font-semibold mb-1.5 sm:mb-2 text-xs sm:text-sm">1. Pastikan Router MikroTik dapat diakses dari server ini:</p>
-                    <ul class="list-disc list-inside ml-2 sm:ml-3 space-y-1 text-gray-600 text-xs sm:text-sm leading-relaxed">
-                        <li>Router harus dalam jaringan yang sama atau dapat diakses via internet</li>
-                        <li>Port API (default: 8728) harus terbuka dan tidak di-block firewall</li>
-                        <li>Test koneksi dengan ping ke IP Address router</li>
-                    </ul>
-                </div>
-                <div>
-                    <p class="font-semibold mb-1.5 sm:mb-2 text-xs sm:text-sm">2. Aktifkan API di Router MikroTik:</p>
-                    <div class="bg-white rounded-lg p-2.5 sm:p-3 mt-1 font-mono text-[10px] sm:text-xs border border-blue-200 overflow-x-auto">
-                        <p class="text-gray-800 whitespace-nowrap">/ip service</p>
-                        <p class="text-gray-800 whitespace-nowrap">set api disabled=no port=8728</p>
+        <div x-show="open" x-cloak x-transition class="mt-4 pt-4 border-t border-blue-200/80 space-y-4">
+            <!-- Tabs -->
+            <div class="flex flex-wrap gap-2 border-b border-blue-200 pb-2">
+                <button type="button" @click="activeTab = 'quick'" :class="activeTab === 'quick' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-blue-100'" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    <i class="fas fa-bolt mr-1"></i> Quick Setup
+                </button>
+                <button type="button" @click="activeTab = 'security'" :class="activeTab === 'security' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-blue-100'" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    <i class="fas fa-shield-alt mr-1"></i> Keamanan IP Public
+                </button>
+                <button type="button" @click="activeTab = 'nat'" :class="activeTab === 'nat' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-blue-100'" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    <i class="fas fa-network-wired mr-1"></i> Port Forwarding / NAT
+                </button>
+            </div>
+
+            <!-- Tab 1: Quick Setup -->
+            <div x-show="activeTab === 'quick'" class="space-y-3 text-xs sm:text-sm text-gray-700">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-white rounded-xl p-3.5 border border-blue-100 shadow-sm space-y-2">
+                        <p class="font-bold text-gray-900 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center font-bold">1</span>
+                            Aktifkan Layanan API RouterOS
+                        </p>
+                        <p class="text-xs text-gray-600">Jalankan di Terminal MikroTik untuk mengaktifkan port API (default 8728):</p>
+                        <div class="bg-slate-900 text-green-400 p-2.5 rounded-lg font-mono text-xs overflow-x-auto select-all">
+                            /ip service set api disabled=no port=8728
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-3.5 border border-blue-100 shadow-sm space-y-2">
+                        <p class="font-bold text-gray-900 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center font-bold">2</span>
+                            Buat User Khusus API Billing
+                        </p>
+                        <p class="text-xs text-gray-600">Buat group khusus dengan hak akses terbatas & user baru:</p>
+                        <div class="bg-slate-900 text-green-400 p-2.5 rounded-lg font-mono text-xs overflow-x-auto select-all">
+                            /user group add name=api-group policy=api,read,write,test,password<br>
+                            /user add name=api-billing password="GantiPasswordIni" group=api-group
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <p class="font-semibold mb-1.5 sm:mb-2 text-xs sm:text-sm">3. Buat user dengan permission API:</p>
-                    <div class="bg-white rounded-lg p-2.5 sm:p-3 mt-1 font-mono text-[10px] sm:text-xs border border-blue-200 overflow-x-auto">
-                        <p class="text-gray-800 whitespace-nowrap break-all">/user add name=api-user password=your-password group=full</p>
+            </div>
+
+            <!-- Tab 2: Keamanan IP Public -->
+            <div x-show="activeTab === 'security'" class="space-y-3 text-xs sm:text-sm text-gray-700">
+                <div class="bg-white rounded-xl p-4 border border-blue-100 shadow-sm space-y-3">
+                    <div class="flex items-start gap-2">
+                        <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg flex-shrink-0 mt-0.5">
+                            <i class="fas fa-lock text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900">Batasi Akses API Hanya dari IP Server Hosting / Web</h4>
+                            <p class="text-xs text-gray-600 mt-1">
+                                Jika MikroTik menggunakan IP Publik, <strong>sangat disarankan</strong> membatasi parameter <code class="text-blue-600 font-bold font-mono">address</code> di <code class="text-gray-800 font-mono">/ip service api</code> agar port API tidak bisa di-scan atau diakses dari sembarang IP di internet.
+                            </p>
+                        </div>
                     </div>
-                    <p class="text-[10px] sm:text-xs text-gray-600 mt-1.5">Atau gunakan user admin yang sudah ada</p>
+
+                    <div class="bg-slate-900 text-green-400 p-3 rounded-lg font-mono text-xs overflow-x-auto space-y-1 select-all">
+                        <p class="text-gray-400"># Contoh membatasi akses API hanya untuk IP Server Web Anda:</p>
+                        <p>/ip service set api address=IP_SERVER_HOSTING_ANDA</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-xs">
+                        <div class="bg-blue-50 p-2.5 rounded-lg border border-blue-200">
+                            <p class="font-bold text-blue-900 mb-1"><i class="fas fa-shield-alt mr-1"></i> Firewall Filter</p>
+                            <p class="text-gray-600 text-[11px]">Pastikan chain input tidak memblokir koneksi dari IP hosting ke port 8728.</p>
+                        </div>
+                        <div class="bg-indigo-50 p-2.5 rounded-lg border border-indigo-200">
+                            <p class="font-bold text-indigo-900 mb-1"><i class="fas fa-key mr-1"></i> Password Kuat</p>
+                            <p class="text-gray-600 text-[11px]">Gunakan kombinasi password unik minimal 12 karakter untuk user API.</p>
+                        </div>
+                        <div class="bg-purple-50 p-2.5 rounded-lg border border-purple-200">
+                            <p class="font-bold text-purple-900 mb-1"><i class="fas fa-random mr-1"></i> Port Custom</p>
+                            <p class="text-gray-600 text-[11px]">Anda juga dapat mengganti port default 8728 ke port lain (misal: 8799).</p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="font-semibold mb-1.5 sm:mb-2 text-xs sm:text-sm">4. Informasi yang diperlukan:</p>
-                    <ul class="list-disc list-inside ml-2 sm:ml-3 space-y-1 text-gray-600 text-xs sm:text-sm leading-relaxed">
-                        <li><strong>IP Address:</strong> IP router (contoh: 192.168.1.1)</li>
-                        <li><strong>Port:</strong> Port API (default: 8728 untuk RouterOS v6/v7)</li>
-                        <li><strong>Username:</strong> Username yang punya akses API</li>
-                        <li><strong>Password:</strong> Password user tersebut</li>
-                        <li><strong>RouterOS Version:</strong> Versi RouterOS yang digunakan</li>
-                    </ul>
-                </div>
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3 mt-3">
-                    <p class="text-[10px] sm:text-xs font-semibold text-yellow-800 flex items-center gap-2 mb-1.5">
-                        <i class="fas fa-exclamation-triangle text-xs"></i>
-                        <span>Tips:</span>
+            </div>
+
+            <!-- Tab 3: Port Forwarding / NAT -->
+            <div x-show="activeTab === 'nat'" class="space-y-3 text-xs sm:text-sm text-gray-700">
+                <div class="bg-white rounded-xl p-4 border border-blue-100 shadow-sm space-y-2">
+                    <p class="font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                        Jika MikroTik Berada di Belakang Modem ISP / Router Lain (NAT)
                     </p>
-                    <ul class="text-[10px] sm:text-xs text-yellow-700 ml-4 sm:ml-5 list-disc space-y-1 leading-relaxed">
-                        <li>Setelah menyimpan, sistem akan otomatis test koneksi</li>
-                        <li>Jika koneksi gagal, periksa firewall dan pastikan port API terbuka</li>
-                        <li>Untuk RouterOS v7+, pastikan API service aktif di menu Services</li>
-                    </ul>
+                    <p class="text-xs text-gray-600">
+                        Jika IP Public berada di Modem ONT/GPON utama dan MikroTik mendapat IP Lokal (misal 192.168.1.2):
+                    </p>
+                    <ol class="list-decimal list-inside ml-2 space-y-1 text-xs text-gray-700">
+                        <li>Buka menu <strong>Port Forwarding / Virtual Server / DMZ</strong> pada modem utama ISP.</li>
+                        <li>Forward port <strong>8728</strong> (TCP) ke IP lokal MikroTik (contoh: <code class="bg-gray-100 px-1 py-0.5 rounded font-mono text-[11px]">192.168.1.2</code>).</li>
+                        <li>Gunakan <strong>IP Publik Modem</strong> pada form isian IP Address di bawah.</li>
+                    </ol>
                 </div>
+            </div>
+
+            <!-- Catatan Keamanan Aplikasi -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-center gap-2.5">
+                <i class="fas fa-check-circle text-emerald-600 text-base flex-shrink-0"></i>
+                <p>
+                    <strong>Keamanan Aplikasi:</strong> Password MikroTik yang Anda simpan di sistem ini dienkripsi secara otomatis menggunakan algoritma <strong>AES-256</strong> dan koneksi diuji secara otomatis saat data disimpan.
+                </p>
             </div>
         </div>
     </div>

@@ -269,30 +269,36 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.delete-form').forEach((form) => {
-            form.addEventListener('submit', function (event) {
-                if (this.dataset.confirmed === 'true') {
-                    this.dataset.confirmed = 'false';
-                    return true;
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteForms = document.querySelectorAll('.delete-form');
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formElement = this;
+                
+                let routerName = '';
+                const tableRow = formElement.closest('tr');
+                if (tableRow) {
+                    routerName = tableRow.querySelector('td:first-child .text-sm')?.textContent.trim() || '';
+                } else {
+                    const cardContainer = formElement.closest('.mobile-card');
+                    if (cardContainer) {
+                        routerName = cardContainer.querySelector('h3')?.textContent.trim() || '';
+                    }
                 }
 
-                event.preventDefault();
-
-                const message = this.dataset.message || 'Yakin ingin menghapus data ini?';
                 Swal.fire({
-                    title: 'Konfirmasi',
-                    text: message,
+                    title: 'Hapus MikroTik?',
+                    text: routerName ? `Apakah Anda yakin ingin menghapus router "${routerName}"?` : 'Apakah Anda yakin ingin menghapus router ini?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, hapus',
-                    cancelButtonText: 'Batal',
                     confirmButtonColor: '#EF4444',
                     cancelButtonColor: '#9CA3AF',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        this.dataset.confirmed = 'true';
-                        this.submit();
+                        formElement.submit();
                     }
                 });
             });

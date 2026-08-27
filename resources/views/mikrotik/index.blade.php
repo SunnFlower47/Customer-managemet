@@ -95,7 +95,7 @@
                             </span>
                         </td>
                         <td class="px-5 py-4 whitespace-nowrap text-xs font-medium">
-                            <div class="inline-flex gap-2">
+                            <div class="inline-flex items-center gap-1.5">
                                 <a href="{{ route('mikrotik.show', $router->id) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
@@ -105,15 +105,22 @@
                                 <a href="{{ route('mikrotik.edit', $router->id) }}" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('mikrotik.sync', $router->id) }}" method="POST" class="inline">
+                                <form id="sync-form-{{ $router->id }}" action="{{ route('mikrotik.sync', $router->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Sync Sekarang" onclick="return confirm('Mulai sinkronisasi? ini akan mengambil data dari router.')">
+                                    <button type="button" onclick="confirmSync({{ $router->id }}, '{{ $router->nama }}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Sync Sekarang">
                                         <i class="fas fa-sync"></i>
                                     </button>
                                 </form>
                                 <button onclick="testConnection({{ $router->id }})" class="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Test Connection">
                                     <i class="fas fa-plug"></i>
                                 </button>
+                                <form id="delete-form-{{ $router->id }}" action="{{ route('mikrotik.destroy', $router->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" onclick="confirmDelete({{ $router->id }}, '{{ $router->nama }}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus Router">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -165,7 +172,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-5 gap-2 text-[10px] font-semibold">
+                <div class="grid grid-cols-6 gap-1.5 text-[10px] font-semibold">
                     <a href="{{ route('mikrotik.show', $router->id) }}" class="col-span-1 flex flex-col items-center justify-center p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100">
                         <i class="fas fa-eye mb-1"></i>Detail
                     </a>
@@ -175,14 +182,14 @@
                     <a href="{{ route('mikrotik.edit', $router->id) }}" class="col-span-1 flex flex-col items-center justify-center p-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100">
                         <i class="fas fa-edit mb-1"></i>Edit
                     </a>
-                    <form action="{{ route('mikrotik.sync', $router->id) }}" method="POST" class="col-span-1 w-full">
-                        @csrf
-                        <button type="submit" class="w-full h-full flex flex-col items-center justify-center p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100" onclick="return confirm('Sync?')">
-                            <i class="fas fa-sync mb-1"></i>Sync
-                        </button>
-                    </form>
+                    <button onclick="confirmSync({{ $router->id }}, '{{ $router->nama }}')" class="col-span-1 flex flex-col items-center justify-center p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100">
+                        <i class="fas fa-sync mb-1"></i>Sync
+                    </button>
                     <button onclick="testConnection({{ $router->id }})" class="col-span-1 flex flex-col items-center justify-center p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100">
                         <i class="fas fa-plug mb-1"></i>Test
+                    </button>
+                    <button onclick="confirmDelete({{ $router->id }}, '{{ $router->nama }}')" class="col-span-1 flex flex-col items-center justify-center p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100">
+                        <i class="fas fa-trash mb-1"></i>Hapus
                     </button>
                 </div>
             </div>
@@ -198,9 +205,53 @@
 
 @push('scripts')
 <script>
+    function confirmSync(id, name) {
+        Swal.fire({
+            title: 'Sinkronisasi Data?',
+            text: `Tarik data PPPoE dan Sesi Aktif dari router "${name}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Sinkron Sekarang',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#16A34A',
+            cancelButtonColor: '#9CA3AF'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Sinkronisasi...',
+                    text: 'Mohon tunggu sejenak.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                document.getElementById(`sync-form-${id}`).submit();
+            }
+        });
+    }
+
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'Hapus MikroTik?',
+            text: `Apakah Anda yakin ingin menghapus router "${name}"? Semua data PPPoE terkait akan terhapus.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#9CA3AF'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-form-${id}`).submit();
+            }
+        });
+    }
+
     function testConnection(id) {
         Swal.fire({
             title: 'Testing Connection...',
+            text: 'Menghubungi router MikroTik via API...',
+            allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             }

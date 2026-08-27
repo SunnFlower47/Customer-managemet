@@ -35,11 +35,11 @@
                class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold border border-gray-300 bg-white text-gray-700 rounded-xl hover:bg-gray-50 transition">
                 <i class="fas fa-arrow-left mr-2"></i>Kembali
             </a>
-            <form action="{{ route('mikrotik.sync', $mikrotik->id) }}" method="POST" class="inline">
+            <form action="{{ route('mikrotik.sync', $mikrotik->id) }}" method="POST" class="inline" id="syncForm">
                 @csrf
-                <button type="submit" 
+                <button type="button" 
                         class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-sm"
-                        onclick="return confirm('Mulai sinkronisasi?')">
+                        onclick="confirmSync()">
                     <i class="fas fa-sync mr-2"></i>Sync User
                 </button>
             </form>
@@ -47,11 +47,12 @@
                class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-sm">
                 <i class="fas fa-edit mr-2"></i>Edit
             </a>
-            <form action="{{ route('mikrotik.destroy', $mikrotik->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus router MikroTik ini? Semua data PPPoE terkait akan dihapus.')">
+            <form action="{{ route('mikrotik.destroy', $mikrotik->id) }}" method="POST" class="inline" id="deleteForm">
                 @csrf
                 @method('DELETE')
-                <button type="submit" 
-                        class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition shadow-sm">
+                <button type="button" 
+                        class="inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-semibold bg-red-600 text-white rounded-xl hover:bg-red-700 transition shadow-sm"
+                        onclick="confirmDelete()">
                     <i class="fas fa-trash mr-2"></i>Hapus
                 </button>
             </form>
@@ -196,4 +197,50 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    function confirmSync() {
+        Swal.fire({
+            title: 'Sinkronisasi Data?',
+            text: 'Sistem akan menarik data PPPoE dan Sesi Aktif dari router MikroTik ini.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Sinkron Sekarang',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#16A34A',
+            cancelButtonColor: '#9CA3AF'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Sinkronisasi...',
+                    text: 'Mohon tunggu sejenak.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                document.getElementById('syncForm').submit();
+            }
+        });
+    }
+
+    function confirmDelete() {
+        Swal.fire({
+            title: 'Hapus MikroTik?',
+            text: 'Apakah Anda yakin ingin menghapus router MikroTik ini? Semua data PPPoE terkait akan terhapus.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#9CA3AF'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('deleteForm').submit();
+            }
+        });
+    }
+</script>
+@endpush
 @endsection

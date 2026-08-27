@@ -69,6 +69,14 @@
                         </div>
                     <div class="bg-gray-50 border border-gray-100 px-3.5 py-3 rounded-xl sm:px-4 sm:py-4">
                             <dt class="text-[12px] sm:text-sm font-bold text-gray-700 flex items-center mb-1.5 sm:mb-2">
+                                <i class="fas fa-tv mr-2 text-blue-600"></i>No. Serial STB
+                            </dt>
+                            <dd class="text-sm sm:text-base font-semibold text-gray-900 font-mono">
+                                {{ $pelanggan->serial_number_stb ?: '-' }}
+                            </dd>
+                        </div>
+                    <div class="bg-gray-50 border border-gray-100 px-3.5 py-3 rounded-xl sm:px-4 sm:py-4">
+                            <dt class="text-[12px] sm:text-sm font-bold text-gray-700 flex items-center mb-1.5 sm:mb-2">
                                 <i class="fas fa-phone mr-2 text-blue-600"></i>No. HP
                             </dt>
                             <dd class="text-sm sm:text-base font-semibold text-gray-900">{{ $pelanggan->no_hp }}</dd>

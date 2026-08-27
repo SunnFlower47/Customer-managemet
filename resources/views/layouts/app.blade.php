@@ -762,37 +762,30 @@
 
     @stack('scripts')
 
-    <!-- Global SweetAlert Configuration -->
+    <!-- Global SweetAlert Configuration & Flash Messages -->
     <script>
         // Configure SweetAlert globally
         window.Swal = Swal;
 
-        // Override browser alert with SweetAlert
-        window.alert = function(message) {
-            Swal.fire({
-                title: 'Info',
-                text: message,
-                icon: 'info',
-                confirmButtonText: 'OK'
-            });
-        };
+        @if(session('success'))
+        Swal.fire({
+            title: 'Berhasil!',
+            text: {!! json_encode(session('success')) !!},
+            icon: 'success',
+            confirmButtonColor: '#2563EB',
+            timer: 3500,
+            timerProgressBar: true
+        });
+        @endif
 
-        // Override browser confirm with SweetAlert (async version)
-        window.confirm = function(message) {
-            // Return a promise that resolves to boolean
-            return new Promise((resolve) => {
-                Swal.fire({
-                    title: 'Konfirmasi',
-                    text: message,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya',
-                    cancelButtonText: 'Tidak'
-                }).then((result) => {
-                    resolve(result.isConfirmed);
-                });
-            });
-        };
+        @if(session('error'))
+        Swal.fire({
+            title: 'Gagal!',
+            text: {!! json_encode(session('error')) !!},
+            icon: 'error',
+            confirmButtonColor: '#EF4444'
+        });
+        @endif
     </script>
 </body>
 </html>

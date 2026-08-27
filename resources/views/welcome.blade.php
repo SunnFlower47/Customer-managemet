@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="WiFi Customer">
 
-    <title>Welcome - WiFi Customer Management</title>
+    <title>{{ ($companyProfile->nama_perusahaan ?? 'BCM') }} - WiFi Management System</title>
 
     <!-- Favicon -->
     @php
@@ -26,7 +26,7 @@
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,169 +35,269 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
-        }
+        * { font-family: 'Inter', sans-serif; }
 
-        .smooth-transition {
-            transition: all 0.2s ease-in-out;
+        .hero-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #1e40af 100%);
         }
+        .grid-pattern {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .feature-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(37,99,235,0.35);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(37,99,235,0.45); }
+
+        .pulse-dot { animation: pulse-ring 2s ease infinite; }
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+            70%  { box-shadow: 0 0 0 10px rgba(74,222,128,0); }
+            100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+        }
+        .float-anim { animation: float 4s ease-in-out infinite; }
+        @keyframes float {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+        }
+        .fade-up { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
-<body class="antialiased bg-gray-50">
-    <div class="min-h-screen flex flex-col">
-        <!-- Header -->
-        <header class="bg-white border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        @if($companyProfile && $companyProfile->logo_path)
-                            <img src="{{ $companyProfile->logo_url }}"
-                                 alt="{{ $companyProfile->nama_perusahaan }}"
-                                 class="h-10 w-10 object-contain">
-                        @else
-                            <div class="text-xl font-bold text-gray-900">
-                                snflr
-                            </div>
-                        @endif
-                        <div>
-                            <h1 class="text-lg font-semibold text-gray-900">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</h1>
-                            <p class="text-xs text-gray-500">WiFi Management</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('login') }}"
-                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 smooth-transition">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Login
-                    </a>
-                </div>
-            </div>
-        </header>
+<body class="antialiased bg-white">
 
-        <!-- Main Content -->
-        <main class="flex-1">
-            <!-- Hero Section -->
-            <section class="py-20 px-4 sm:px-6 lg:px-8">
-                <div class="max-w-4xl mx-auto text-center">
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
                     @if($companyProfile && $companyProfile->logo_path)
                         <img src="{{ $companyProfile->logo_url }}"
                              alt="{{ $companyProfile->nama_perusahaan }}"
-                             class="h-32 w-32 object-contain mx-auto mb-8">
+                             class="h-8 w-8 object-contain rounded-lg">
                     @else
-                        <div class="text-6xl font-bold text-gray-900 mb-8">
-                            snflr
+                        <div class="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-wifi text-white text-sm"></i>
                         </div>
                     @endif
+                    <span class="text-base font-bold text-gray-900">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</span>
+                </div>
+                <a href="{{ route('login') }}"
+                   class="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl">
+                    <i class="fas fa-sign-in-alt text-xs"></i>Login
+                </a>
+            </div>
+        </div>
+    </nav>
 
-                    <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-                        {{ $companyProfile->nama_perusahaan ?? 'BCM' }}
+    <!-- HERO -->
+    <section class="hero-bg grid-pattern relative min-h-screen flex items-center pt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+                <!-- Left: Text -->
+                <div class="text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full mb-6">
+                        <span class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></span>
+                        <span class="text-xs font-medium text-blue-200">Sistem Aktif & Berjalan</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5">
+                        Kelola WiFi<br>
+                        <span class="text-transparent bg-clip-text" style="background:linear-gradient(90deg,#60a5fa,#a78bfa);">
+                            Lebih Mudah
+                        </span>
                     </h1>
-                    <p class="text-xl text-gray-600 mb-8">
-                        WiFi Billing Management System
+                    <p class="text-blue-200 text-base sm:text-lg leading-relaxed mb-8 max-w-lg mx-auto lg:mx-0">
+                        Sistem manajemen pelanggan WiFi yang lengkap — dari tagihan, pembayaran, hingga monitoring jaringan, semua dalam satu platform.
                     </p>
-                    <p class="text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
-                        Sistem manajemen pelanggan WiFi yang lengkap dan terintegrasi untuk mengelola data pelanggan, pembayaran, paket, dan laporan keuangan dengan mudah dan efisien.
-                    </p>
-
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                         <a href="{{ route('login') }}"
-                           class="inline-flex items-center justify-center px-8 py-3 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 smooth-transition shadow-md hover:shadow-lg">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Masuk ke Dashboard
+                           class="btn-primary inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white rounded-xl">
+                            <i class="fas fa-sign-in-alt"></i>Masuk ke Dashboard
                         </a>
-                        <a href="#features"
-                           class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-700 text-base font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 smooth-transition">
-                            <i class="fas fa-info-circle mr-2"></i>Pelajari Lebih Lanjut
+                        <a href="#fitur"
+                           class="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-blue-200 glass-card rounded-xl hover:bg-white/15 transition-all">
+                            <i class="fas fa-th-large text-sm"></i>Lihat Fitur
                         </a>
                     </div>
-                </div>
-            </section>
-
-            <!-- Features Section -->
-            <section id="features" class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-                <div class="max-w-7xl mx-auto">
-                    <div class="text-center mb-16">
-                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Fitur Utama</h2>
-                        <p class="text-lg text-gray-600">Kelola bisnis WiFi Anda dengan lebih mudah dan efisien</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <!-- Feature 1 -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg smooth-transition">
-                            <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                                <i class="fas fa-users text-blue-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Manajemen Pelanggan</h3>
-                            <p class="text-gray-600">Kelola data pelanggan, paket, dan status dengan mudah. Pantau semua informasi pelanggan dalam satu tempat.</p>
+                    <!-- Stats -->
+                    <div class="flex flex-wrap gap-6 mt-10 justify-center lg:justify-start">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white">∞</div>
+                            <div class="text-xs text-blue-300 mt-0.5">Pelanggan</div>
                         </div>
-
-                        <!-- Feature 2 -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg smooth-transition">
-                            <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                                <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Pembayaran & Tagihan</h3>
-                            <p class="text-gray-600">Kelola pembayaran pelanggan, tagihan bulanan, dan riwayat transaksi dengan sistem yang terintegrasi.</p>
+                        <div class="w-px bg-white/20 self-stretch"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white">24/7</div>
+                            <div class="text-xs text-blue-300 mt-0.5">Online</div>
                         </div>
-
-                        <!-- Feature 3 -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg smooth-transition">
-                            <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                                <i class="fas fa-map text-purple-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Mapping & ODP</h3>
-                            <p class="text-gray-600">Visualisasi lokasi pelanggan dan ODP pada peta interaktif untuk manajemen infrastruktur yang lebih baik.</p>
-                        </div>
-
-                        <!-- Feature 4 -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg smooth-transition">
-                            <div class="h-12 w-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                                <i class="fas fa-chart-bar text-yellow-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Laporan Keuangan</h3>
-                            <p class="text-gray-600">Generate laporan pendapatan, pengeluaran, dan laba rugi secara otomatis untuk analisis keuangan.</p>
-                        </div>
-
-                        <!-- Feature 5 -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg smooth-transition">
-                            <div class="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                                <i class="fas fa-ticket-alt text-red-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Customer Portal</h3>
-                            <p class="text-gray-600">Portal khusus pelanggan untuk melihat tagihan, riwayat pembayaran, dan membuat tiket support.</p>
-                        </div>
-
-                        <!-- Feature 6 -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg smooth-transition">
-                            <div class="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                                <i class="fas fa-shield-alt text-indigo-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Keamanan & Audit</h3>
-                            <p class="text-gray-600">Sistem keamanan yang kuat dengan audit trail untuk melacak semua aktivitas dan perubahan data.</p>
+                        <div class="w-px bg-white/20 self-stretch"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white">v2.0</div>
+                            <div class="text-xs text-blue-300 mt-0.5">Versi Sistem</div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </main>
 
-        <!-- Footer -->
-        <footer class="bg-white border-t border-gray-200 py-8 px-4 sm:px-6 lg:px-8">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex flex-col md:flex-row items-center justify-between">
-                    <div class="mb-4 md:mb-0">
-                        <p class="text-sm text-gray-600">
-                            © {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM' }}. All rights reserved.
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-6">
-                        <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-blue-600 smooth-transition">
-                            Login
-                        </a>
-                        <span class="text-gray-300">|</span>
-                        <span class="text-sm text-gray-500">WiFi Billing Management System</span>
+                <!-- Right: Floating dashboard card -->
+                <div class="hidden lg:flex justify-center items-center">
+                    <div class="float-anim relative">
+                        @php
+                            $totalPelanggan = \App\Models\Pelanggan::count();
+                            $aktif = \App\Models\Pelanggan::where('status','aktif')->count();
+                            $totalPendapatan = \App\Models\Pembayaran::whereMonth('tanggal_bayar', now()->month)->whereYear('tanggal_bayar', now()->year)->sum('total_bayar');
+                        @endphp
+                        <div class="glass-card rounded-3xl p-6 w-80 shadow-2xl">
+                            <div class="flex items-center justify-between mb-5">
+                                <div>
+                                    <p class="text-xs text-blue-300">Dashboard</p>
+                                    <p class="text-white font-bold text-sm">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</p>
+                                </div>
+                                <div class="h-9 w-9 bg-blue-500 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-wifi text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-7 w-7 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-users text-blue-300 text-xs"></i>
+                                        </div>
+                                        <span class="text-blue-200 text-xs">Total Pelanggan</span>
+                                    </div>
+                                    <span class="text-white font-bold text-sm">{{ number_format($totalPelanggan) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-7 w-7 bg-green-500/30 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-check-circle text-green-300 text-xs"></i>
+                                        </div>
+                                        <span class="text-blue-200 text-xs">Pelanggan Aktif</span>
+                                    </div>
+                                    <span class="text-white font-bold text-sm">{{ number_format($aktif) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-7 w-7 bg-yellow-500/30 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-wallet text-yellow-300 text-xs"></i>
+                                        </div>
+                                        <span class="text-blue-200 text-xs">Pendapatan Bulan Ini</span>
+                                    </div>
+                                    <span class="text-white font-bold text-sm">Rp {{ number_format($totalPendapatan/1000000,1) }}jt</span>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex justify-between text-xs text-blue-300 mb-1.5">
+                                    <span>Uptime Sistem</span><span>99.9%</span>
+                                </div>
+                                <div class="h-1.5 bg-white/10 rounded-full">
+                                    <div class="h-1.5 bg-gradient-to-r from-blue-400 to-green-400 rounded-full" style="width:99.9%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Floating badge -->
+                        <div class="absolute -top-4 -right-4 glass-card rounded-2xl px-3 py-2 shadow-lg">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></span>
+                                <span class="text-white text-xs font-medium">Online</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </footer>
-    </div>
+        </div>
+        <!-- Wave divider -->
+        <div class="absolute bottom-0 left-0 right-0 overflow-hidden leading-none">
+            <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-12">
+                <path d="M0 60L60 50C120 40 240 20 360 15C480 10 600 20 720 28C840 36 960 41 1080 38C1200 35 1320 24 1380 18L1440 12V60H0Z" fill="white"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="fitur" class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-14 fade-up">
+                <span class="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-4 py-1.5 rounded-full mb-4 tracking-wide uppercase">Fitur Lengkap</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">Semua yang Kamu Butuhkan</h2>
+                <p class="text-gray-500 max-w-lg mx-auto">Dari manajemen pelanggan hingga monitoring jaringan, semuanya terintegrasi dalam satu sistem.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @php
+                $features = [
+                    ['icon'=>'fas fa-users',         'color'=>'blue',   'title'=>'Manajemen Pelanggan', 'desc'=>'Kelola data pelanggan, paket, dan status. Pantau semua informasi dalam satu tampilan yang rapi.'],
+                    ['icon'=>'fas fa-money-bill-wave','color'=>'green',  'title'=>'Pembayaran & Tagihan','desc'=>'Catat pembayaran, generate tagihan otomatis, dan pantau tunggakan dengan mudah.'],
+                    ['icon'=>'fas fa-map-marked-alt', 'color'=>'purple', 'title'=>'Peta & Jaringan',    'desc'=>'Visualisasi ODP, ODC, dan lokasi pelanggan di peta interaktif secara real-time.'],
+                    ['icon'=>'fas fa-server',         'color'=>'orange', 'title'=>'Integrasi MikroTik', 'desc'=>'Monitor status koneksi PPPoE langsung dari router MikroTik tanpa perlu login manual.'],
+                    ['icon'=>'fas fa-chart-line',     'color'=>'indigo', 'title'=>'Laporan Keuangan',   'desc'=>'Laporan pendapatan harian, bulanan, dan tahunan yang siap dicetak atau diekspor.'],
+                    ['icon'=>'fas fa-shield-alt',     'color'=>'red',    'title'=>'Keamanan & Audit',   'desc'=>'Sistem hak akses berlapis dengan audit trail untuk melacak setiap perubahan data.'],
+                ];
+                $colors = [
+                    'blue'   => 'bg-blue-100 text-blue-600',
+                    'green'  => 'bg-green-100 text-green-600',
+                    'purple' => 'bg-purple-100 text-purple-600',
+                    'orange' => 'bg-orange-100 text-orange-600',
+                    'indigo' => 'bg-indigo-100 text-indigo-600',
+                    'red'    => 'bg-red-100 text-red-600',
+                ];
+                @endphp
+                @foreach($features as $f)
+                <div class="feature-card bg-white border border-gray-100 rounded-2xl p-6 shadow-sm fade-up">
+                    <div class="h-12 w-12 {{ $colors[$f['color']] }} rounded-xl flex items-center justify-center mb-4">
+                        <i class="{{ $f['icon'] }} text-xl"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2">{{ $f['title'] }}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{ $f['desc'] }}</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div class="max-w-2xl mx-auto text-center fade-up">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Siap Mulai Sekarang?</h2>
+            <p class="text-gray-500 mb-7">Login ke dashboard dan kelola bisnis WiFi Anda lebih efisien.</p>
+            <a href="{{ route('login') }}"
+               class="btn-primary inline-flex items-center gap-2 px-8 py-3.5 text-base font-semibold text-white rounded-xl">
+                <i class="fas fa-sign-in-alt"></i>Masuk ke Dashboard
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-gray-100 py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p class="text-sm text-gray-400">© {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM' }}. All rights reserved.</p>
+            <p class="text-sm text-gray-400">WiFi Billing Management System <span class="text-blue-500 font-semibold">v2.0</span></p>
+        </div>
+    </footer>
+
+    <script>
+        // Fade-up on scroll
+        const fadeEls = document.querySelectorAll('.fade-up');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((e, i) => {
+                if (e.isIntersecting) {
+                    setTimeout(() => e.target.classList.add('visible'), i * 80);
+                }
+            });
+        }, { threshold: 0.1 });
+        fadeEls.forEach(el => observer.observe(el));
+    </script>
 </body>
 </html>
 

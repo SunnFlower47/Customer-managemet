@@ -26,11 +26,11 @@ class DatabaseSeeder extends Seeder
         //     'aktif' => true,
         // ]);
 
-        // Run essential seeders only
+        // Run essential seeders
         $this->call([
             RolePermissionSeeder::class,
+            UserSeeder::class,
             // CompanyProfileSeeder::class,
-            // TicketPaymentProofPermissionSeeder::class,
         ]);
     }
 }

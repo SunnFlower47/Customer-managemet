@@ -116,6 +116,20 @@ class RolePermissionSeeder extends Seeder
             // Speed Profiles
             'view-speed-profile',
             'manage-speed-profile',
+
+            // Ticket Management
+            'view-ticket',
+            'create-ticket',
+            'edit-ticket',
+            'delete-ticket',
+            'assign-ticket',
+            'resolve-ticket',
+
+            // Payment Proof Management
+            'view-payment-proof',
+            'verify-payment-proof',
+            'reject-payment-proof',
+            'download-payment-proof',
         ];
 
         foreach ($permissions as $permission) {

@@ -7,15 +7,15 @@
     <div class="flex items-center justify-between h-16 px-4 border-b border-gray-100 bg-sky-50">
         @php
             $companyProfile = \App\Models\CompanyProfile::first();
-            $companyName = $companyProfile->display_name ?? 'BCM.net';
-            $companyShortName = $companyProfile->short_name ?? 'BCM';
+            $companyName = $companyProfile->display_name ?? 'LumaISP';
+            $companyShortName = $companyProfile->short_name ?? 'LumaISP';
         @endphp
         <div class="flex items-center gap-3 flex-1 min-w-0">
             @if($companyProfile && $companyProfile->logo_path)
                 <img src="{{ $companyProfile->logo_url }}?v={{ time() }}" alt="{{ $companyProfile->nama_perusahaan }}" class="w-10 h-10 rounded-xl object-contain flex-shrink-0">
             @else
                 <div class="w-10 h-10 bg-sky-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-                    <span class="text-white font-bold text-sm">{{ $companyProfile->initials ?? 'BCM' }}</span>
+                    <span class="text-white font-bold text-sm">{{ $companyProfile->initials ?? 'LUMA' }}</span>
                 </div>
             @endif
             <div class="flex-1 min-w-0">
@@ -251,14 +251,8 @@
                         <span>Daftar OLT</span>
                     </a>
                     @endcan
-                    @can('manage-onu')
-                    <a href="{{ route('onus.register') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('onus.register') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i class="fas fa-plus-circle text-green-600 w-4 h-4 flex-shrink-0"></i>
-                        <span>Register ONU</span>
-                    </a>
-                    @endcan
                     @can('view-onu')
-                    <a href="{{ route('onus.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('onus.index') || request()->routeIs('onus.show') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <a href="{{ route('onus.index') }}" class="group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('onus.index') || request()->routeIs('onus.show') || request()->routeIs('onus.register') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i class="fas fa-list text-orange-600 w-4 h-4 flex-shrink-0"></i>
                         <span>All ONUs</span>
                     </a>

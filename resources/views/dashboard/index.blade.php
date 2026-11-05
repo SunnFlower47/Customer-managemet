@@ -7,7 +7,7 @@
     $hour = now()->hour;
     $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
     $companyProfile = \App\Models\CompanyProfile::first();
-    $companyName = $companyProfile->display_name ?? $companyProfile->nama_perusahaan ?? 'BCM';
+    $companyName = $companyProfile->display_name ?? $companyProfile->nama_perusahaan ?? 'LumaISP';
 @endphp
 
 <div class="space-y-6 lg:space-y-7">

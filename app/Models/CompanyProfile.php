@@ -136,7 +136,7 @@ class CompanyProfile extends Model
      */
     public function getInitialsAttribute()
     {
-        return $this->inisial_perusahaan ?: 'BCM';
+        return $this->inisial_perusahaan ?: 'LUMA';
     }
 
     /**

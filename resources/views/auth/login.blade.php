@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="WiFi Customer">
 
-    <title>Login - {{ $companyProfile->nama_perusahaan ?? 'BCM' }}</title>
+    <title>Login - {{ $companyProfile->nama_perusahaan ?? 'LumaISP' }}</title>
 
     <!-- Favicon -->
     @php
@@ -102,7 +102,7 @@
                         </div>
                     @endif
                     <div>
-                        <p class="font-bold text-base text-white leading-tight">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</p>
+                        <p class="font-bold text-base text-white leading-tight">{{ $companyProfile->nama_perusahaan ?? 'LumaISP' }}</p>
                         <p class="text-blue-200 text-xs">WiFi Management System</p>
                     </div>
                 </a>
@@ -140,7 +140,7 @@
 
             <!-- Bottom: version -->
             <div class="relative z-10">
-                <p class="text-blue-300 text-xs">© {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM' }} &bull; v2.0</p>
+                <p class="text-blue-300 text-xs">© {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'LumaISP' }} &bull; v2.0</p>
             </div>
 
             <!-- Decorative blue circles (no purple) -->
@@ -167,7 +167,7 @@
                             <i class="fas fa-wifi text-white text-2xl"></i>
                         </div>
                     @endif
-                    <h1 class="text-xl font-bold text-gray-900">{{ $companyProfile->nama_perusahaan ?? 'BCM' }}</h1>
+                    <h1 class="text-xl font-bold text-gray-900">{{ $companyProfile->nama_perusahaan ?? 'LumaISP' }}</h1>
                     <p class="text-gray-500 text-sm">WiFi Management System</p>
                 </div>
 
@@ -256,7 +256,7 @@
 
                 <!-- Footer -->
                 <p class="mt-8 text-center text-xs text-gray-400">
-                    © {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'BCM' }} &bull; WiFi Management System
+                    © {{ date('Y') }} {{ $companyProfile->nama_perusahaan ?? 'LumaISP' }} &bull; WiFi Management System
                 </p>
             </div>
         </div>

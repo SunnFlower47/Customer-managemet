@@ -8,9 +8,9 @@
     <!-- PWA Meta Tags -->
     @php
         $companyProfile = \App\Models\CompanyProfile::first();
-        $companyName = $companyProfile->display_name ?? 'BCM.net';
-        $companyShortName = $companyProfile->short_name ?? 'PCM';
-        $companyInitials = $companyProfile->initials ?? 'PCM';
+        $companyName = $companyProfile->display_name ?? 'LumaISP';
+        $companyShortName = $companyProfile->short_name ?? 'LumaISP';
+        $companyInitials = $companyProfile->initials ?? 'LUMA';
         $faviconUrl = $companyProfile && $companyProfile->logo_url ? $companyProfile->logo_url : asset('icon-192x192.png');
     @endphp
     <meta name="application-name" content="{{ $companyName }} WiFi Customer">
